@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SailingLoc — Location de bateaux entre particuliers</title>
+  <meta name="description" content="Louez un bateau entre particuliers en France et en Europe. Des centaines de voiliers, catamarans et bateaux à moteur disponibles.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Hero ─────────────────────────────────── */
+    .hero {
+      position: relative; min-height: 560px;
+      display: flex; align-items: center;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+    }
+    .hero-bg img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center 40%;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(8,26,52,.65) 0%, rgba(8,26,52,.45) 60%, rgba(8,26,52,.75) 100%);
+    }
+    .hero-content {
+      position: relative; z-index: 1;
+      padding: 72px 24px; width: 100%;
+    }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,.15); color: rgba(255,255,255,.9);
+      border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(8px);
+      padding: 6px 14px; border-radius: 20px;
+      font-size: .8125rem; font-weight: 600;
+      margin-bottom: 20px; letter-spacing: .02em;
+    }
+    .hero-title {
+      color: var(--white); margin-bottom: 16px; max-width: 620px;
+      text-shadow: 0 2px 12px rgba(0,0,0,.35);
+    }
+    .hero-sub {
+      color: rgba(255,255,255,.85); font-size: 1.125rem;
+      margin-bottom: 40px; max-width: 480px;
+    }
+
+    /* Search form */
+    .search-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: 0 16px 48px rgba(0,0,0,.2);
+      padding: 8px; max-width: 780px;
+    }
+    .search-fields {
+      display: flex; align-items: center;
+      gap: 0; background: var(--white); border-radius: var(--radius-lg);
+    }
+    .search-field {
+      flex: 1; padding: 12px 16px; min-width: 0;
+      display: flex; flex-direction: column; gap: 3px;
+      border-right: 1px solid var(--border);
+    }
+    .search-field:last-of-type { border-right: none; }
+    .search-field label {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-2);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .search-field label i { color: var(--primary); }
+    .search-field input {
+      border: none; outline: none; font-size: .9375rem;
+      font-weight: 500; color: var(--text); background: transparent;
+      padding: 0; width: 100%;
+    }
+    .search-field input::placeholder { color: var(--text-3); font-weight: 400; }
+    .search-btn-wrap { padding: 6px; flex-shrink: 0; }
+    .search-btn { border-radius: var(--radius-lg); padding: 14px 24px; }
+    .search-opts {
+      display: flex; gap: 20px; padding: 12px 16px 4px;
+    }
+    .checkbox-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .8125rem; color: var(--text-2);
+      cursor: pointer; user-select: none;
+    }
+    .checkbox-label input { accent-color: var(--primary); cursor: pointer; }
+
+    /* ── Boat types section ─────────────────── */
+    .boat-types-section { padding: 40px 0 24px; background: var(--white); border-bottom: 1px solid var(--border); }
+    .boat-types-row {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .boat-types-row::-webkit-scrollbar { display: none; }
+    .boat-type-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 14px 20px; border-radius: var(--radius-lg);
+      border: 2px solid var(--border); background: var(--white);
+      font-size: .875rem; font-weight: 600; color: var(--text-2);
+      transition: var(--transition); white-space: nowrap; cursor: pointer;
+      flex-shrink: 0;
+    }
+    .boat-type-btn .icon { font-size: 1.5rem; }
+    .boat-type-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .boat-type-btn.active {
+      border-color: var(--primary); background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* ── Destinations carousel ───────────────── */
+    .dest-card {
+      flex-shrink: 0; width: 240px; border-radius: var(--radius-xl);
+      overflow: hidden; position: relative; cursor: pointer;
+      aspect-ratio: 3/4;
+    }
+    .dest-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .45s ease;
+    }
+    .dest-card:hover img { transform: scale(1.07); }
+    .dest-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.1) 60%);
+    }
+    .dest-card-body {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 20px 16px;
+    }
+    .dest-card-name { font-size: 1.0625rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .dest-card-count { font-size: .8125rem; color: rgba(255,255,255,.8); }
+
+    /* ── Featured boats ──────────────────────── */
+    .boats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    }
+
+    /* ── Comment ça marche ───────────────────── */
+    .how-section { background: var(--bg); }
+    .how-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+    }
+    .how-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      padding: 36px 28px; text-align: center;
+      box-shadow: var(--shadow); transition: var(--transition);
+    }
+    .how-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .how-number {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      font-size: 1.25rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .how-icon { font-size: 2rem; color: var(--primary); margin-bottom: 16px; }
+    .how-card h4 { color: var(--text); margin-bottom: 12px; font-size: 1.125rem; }
+    .how-card p { font-size: .9375rem; color: var(--text-2); line-height: 1.7; }
+
+    /* ── Countries ───────────────────────────── */
+    .countries-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+    }
+    .country-card {
+      border-radius: var(--radius-xl); overflow: hidden;
+      aspect-ratio: 3/2; position: relative; cursor: pointer;
+    }
+    .country-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+    .country-card:hover img { transform: scale(1.08); }
+    .country-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.6) 0%, rgba(0,0,0,.05) 50%);
+    }
+    .country-card-label {
+      position: absolute; bottom: 14px; left: 14px;
+      color: var(--white); font-weight: 700; font-size: 1rem;
+    }
+    .country-card-sub {
+      font-size: .75rem; font-weight: 400; opacity: .85;
+    }
+
+    /* ── CTA propriétaire ────────────────────── */
+    .owner-cta {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-3) 100%);
+      border-radius: var(--radius-2xl); overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1fr;
+      margin: 0 24px;
+    }
+    .owner-cta-text {
+      padding: 64px 56px;
+    }
+    .owner-cta-text .tag {
+      display: inline-block; background: rgba(24,102,242,.25);
+      color: #93B4FF; border: 1px solid rgba(24,102,242,.4);
+      padding: 5px 14px; border-radius: 20px;
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; margin-bottom: 20px;
+    }
+    .owner-cta-text h2 { color: var(--white); margin-bottom: 16px; max-width: 380px; }
+    .owner-cta-text p { color: rgba(255,255,255,.7); margin-bottom: 36px; font-size: .9375rem; line-height: 1.75; max-width: 360px; }
+    .owner-cta-text .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .owner-cta-img { position: relative; overflow: hidden; }
+    .owner-cta-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Why SailingLoc ──────────────────────── */
+    .why-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .why-img {
+      border-radius: var(--radius-2xl); overflow: hidden;
+      aspect-ratio: 4/3; box-shadow: var(--shadow-lg);
+    }
+    .why-img img { width: 100%; height: 100%; object-fit: cover; }
+    .why-tag {
+      display: inline-block; background: var(--primary-light);
+      color: var(--primary); padding: 5px 14px; border-radius: 20px;
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; margin-bottom: 16px;
+    }
+    .why-text h2 { margin-bottom: 16px; }
+    .why-text > p { margin-bottom: 32px; font-size: .9375rem; line-height: 1.75; }
+    .why-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+    .why-item { display: flex; gap: 14px; }
+    .why-item-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0; margin-top: 2px;
+    }
+    .why-item-text h5 { color: var(--text); margin-bottom: 4px; }
+    .why-item-text p { font-size: .875rem; color: var(--text-2); line-height: 1.65; }
+
+    /* ── Stats stripe ────────────────────────── */
+    .stats-stripe { background: var(--primary); padding: 48px 0; }
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      text-align: center; gap: 24px;
+    }
+    .stat-value { font-size: 2.25rem; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 8px; }
+    .stat-label { font-size: .875rem; color: rgba(255,255,255,.8); }
+
+    /* ── Animations ──────────────────────────── */
+    .fade-in { opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .55s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    /* ── Responsive home ─────────────────────── */
+    @media (max-width: 1024px) {
+      .boats-grid { grid-template-columns: repeat(2, 1fr); }
+      .countries-grid { grid-template-columns: repeat(2, 1fr); }
+      .owner-cta { grid-template-columns: 1fr; }
+      .owner-cta-img { display: none; }
+      .why-grid { grid-template-columns: 1fr; gap: 40px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    }
+    @media (max-width: 768px) {
+      .hero { min-height: 480px; }
+      .hero-content { padding: 48px 16px; }
+      .search-card { border-radius: var(--radius-lg); }
+      .search-fields { flex-direction: column; }
+      .search-field { border-right: none; border-bottom: 1px solid var(--border); }
+      .search-field:last-of-type { border-bottom: none; }
+      .how-grid { grid-template-columns: 1fr; }
+      .boats-grid { grid-template-columns: 1fr; }
+      .owner-cta { margin: 0 16px; }
+      .owner-cta-text { padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ================================================
+     NAVBAR
+================================================ -->
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <i class="fa-solid fa-anchor"></i>
+      SailingLoc
+    </a>
+    <nav class="navbar-nav">
+      <a href="categorie.html">Bateaux</a>
+      <a href="categorie.html">Destinations</a>
+      <a href="#comment-ca-marche">Comment ça marche</a>
+      <a href="#">Propriétaires</a>
+    </nav>
+    <div class="navbar-actions">
+      <a href="#" class="btn btn-ghost">Se connecter</a>
+      <a href="#" class="btn btn-primary">Inscrire mon bateau</a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobileNav">
+  <a href="categorie.html">Bateaux</a>
+  <a href="categorie.html">Destinations</a>
+  <a href="#comment-ca-marche">Comment ça marche</a>
+  <a href="#">Propriétaires</a>
+  <a href="#">Se connecter</a>
+  <a href="#" class="btn btn-primary mobile-cta">Inscrire mon bateau</a>
+</div>
+
+<main>
+
+<!-- ================================================
+     HERO
+================================================ -->
+<section class="hero">
+  <div class="hero-bg">
+    <img src="https://picsum.photos/seed/sailing-aerial/1920/800" alt="Vue aérienne d'un voilier">
+    <div class="hero-overlay"></div>
+  </div>
+  <div class="container hero-content">
+    <div class="hero-label">
+      <i class="fa-solid fa-ship"></i>
+      #1 plateforme de location en France
+    </div>
+    <h1 class="hero-title">Location de bateaux<br>entre particuliers</h1>
+    <p class="hero-sub">Des centaines de bateaux en France et en Europe</p>
+
+    <!-- Search card -->
+    <div class="search-card">
+      <div class="search-fields">
+        <div class="search-field">
+          <label><i class="fa-solid fa-location-dot"></i> Destination</label>
+          <input type="text" placeholder="Où souhaitez-vous aller ?">
+        </div>
+        <div class="search-field">
+          <label><i class="fa-regular fa-calendar"></i> Arrivée</label>
+          <input type="date">
+        </div>
+        <div class="search-field">
+          <label><i class="fa-regular fa-calendar"></i> Départ</label>
+          <input type="date">
+        </div>
+        <div class="search-btn-wrap">
+          <a href="categorie.html" class="btn btn-primary search-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Rechercher
+          </a>
+        </div>
+      </div>
+      <div class="search-opts">
+        <label class="checkbox-label">
+          <input type="checkbox">
+          <span>Expérience requise</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" checked>
+          <span>Assurance incluse</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox">
+          <span>Sans permis</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     TYPE DE BATEAU
+================================================ -->
+<section class="boat-types-section">
+  <div class="container">
+    <div class="boat-types-row" role="list">
+      <button class="boat-type-btn active" role="listitem">
+        <span class="icon">⛵</span>
+        <span>Tous les bateaux</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">⛵</span>
+        <span>Voilier</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">🛥️</span>
+        <span>Catamaran</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">🚤</span>
+        <span>Moteur</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">🚢</span>
+        <span>Habitable</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">🛶</span>
+        <span>Semi-rigide</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">🏄</span>
+        <span>Sans permis</span>
+      </button>
+      <button class="boat-type-btn" role="listitem">
+        <span class="icon">⚓</span>
+        <span>Ponton</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     DESTINATIONS POPULAIRES
+================================================ -->
+<section class="section-py">
+  <div class="container">
+    <div class="section-hd fade-in">
+      <h2 class="section-title">Destinations populaires</h2>
+      <a href="categorie.html" class="section-link">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="carousel">
+      <button class="carousel-btn carousel-prev" aria-label="Précédent"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="carousel-track">
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/marseille-port/400/530" alt="Marseille">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Marseille</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 450 bateaux</div>
+          </div>
+        </div>
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/cote-azur/400/530" alt="Côte d'Azur">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Côte d'Azur</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 380 bateaux</div>
+          </div>
+        </div>
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/bretagne-mer/400/530" alt="Bretagne">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Bretagne</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 290 bateaux</div>
+          </div>
+        </div>
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/corse-plage/400/530" alt="Corse">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Corse</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 340 bateaux</div>
+          </div>
+        </div>
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/mediterr-sea/400/530" alt="Méditerranée">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Méditerranée</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 520 bateaux</div>
+          </div>
+        </div>
+        <div class="dest-card fade-in">
+          <img src="https://picsum.photos/seed/caribbean-sea/400/530" alt="Caraïbes">
+          <div class="dest-card-overlay"></div>
+          <div class="dest-card-body">
+            <div class="dest-card-name">Caraïbes</div>
+            <div class="dest-card-count"><i class="fa-solid fa-sailboat"></i> 180 bateaux</div>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-btn carousel-next" aria-label="Suivant"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     BATEAUX EN VEDETTE
+================================================ -->
+<section class="section-py" style="background: var(--bg); padding-top: 0;">
+  <div class="container">
+    <div class="section-hd fade-in">
+      <h2 class="section-title">Bateaux en vedette</h2>
+      <a href="categorie.html" class="section-link">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="boats-grid">
+      <!-- Carte 1 -->
+      <a href="produit.html" class="boat-card fade-in">
+        <div class="boat-card-img">
+          <img src="https://picsum.photos/seed/sun-odyssey/600/450" alt="Sun Odyssey 440">
+          <div class="boat-badge badge-red"><i class="fa-solid fa-heart"></i> Coup de cœur</div>
+          <button class="btn-heart" aria-label="Ajouter aux favoris"><i class="fa-regular fa-heart"></i></button>
+        </div>
+        <div class="boat-card-body">
+          <div class="boat-card-name">Sun Odyssey 440 — Bercy</div>
+          <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Marseille, Vieux-Port</div>
+          <div class="boat-card-foot">
+            <div class="boat-card-rating">
+              <i class="fa-solid fa-star"></i>
+              <strong>4.9</strong>
+              <span class="reviews">(47 avis)</span>
+            </div>
+            <div class="boat-card-price">890 € <span>/ jour</span></div>
+          </div>
+        </div>
+      </a>
+      <!-- Carte 2 -->
+      <a href="produit.html" class="boat-card fade-in">
+        <div class="boat-card-img">
+          <img src="https://picsum.photos/seed/bavaria-cruiser/600/450" alt="Bavaria 46 Cruiser">
+          <div class="boat-badge">Voilier</div>
+          <button class="btn-heart" aria-label="Ajouter aux favoris"><i class="fa-regular fa-heart"></i></button>
+        </div>
+        <div class="boat-card-body">
+          <div class="boat-card-name">Bavaria 46 Cruiser</div>
+          <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Nice, Port de la Darse</div>
+          <div class="boat-card-foot">
+            <div class="boat-card-rating">
+              <i class="fa-solid fa-star"></i>
+              <strong>4.7</strong>
+              <span class="reviews">(32 avis)</span>
+            </div>
+            <div class="boat-card-price">860 € <span>/ jour</span></div>
+          </div>
+        </div>
+      </a>
+      <!-- Carte 3 -->
+      <a href="produit.html" class="boat-card fade-in">
+        <div class="boat-card-img">
+          <img src="https://picsum.photos/seed/jeanneau-54/600/450" alt="Jeanneau 54 DS">
+          <div class="boat-badge badge-green">Nouveau</div>
+          <button class="btn-heart" aria-label="Ajouter aux favoris"><i class="fa-regular fa-heart"></i></button>
+        </div>
+        <div class="boat-card-body">
+          <div class="boat-card-name">Jeanneau 54 DS</div>
+          <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Marseille, La Ciotat</div>
+          <div class="boat-card-foot">
+            <div class="boat-card-rating">
+              <i class="fa-solid fa-star"></i>
+              <strong>4.5</strong>
+              <span class="reviews">(18 avis)</span>
+            </div>
+            <div class="boat-card-price">1 240 € <span>/ jour</span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     COMMENT ÇA MARCHE
+================================================ -->
+<section class="section-py how-section" id="comment-ca-marche">
+  <div class="container">
+    <div class="section-hd fade-in" style="justify-content: center; text-align: center; flex-direction: column; gap: 12px; margin-bottom: 48px;">
+      <h2 class="section-title">Comment ça marche</h2>
+      <p style="color: var(--text-2); max-width: 520px; margin: 0 auto;">Louez un bateau en 3 étapes simples et partez naviguer où vous voulez.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card fade-in">
+        <div class="how-number">1</div>
+        <div class="how-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <h4>Cherchez</h4>
+        <p>Choisissez votre destination, vos dates et le type de bateau idéal parmi des centaines d'annonces vérifiées.</p>
+      </div>
+      <div class="how-card fade-in">
+        <div class="how-number">2</div>
+        <div class="how-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h4>Réservez</h4>
+        <p>Confirmez votre réservation en ligne en toute sécurité. Paiement sécurisé et assurance incluse.</p>
+      </div>
+      <div class="how-card fade-in">
+        <div class="how-number">3</div>
+        <div class="how-icon"><i class="fa-solid fa-compass"></i></div>
+        <h4>Naviguez</h4>
+        <p>Prenez le large et profitez de votre aventure nautique. Notre équipe reste disponible 24h/24.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     PRINCIPAUX PAYS
+================================================ -->
+<section class="section-py">
+  <div class="container">
+    <div class="section-hd fade-in">
+      <h2 class="section-title">Les principaux pays de SailingLoc</h2>
+      <a href="categorie.html" class="section-link">Voir tout <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="countries-grid">
+      <div class="country-card fade-in">
+        <img src="https://picsum.photos/seed/france-sea/600/400" alt="France">
+        <div class="country-card-overlay"></div>
+        <div class="country-card-label">
+          🇫🇷 France
+          <div class="country-card-sub">1 450 bateaux</div>
+        </div>
+      </div>
+      <div class="country-card fade-in">
+        <img src="https://picsum.photos/seed/spain-ocean/600/400" alt="Espagne">
+        <div class="country-card-overlay"></div>
+        <div class="country-card-label">
+          🇪🇸 Espagne
+          <div class="country-card-sub">980 bateaux</div>
+        </div>
+      </div>
+      <div class="country-card fade-in">
+        <img src="https://picsum.photos/seed/greece-island/600/400" alt="Grèce">
+        <div class="country-card-overlay"></div>
+        <div class="country-card-label">
+          🇬🇷 Grèce
+          <div class="country-card-sub">1 230 bateaux</div>
+        </div>
+      </div>
+      <div class="country-card fade-in">
+        <img src="https://picsum.photos/seed/italy-coast/600/400" alt="Italie">
+        <div class="country-card-overlay"></div>
+        <div class="country-card-label">
+          🇮🇹 Italie
+          <div class="country-card-sub">870 bateaux</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     STATS STRIPE
+================================================ -->
+<section class="stats-stripe">
+  <div class="container">
+    <div class="stats-row">
+      <div class="fade-in">
+        <div class="stat-value">15 000+</div>
+        <div class="stat-label">Bateaux disponibles</div>
+      </div>
+      <div class="fade-in">
+        <div class="stat-value">98 %</div>
+        <div class="stat-label">Clients satisfaits</div>
+      </div>
+      <div class="fade-in">
+        <div class="stat-value">45</div>
+        <div class="stat-label">Pays couverts</div>
+      </div>
+      <div class="fade-in">
+        <div class="stat-value">120 k+</div>
+        <div class="stat-label">Voyages réalisés</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     CTA PROPRIÉTAIRE
+================================================ -->
+<section class="section-py">
+  <div class="owner-cta fade-in">
+    <div class="owner-cta-text">
+      <span class="tag"><i class="fa-solid fa-anchor"></i> Propriétaires</span>
+      <h2>Votre bateau dort au port ? Mettez-le en location.</h2>
+      <p>Rejoignez des milliers de propriétaires qui rentabilisent leur bateau tout en le gardant disponible pour leurs propres sorties. Assurance incluse, paiement sécurisé.</p>
+      <div class="cta-row">
+        <a href="#" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus"></i> Mettre en location</a>
+        <a href="#" class="btn btn-outline" style="border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.8);">En savoir plus</a>
+      </div>
+    </div>
+    <div class="owner-cta-img">
+      <img src="https://picsum.photos/seed/marina-sunset/700/500" alt="Marina au coucher de soleil">
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     POURQUOI SAILINGLOC
+================================================ -->
+<section class="section-py" style="background: var(--bg);">
+  <div class="container">
+    <div class="why-grid">
+      <div class="why-img fade-in">
+        <img src="https://picsum.photos/seed/sailing-ocean/800/600" alt="Voilier en mer">
+      </div>
+      <div class="why-text fade-in">
+        <span class="why-tag">Notre mission</span>
+        <h2>Pourquoi SailingLoc ?</h2>
+        <p>SailingLoc simplifie la location entre particuliers, sécurise les échanges et les paiements. Une expérience fluide et premium pour les loueurs comme les propriétaires.</p>
+        <ul class="why-list">
+          <li class="why-item">
+            <div class="why-item-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+            <div class="why-item-text">
+              <h5>Application mobile</h5>
+              <p>Gérez vos réservations depuis votre smartphone, à tout moment et n'importe où.</p>
+            </div>
+          </li>
+          <li class="why-item">
+            <div class="why-item-icon"><i class="fa-solid fa-star"></i></div>
+            <div class="why-item-text">
+              <h5>Note de recommandation</h5>
+              <p>Des milliers d'avis vérifiés pour choisir votre bateau en toute confiance.</p>
+            </div>
+          </li>
+          <li class="why-item">
+            <div class="why-item-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="why-item-text">
+              <h5>Assurance incluse</h5>
+              <p>Couverture complète pour le propriétaire et le locataire pendant toute la durée de la location.</p>
+            </div>
+          </li>
+          <li class="why-item">
+            <div class="why-item-icon"><i class="fa-solid fa-book-open"></i></div>
+            <div class="why-item-text">
+              <h5>Carnet de bord numérique</h5>
+              <p>Suivi en temps réel de vos voyages avec historique complet et documents accessibles.</p>
+            </div>
+          </li>
+        </ul>
+        <a href="contact.html" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> En savoir plus</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ================================================
+     FOOTER
+================================================ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <i class="fa-solid fa-anchor"></i>
+          SailingLoc
+        </div>
+        <p>La plateforme de référence pour la location de bateaux entre particuliers en France et en Europe. Accessible à tous.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Annonces</h5>
+        <ul>
+          <li><a href="categorie.html">Trouver un bateau</a></li>
+          <li><a href="categorie.html">Destinations</a></li>
+          <li><a href="categorie.html">Voiliers</a></li>
+          <li><a href="categorie.html">Catamarans</a></li>
+          <li><a href="categorie.html">Bateaux moteur</a></li>
+          <li><a href="categorie.html">Sans permis</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Propriétaires</h5>
+        <ul>
+          <li><a href="#">Mettre en location</a></li>
+          <li><a href="#">Assurance propriétaire</a></li>
+          <li><a href="#">Tarifs & commissions</a></li>
+          <li><a href="#">Aide propriétaire</a></li>
+          <li><a href="#">Espace propriétaire</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Informations</h5>
+        <ul>
+          <li><a href="#">À propos</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#">Comment ça marche</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Politique RGPD</a></li>
+          <li><a href="#">Blog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Abonnement</h5>
+        <ul>
+          <li><a href="#">Application mobile</a></li>
+          <li><a href="#">Alertes email</a></li>
+          <li><a href="#">Newsletter</a></li>
+          <li><a href="#">Nos partenaires</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 SailingLoc.com — Tous droits réservés</span>
+      <div class="footer-bottom-links">
+        <a href="#">CGU</a>
+        <a href="#">Cookies</a>
+        <a href="#">Confidentialité</a>
+        <a href="#">Mentions légales</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

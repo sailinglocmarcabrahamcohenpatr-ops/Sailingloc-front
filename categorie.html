@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bateaux disponibles — SailingLoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Navbar catégorie (avec barre de recherche) ── */
+    .cat-navbar { background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 200; }
+    .cat-navbar-top { height: 64px; display: flex; align-items: center; gap: 32px; }
+    .cat-search-bar {
+      flex: 1; max-width: 700px;
+      display: flex; align-items: center;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .cat-search-field {
+      flex: 1; padding: 8px 16px; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 2px; min-width: 0;
+    }
+    .cat-search-field:last-of-type { border-right: none; }
+    .cat-search-field label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+    .cat-search-field input { border: none; outline: none; background: transparent; font-size: .875rem; font-weight: 500; color: var(--text); width: 100%; }
+    .cat-search-field input::placeholder { color: var(--text-3); font-weight: 400; }
+    .cat-search-btn { padding: 8px 16px; background: var(--primary); color: var(--white); font-size: .8125rem; font-weight: 700; border-radius: 0; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .cat-search-btn:hover { background: var(--primary-dark); }
+
+    /* ── Filters bar ─────────────────────────────── */
+    .filters-bar { padding: 12px 0; border-top: 1px solid var(--border); }
+    .filters-bar-inner { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .filters-bar-inner::-webkit-scrollbar { display: none; }
+    .filter-btn-icon {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: var(--radius);
+      border: 1.5px solid var(--border); font-size: .8125rem;
+      font-weight: 600; color: var(--text); white-space: nowrap;
+      background: var(--white); cursor: pointer; transition: var(--transition);
+    }
+    .filter-btn-icon:hover { border-color: var(--text); }
+    .filter-btn-icon.primary-filter { background: var(--primary); color: var(--white); border-color: var(--primary); }
+    .clear-filters { font-size: .8125rem; color: var(--red); font-weight: 600; white-space: nowrap; margin-left: auto; cursor: pointer; padding: 4px; flex-shrink: 0; }
+    .clear-filters:hover { text-decoration: underline; }
+
+    /* ── Layout résultats ────────────────────────── */
+    .results-layout {
+      display: grid; grid-template-columns: 1fr 340px;
+      gap: 28px; padding: 28px 0 80px; align-items: start;
+    }
+
+    /* ── Résultats header ────────────────────────── */
+    .results-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .results-count { font-size: .9375rem; color: var(--text-2); }
+    .results-count strong { color: var(--text); }
+    .results-controls { display: flex; align-items: center; gap: 12px; }
+    .view-toggle { display: flex; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .view-btn {
+      padding: 7px 12px; font-size: .875rem; color: var(--text-2);
+      background: var(--white); cursor: pointer; transition: var(--transition); border: none;
+    }
+    .view-btn.active { background: var(--primary); color: var(--white); }
+    .sort-select {
+      padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-size: .8125rem; font-weight: 600; color: var(--text);
+      background: var(--white); cursor: pointer; outline: none;
+    }
+
+    /* ── Grille de bateaux ───────────────────────── */
+    .boats-result-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+    }
+
+    /* ── Carte bateau liste (version compacte) ───── */
+    .boat-card-row {
+      display: flex; gap: 16px; background: var(--white);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow);
+      overflow: hidden; cursor: pointer; transition: var(--transition);
+    }
+    .boat-card-row:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .boat-card-row .boat-card-img { width: 160px; flex-shrink: 0; aspect-ratio: auto; height: 130px; }
+    .boat-card-row .boat-card-body { padding: 14px 14px 14px 0; flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+
+    /* ── Sidebar météo ───────────────────────────── */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 140px; }
+
+    .weather-card {
+      background: linear-gradient(135deg, #1352B5 0%, #0D3D8A 100%);
+      border-radius: var(--radius-xl); padding: 24px; color: var(--white);
+      box-shadow: var(--shadow-md);
+    }
+    .weather-location { font-size: .8125rem; opacity: .75; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+    .weather-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .weather-temp { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+    .weather-temp sup { font-size: 1.25rem; font-weight: 500; opacity: .8; vertical-align: super; }
+    .weather-icon { font-size: 3rem; color: #FFD700; filter: drop-shadow(0 0 12px rgba(255,215,0,.4)); }
+    .weather-desc { font-size: .9375rem; font-weight: 600; margin-bottom: 16px; opacity: .9; }
+    .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .weather-stat { background: rgba(255,255,255,.12); border-radius: var(--radius); padding: 12px; backdrop-filter: blur(4px); }
+    .weather-stat-label { font-size: .7rem; opacity: .7; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .weather-stat-val { font-size: 1.0625rem; font-weight: 700; }
+    .weather-stat-sub { font-size: .7rem; opacity: .7; }
+    .weather-rating { margin-top: 16px; background: rgba(255,255,255,.1); border-radius: var(--radius-lg); padding: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .weather-rating-label { font-size: .8125rem; opacity: .8; }
+    .weather-rating-val { font-weight: 800; font-size: 1rem; color: #4ADE80; }
+
+    /* Info card sidebar */
+    .info-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 24px; }
+    .info-card h5 { font-size: .9375rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+    .info-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-row-icon { width: 36px; height: 36px; border-radius: var(--radius); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: .875rem; flex-shrink: 0; }
+    .info-row-text { flex: 1; }
+    .info-row-text small { font-size: .75rem; color: var(--text-3); display: block; }
+    .info-row-text strong { font-size: .875rem; color: var(--text); }
+    .info-row-badge { font-size: .75rem; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 3px 10px; border-radius: 12px; }
+
+    /* Map card */
+    .map-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; }
+    .map-placeholder { background: linear-gradient(135deg, #E8F4FD, #B0D4F1); height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: var(--primary); position: relative; overflow: hidden; }
+    .map-placeholder::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(24,102,242,.08) 1px, transparent 1px); background-size: 20px 20px; }
+    .map-placeholder i { font-size: 2.5rem; position: relative; z-index: 1; }
+    .map-placeholder span { font-size: .875rem; font-weight: 600; position: relative; z-index: 1; }
+    .map-card-foot { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .map-card-foot span { font-size: .875rem; font-weight: 600; color: var(--text); }
+
+    /* ── Pagination ──────────────────────────────── */
+    .pagination { display: flex; align-items: center; gap: 8px; margin-top: 40px; justify-content: center; flex-wrap: wrap; }
+    .page-btn {
+      width: 40px; height: 40px; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9375rem; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--white);
+      color: var(--text); transition: var(--transition);
+    }
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+    .page-btn.arrow { color: var(--text-2); }
+    .page-dots { color: var(--text-3); padding: 0 4px; }
+
+    /* ── Responsive catégorie ────────────────────── */
+    @media (max-width: 1024px) {
+      .results-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .weather-card, .info-card { max-width: 500px; }
+      .sidebar { flex-direction: row; flex-wrap: wrap; }
+    }
+    @media (max-width: 768px) {
+      .boats-result-grid { grid-template-columns: 1fr; }
+      .cat-search-bar { display: none; }
+      .results-layout { padding: 20px 0 60px; }
+    }
+    @media (max-width: 480px) {
+      .weather-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ================================================
+     NAVBAR CATÉGORIE
+================================================ -->
+<header class="cat-navbar">
+  <div class="container">
+    <div class="cat-navbar-top">
+      <a href="index.html" class="navbar-logo">
+        <i class="fa-solid fa-anchor"></i>
+        SailingLoc
+      </a>
+      <div class="cat-search-bar">
+        <div class="cat-search-field">
+          <label>Destination</label>
+          <input type="text" value="Marseille — Visiteurs">
+        </div>
+        <div class="cat-search-field">
+          <label>Budget</label>
+          <input type="text" placeholder="€1 / j — €4 000 / j">
+        </div>
+        <div class="cat-search-field">
+          <label>Arrivée</label>
+          <input type="date" value="2025-07-10">
+        </div>
+        <div class="cat-search-field">
+          <label>Départ</label>
+          <input type="date" value="2025-07-15">
+        </div>
+        <button class="cat-search-btn"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button>
+      </div>
+      <div class="navbar-actions">
+        <a href="#" class="btn btn-ghost">Se connecter</a>
+        <a href="#" class="btn btn-primary">Inscrire mon bateau</a>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters bar -->
+    <div class="filters-bar">
+      <div class="filters-bar-inner chip-group">
+        <button class="filter-btn-icon primary-filter"><i class="fa-solid fa-sliders"></i> Filtres</button>
+        <button class="chip active"><i class="fa-solid fa-sailboat"></i> Voiliers</button>
+        <button class="chip">Sans permis</button>
+        <button class="chip">Voile 4+</button>
+        <button class="chip">Catamaran</button>
+        <button class="chip">Assurance incluse</button>
+        <button class="chip">Climatisation</button>
+        <button class="chip"><i class="fa-regular fa-calendar"></i> Dates flexibles</button>
+        <span class="clear-filters">Tout effacer</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobileNav">
+  <a href="index.html">Accueil</a>
+  <a href="categorie.html" class="active">Bateaux</a>
+  <a href="#">Destinations</a>
+  <a href="#">Comment ça marche</a>
+  <a href="#">Se connecter</a>
+  <a href="#" class="btn btn-primary mobile-cta">Inscrire mon bateau</a>
+</div>
+
+<main>
+  <div class="container">
+    <div class="results-layout">
+
+      <!-- ── Résultats ─────────────────────────── -->
+      <div>
+        <div class="results-header">
+          <div>
+            <div class="results-count"><strong>140 bateaux disponibles</strong> — 10 / 15 juill.</div>
+          </div>
+          <div class="results-controls">
+            <div class="view-toggle">
+              <button class="view-btn active" title="Grille"><i class="fa-solid fa-grip"></i></button>
+              <button class="view-btn" title="Liste"><i class="fa-solid fa-list"></i></button>
+            </div>
+            <select class="sort-select">
+              <option>Trier par : Pertinence</option>
+              <option>Prix croissant</option>
+              <option>Prix décroissant</option>
+              <option>Mieux notés</option>
+              <option>Nouveautés</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="boats-result-grid">
+          <!-- Bateau 1 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-marina1/600/450" alt="Sun Odyssey 440">
+              <div class="boat-badge badge-red"><i class="fa-solid fa-heart"></i> Coup de cœur</div>
+              <button class="btn-heart" aria-label="Favori"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Sun Odyssey 440</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Marseille, Vieux-Port · 5 cabines</div>
+              <div style="font-size:.75rem; color:var(--text-2);">3 oct. – 5 cabines · 3 toilettes · 2023</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.9</strong> <span class="reviews">(47)</span></div>
+                <div class="boat-card-price">890 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 2 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-sail2/600/450" alt="Bavaria 46 Cruiser">
+              <div class="boat-badge">Voilier</div>
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Bavaria 46 Cruiser</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Nice, Port de la Darse</div>
+              <div style="font-size:.75rem; color:var(--text-2);">3 oct. – 4 cabines · 2 toilettes · 2022</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.7</strong> <span class="reviews">(32)</span></div>
+                <div class="boat-card-price">860 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 3 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-ocean3/600/450" alt="Jeanneau 54 DS">
+              <div class="boat-badge badge-green">Nouveau</div>
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Jeanneau 54 DS</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Marseille, Vieux-Port</div>
+              <div style="font-size:.75rem; color:var(--text-2);">7 oct. – 5 cabines · 3 toilettes · 2023</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.5</strong> <span class="reviews">(18)</span></div>
+                <div class="boat-card-price">1 240 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 4 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-sea4/600/450" alt="Bénéteau Oceanis 511">
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Bénéteau Oceanis 511</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> La Seyne-sur-Mer</div>
+              <div style="font-size:.75rem; color:var(--text-2);">5 oct. – 3 cabines · 2 toilettes · 2021</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.6</strong> <span class="reviews">(29)</span></div>
+                <div class="boat-card-price">720 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 5 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-sail5/600/450" alt="Dufour 430">
+              <div class="boat-badge">Sans permis</div>
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Dufour 430</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Cassis, Port Miou</div>
+              <div style="font-size:.75rem; color:var(--text-2);">3 oct. – 3 cabines · 1 toilette · 2020</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.3</strong> <span class="reviews">(12)</span></div>
+                <div class="boat-card-price">480 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 6 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/catamaran6/600/450" alt="Leopard 45 Catamaran">
+              <div class="boat-badge badge-red"><i class="fa-solid fa-heart"></i> Coup de cœur</div>
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Leopard 45 Catamaran</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Cannes, Vieux-Port</div>
+              <div style="font-size:.75rem; color:var(--text-2);">3 oct. – 4 cabines · 4 toilettes · 2022</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.8</strong> <span class="reviews">(51)</span></div>
+                <div class="boat-card-price">1 650 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 7 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/boat-harbor7/600/450" alt="Hanse 508">
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Hanse 508</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Ajaccio, Corse</div>
+              <div style="font-size:.75rem; color:var(--text-2);">7 oct. – 5 cabines · 3 toilettes · 2021</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.5</strong> <span class="reviews">(23)</span></div>
+                <div class="boat-card-price">980 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+          <!-- Bateau 8 -->
+          <a href="produit.html" class="boat-card">
+            <div class="boat-card-img">
+              <img src="https://picsum.photos/seed/fountain-pajot/600/450" alt="Fountaine Pajot">
+              <div class="boat-badge badge-green">Nouveau</div>
+              <button class="btn-heart"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="boat-card-body">
+              <div class="boat-card-name">Fountaine Pajot 47</div>
+              <div class="boat-card-loc"><i class="fa-solid fa-location-dot"></i> Marseille, Vieux-Port</div>
+              <div style="font-size:.75rem; color:var(--text-2);">5 oct. – 4 cabines · 4 toilettes · 2023</div>
+              <div class="boat-card-foot">
+                <div class="boat-card-rating"><i class="fa-solid fa-star"></i> <strong>4.6</strong> <span class="reviews">(8)</span></div>
+                <div class="boat-card-price">890 € <span>/ jour</span></div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="page-btn arrow" disabled><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <span class="page-dots">…</span>
+          <button class="page-btn">14</button>
+          <button class="page-btn arrow"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+
+      <!-- ── Sidebar ────────────────────────────── -->
+      <aside class="sidebar">
+        <!-- Météo -->
+        <div class="weather-card">
+          <div class="weather-location"><i class="fa-solid fa-location-dot"></i> Marseille Sainte-Victoire</div>
+          <div class="weather-main">
+            <div>
+              <div class="weather-temp">27<sup>°C</sup></div>
+              <div class="weather-desc">Temps radieux</div>
+            </div>
+            <div class="weather-icon"><i class="fa-solid fa-sun"></i></div>
+          </div>
+          <div class="weather-grid">
+            <div class="weather-stat">
+              <div class="weather-stat-label">Vent</div>
+              <div class="weather-stat-val">18 km/h</div>
+              <div class="weather-stat-sub">8.4 nœuds</div>
+            </div>
+            <div class="weather-stat">
+              <div class="weather-stat-label">Visibilité</div>
+              <div class="weather-stat-val">30 km</div>
+              <div class="weather-stat-sub">Excellente</div>
+            </div>
+            <div class="weather-stat">
+              <div class="weather-stat-label">Température eau</div>
+              <div class="weather-stat-val">23°C</div>
+              <div class="weather-stat-sub">7 / 11°C</div>
+            </div>
+            <div class="weather-stat">
+              <div class="weather-stat-label">Houle</div>
+              <div class="weather-stat-val">0.6 m</div>
+              <div class="weather-stat-sub">Mer calme</div>
+            </div>
+          </div>
+          <div class="weather-rating">
+            <div class="weather-rating-label">Conditions de navigation</div>
+            <div class="weather-rating-val">Excellente ★</div>
+          </div>
+        </div>
+
+        <!-- Carte interactive -->
+        <div class="map-card">
+          <div class="map-placeholder">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Voir sur la carte</span>
+          </div>
+          <div class="map-card-foot">
+            <span><i class="fa-solid fa-map-pin" style="color:var(--primary)"></i> 140 bateaux</span>
+            <a href="#" class="btn btn-primary btn-sm"><i class="fa-solid fa-map"></i> Carte</a>
+          </div>
+        </div>
+
+        <!-- Infos utiles -->
+        <div class="info-card">
+          <h5><i class="fa-solid fa-circle-info" style="color:var(--primary)"></i> Informations utiles</h5>
+          <div class="info-row">
+            <div class="info-row-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="info-row-text">
+              <small>Assurance</small>
+              <strong>Incluse dans le prix</strong>
+            </div>
+            <div class="info-row-badge">Incluse</div>
+          </div>
+          <div class="info-row">
+            <div class="info-row-icon"><i class="fa-solid fa-credit-card"></i></div>
+            <div class="info-row-text">
+              <small>Paiement</small>
+              <strong>Sécurisé & garanti</strong>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-row-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="info-row-text">
+              <small>Réponse du propriétaire</small>
+              <strong>Sous 24h en moyenne</strong>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-row-icon"><i class="fa-solid fa-headset"></i></div>
+            <div class="info-row-text">
+              <small>Support</small>
+              <strong>Lun – Ven, 9h – 18h</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA propriétaire -->
+        <div style="background: linear-gradient(135deg, var(--navy) 0%, var(--navy-3) 100%); border-radius: var(--radius-xl); padding: 24px; color: var(--white);">
+          <div style="font-size: 1.5rem; margin-bottom: 12px;">⚓</div>
+          <h5 style="color: var(--white); margin-bottom: 8px;">Votre bateau dort au port ?</h5>
+          <p style="font-size: .8125rem; color: rgba(255,255,255,.65); margin-bottom: 16px; line-height: 1.65;">Rentabilisez-le en le mettant en location dès aujourd'hui.</p>
+          <a href="#" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center;">Mettre en location</a>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo"><i class="fa-solid fa-anchor"></i> SailingLoc</div>
+        <p>La plateforme de référence pour la location de bateaux entre particuliers en France et en Europe.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Annonces</h5>
+        <ul>
+          <li><a href="categorie.html">Trouver un bateau</a></li>
+          <li><a href="categorie.html">Destinations</a></li>
+          <li><a href="categorie.html">Sans permis</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Propriétaires</h5>
+        <ul>
+          <li><a href="#">Mettre en location</a></li>
+          <li><a href="#">Assurance</a></li>
+          <li><a href="#">Aide</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Informations</h5>
+        <ul>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Politique RGPD</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Abonnement</h5>
+        <ul>
+          <li><a href="#">Application mobile</a></li>
+          <li><a href="#">Newsletter</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 SailingLoc.com — Tous droits réservés</span>
+      <div class="footer-bottom-links">
+        <a href="#">CGU</a>
+        <a href="#">Cookies</a>
+        <a href="#">Mentions légales</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // View toggle (grille / liste)
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  // Page buttons
+  document.querySelectorAll('.page-btn:not(.arrow)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.page-btn:not(.arrow)').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

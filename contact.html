@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — SailingLoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Hero contact ─────────────────────────── */
+    .contact-hero {
+      position: relative; min-height: 420px;
+      display: flex; align-items: center; overflow: hidden;
+    }
+    .contact-hero-bg { position: absolute; inset: 0; }
+    .contact-hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 60%; }
+    .contact-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(8,26,52,.78) 0%, rgba(8,26,52,.55) 60%, rgba(8,26,52,.85) 100%); }
+    .contact-hero-content { position: relative; z-index: 1; padding: 72px 0; }
+    .contact-hero-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 20px; font-size: .8125rem; font-weight: 600; margin-bottom: 20px; }
+    .contact-hero-title { color: var(--white); max-width: 560px; margin-bottom: 16px; }
+    .contact-hero-title em { color: #93B4FF; font-style: normal; }
+    .contact-hero-sub { color: rgba(255,255,255,.75); max-width: 460px; font-size: 1rem; line-height: 1.7; margin-bottom: 36px; }
+
+    /* Stats row */
+    .stats-contact { display: flex; gap: 0; flex-wrap: wrap; }
+    .stat-contact { display: flex; flex-direction: column; align-items: center; padding: 16px 32px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); gap: 4px; }
+    .stat-contact:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+    .stat-contact:last-child  { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+    .stat-contact-val { font-size: 1.75rem; font-weight: 800; color: var(--white); line-height: 1; }
+    .stat-contact-label { font-size: .8125rem; color: rgba(255,255,255,.7); }
+
+    /* ── Contact section ─────────────────────── */
+    .contact-section { padding: 72px 0 80px; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+
+    /* Form card */
+    .contact-form-card { background: var(--white); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
+    .contact-form-header { background: linear-gradient(135deg, #1352B5 0%, #0D3D8A 100%); padding: 28px 32px; }
+    .contact-form-header h3 { color: var(--white); margin-bottom: 6px; }
+    .contact-form-header p { color: rgba(255,255,255,.7); font-size: .875rem; }
+    .contact-form-body { padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Subject radio */
+    .contact-subject-label { font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 10px; display: block; }
+    .contact-radios { display: flex; flex-wrap: wrap; gap: 8px; }
+    .contact-radio { display: flex; align-items: center; }
+    .contact-radio input { display: none; }
+    .contact-radio label { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: .8125rem; font-weight: 600; cursor: pointer; transition: var(--transition); color: var(--text-2); }
+    .contact-radio input:checked + label, .contact-radio.active label { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .contact-radio label:hover { border-color: var(--text-2); }
+
+    /* Two columns fields */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Submit */
+    .form-submit-btn { width: 100%; justify-content: center; padding: 15px; font-size: 1rem; border-radius: var(--radius-lg); }
+    .form-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .form-footer a { font-size: .8125rem; color: var(--text-2); text-decoration: underline; }
+    .form-footer a:hover { color: var(--primary); }
+    .form-secure { display: flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--green); font-weight: 600; }
+
+    /* Sidebar contact */
+    .contact-sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+    .contact-info-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 28px; border: 1px solid var(--border); }
+    .contact-info-card h4 { font-size: 1rem; margin-bottom: 20px; color: var(--text); }
+    .contact-info-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .contact-info-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .contact-info-icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: .9375rem; flex-shrink: 0; }
+    .contact-info-text { flex: 1; }
+    .contact-info-text small { font-size: .75rem; color: var(--text-3); display: block; margin-bottom: 2px; }
+    .contact-info-text strong { display: block; font-size: .9375rem; color: var(--text); }
+    .contact-info-text p { font-size: .8125rem; color: var(--text-2); margin: 2px 0 0; }
+    .contact-info-badge { font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; flex-shrink: 0; margin-top: 4px; }
+    .badge-green { background: #D1FAE5; color: #059669; }
+    .badge-orange { background: #FEF3C7; color: #D97706; }
+
+    /* Urgence card */
+    .urgence-card { background: linear-gradient(135deg, #FFF5F5, #FEE2E2); border-radius: var(--radius-xl); padding: 24px; border: 1px solid #FCA5A5; }
+    .urgence-card-title { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; color: #B91C1C; margin-bottom: 16px; }
+    .urgence-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(239,68,68,.2); }
+    .urgence-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .urgence-row span { font-size: .875rem; color: #7F1D1D; }
+    .urgence-row strong { font-size: .9375rem; color: #991B1B; font-weight: 700; }
+
+    /* ── FAQ ──────────────────────────────────── */
+    .faq-section { padding: 80px 0; background: var(--bg); }
+    .faq-header { text-align: center; margin-bottom: 48px; }
+    .faq-header h2 { margin-bottom: 12px; }
+    .faq-header p { color: var(--text-2); max-width: 480px; margin: 0 auto; }
+    .faq-tabs-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 40px; flex-wrap: wrap; }
+    .faq-tab { padding: 9px 20px; border-radius: 24px; border: 1.5px solid var(--border); font-size: .875rem; font-weight: 600; color: var(--text-2); background: var(--white); cursor: pointer; transition: var(--transition); }
+    .faq-tab:hover { border-color: var(--primary); color: var(--primary); }
+    .faq-tab.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+    .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 48px; max-width: 900px; margin: 0 auto; }
+    .faq-col { }
+
+    /* ── CTA final ────────────────────────────── */
+    .cta-final { background: linear-gradient(135deg, var(--primary) 0%, #0D3D8A 100%); padding: 80px 0; text-align: center; }
+    .cta-final-tag { display: inline-block; background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); padding: 6px 16px; border-radius: 20px; font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 20px; }
+    .cta-final h2 { color: var(--white); margin-bottom: 16px; }
+    .cta-final h2 em { color: #FFD700; font-style: normal; }
+    .cta-final p { color: rgba(255,255,255,.75); font-size: 1rem; max-width: 480px; margin: 0 auto 36px; line-height: 1.7; }
+    .cta-final-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-white-outline { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,.4); }
+    .btn-white-outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.7); }
+
+    /* ── Responsive contact ──────────────────── */
+    @media (max-width: 1024px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .contact-sidebar { position: static; }
+    }
+    @media (max-width: 768px) {
+      .contact-hero { min-height: 320px; }
+      .contact-hero-content { padding: 48px 0; }
+      .stats-contact { flex-direction: row; }
+      .stat-contact { padding: 12px 20px; }
+      .faq-grid { grid-template-columns: 1fr; gap: 0; }
+      .form-row { grid-template-columns: 1fr; }
+      .contact-form-body { padding: 24px 20px; }
+      .contact-form-header { padding: 24px 20px; }
+    }
+    @media (max-width: 480px) {
+      .stats-contact { flex-direction: column; }
+      .stat-contact { border-radius: 0 !important; border-bottom: 1px solid rgba(255,255,255,.1); }
+      .stat-contact:first-child { border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important; }
+      .stat-contact:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important; border-bottom: none; }
+      .cta-final-btns { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="index.html" class="navbar-logo"><i class="fa-solid fa-anchor"></i> SailingLoc</a>
+    <nav class="navbar-nav">
+      <a href="categorie.html">Bateaux</a>
+      <a href="categorie.html">Destinations</a>
+      <a href="#">Comment ça marche</a>
+      <a href="#">Propriétaires</a>
+    </nav>
+    <div class="navbar-actions">
+      <a href="#" class="btn btn-ghost">Se connecter</a>
+      <a href="#" class="btn btn-primary">Inscrire mon bateau</a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="index.html">Accueil</a>
+  <a href="categorie.html">Bateaux</a>
+  <a href="#">Se connecter</a>
+  <a href="#" class="btn btn-primary mobile-cta">Inscrire mon bateau</a>
+</div>
+
+<!-- ================================================
+     HERO CONTACT
+================================================ -->
+<section class="contact-hero">
+  <div class="contact-hero-bg">
+    <img src="https://picsum.photos/seed/contact-sea/1920/700" alt="Mer depuis un voilier">
+    <div class="contact-hero-overlay"></div>
+  </div>
+  <div class="container contact-hero-content">
+    <div class="contact-hero-tag"><i class="fa-solid fa-headset"></i> Support &amp; Contact</div>
+    <h1 class="contact-hero-title">On est là pour <em>vous aider</em> à prendre le large</h1>
+    <p class="contact-hero-sub">Notre équipe de passionnés de voile est disponible pour répondre à toutes vos questions sur la location, les bateaux et les destinations.</p>
+    <div class="stats-contact">
+      <div class="stat-contact">
+        <div class="stat-contact-val"><i class="fa-solid fa-less-than" style="font-size:1rem"></i> 48h</div>
+        <div class="stat-contact-label">Délai de réponse moyen</div>
+      </div>
+      <div class="stat-contact">
+        <div class="stat-contact-val">98%</div>
+        <div class="stat-contact-label">Satisfaction client</div>
+      </div>
+      <div class="stat-contact">
+        <div class="stat-contact-val">Lun–Ven</div>
+        <div class="stat-contact-label">Disponibilité équipe</div>
+      </div>
+      <div class="stat-contact">
+        <div class="stat-contact-val">100%</div>
+        <div class="stat-contact-label">Réservations sécurisées</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     CONTACT FORM + SIDEBAR
+================================================ -->
+<section class="contact-section">
+  <div class="container">
+    <div class="contact-grid">
+
+      <!-- Form -->
+      <div class="contact-form-card">
+        <div class="contact-form-header">
+          <h3><i class="fa-solid fa-paper-plane"></i> Envoyez-nous un message</h3>
+          <p>Nous vous répondrons dans les meilleurs délais</p>
+        </div>
+        <div class="contact-form-body">
+
+          <!-- Sujet -->
+          <div>
+            <span class="contact-subject-label">Sujet de votre message</span>
+            <div class="contact-radios">
+              <div class="contact-radio active">
+                <input type="radio" name="subject" id="subj1" checked>
+                <label for="subj1"><i class="fa-solid fa-sailboat"></i> Réservation</label>
+              </div>
+              <div class="contact-radio">
+                <input type="radio" name="subject" id="subj2">
+                <label for="subj2"><i class="fa-solid fa-credit-card"></i> Paiement</label>
+              </div>
+              <div class="contact-radio">
+                <input type="radio" name="subject" id="subj3">
+                <label for="subj3"><i class="fa-solid fa-file"></i> Documents</label>
+              </div>
+              <div class="contact-radio">
+                <input type="radio" name="subject" id="subj4">
+                <label for="subj4"><i class="fa-solid fa-shield-halved"></i> Assurance</label>
+              </div>
+              <div class="contact-radio">
+                <input type="radio" name="subject" id="subj5">
+                <label for="subj5"><i class="fa-solid fa-anchor"></i> Propriétaires</label>
+              </div>
+              <div class="contact-radio">
+                <input type="radio" name="subject" id="subj6">
+                <label for="subj6"><i class="fa-solid fa-ellipsis"></i> Autre</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nom / Prénom -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label req" for="firstName">Prénom</label>
+              <input type="text" id="firstName" class="form-input" placeholder="ex. Thomas">
+            </div>
+            <div class="form-group">
+              <label class="form-label req" for="lastName">Nom</label>
+              <input type="text" id="lastName" class="form-input" placeholder="ex. Martin">
+            </div>
+          </div>
+
+          <!-- Email / Téléphone -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label req" for="email">Email</label>
+              <input type="email" id="email" class="form-input" placeholder="thomas@exemple.fr">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Téléphone</label>
+              <input type="tel" id="phone" class="form-input" placeholder="06 12 34 56 78">
+            </div>
+          </div>
+
+          <!-- N° de réservation -->
+          <div class="form-group">
+            <label class="form-label" for="booking">N° de réservation (facultatif)</label>
+            <input type="text" id="booking" class="form-input" placeholder="ex. SL-2025-00124">
+          </div>
+
+          <!-- Message -->
+          <div class="form-group">
+            <label class="form-label req" for="message">Votre message</label>
+            <textarea id="message" class="form-input" rows="5" placeholder="Décrivez votre demande en détail pour que nous puissions vous aider le plus rapidement possible..."></textarea>
+          </div>
+
+          <!-- RGPD -->
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <input type="checkbox" id="rgpd" style="margin-top: 3px; accent-color: var(--primary); cursor: pointer; flex-shrink:0;">
+            <label for="rgpd" style="font-size: .8125rem; color: var(--text-2); cursor: pointer; line-height: 1.6;">
+              J'accepte que mes données soient traitées conformément à la <a href="#" style="color: var(--primary); font-weight: 600;">politique de confidentialité</a> de SailingLoc. Vous pouvez vous désabonner à tout moment.
+            </label>
+          </div>
+
+          <!-- Bouton + footer -->
+          <button type="submit" class="btn btn-primary form-submit-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+            Envoyer mon message
+          </button>
+          <div class="form-footer">
+            <div class="form-secure"><i class="fa-solid fa-lock"></i> Formulaire sécurisé</div>
+            <div style="display: flex; gap: 16px;">
+              <a href="#"><i class="fa-solid fa-phone"></i> Nous appeler</a>
+              <a href="#"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="contact-sidebar">
+        <!-- Contact direct -->
+        <div class="contact-info-card">
+          <h4><i class="fa-solid fa-circle-info" style="color:var(--primary)"></i> Nous contacter directement</h4>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><i class="fa-regular fa-envelope"></i></div>
+            <div class="contact-info-text">
+              <small>Email</small>
+              <strong>contact@sailingloc.com</strong>
+              <p>Réponse sous 24-48h ouvrées</p>
+            </div>
+            <div class="contact-info-badge badge-green">Rapide</div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><i class="fa-solid fa-phone"></i></div>
+            <div class="contact-info-text">
+              <small>Téléphone</small>
+              <strong>+33 1 23 45 67 89</strong>
+              <p>Lun–Ven · 9h00 – 18h00</p>
+            </div>
+            <div class="contact-info-badge badge-orange">Lun–Ven</div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><i class="fa-brands fa-whatsapp"></i></div>
+            <div class="contact-info-text">
+              <small>WhatsApp</small>
+              <strong>+33 6 12 34 56 78</strong>
+              <p>Réponse rapide en journée</p>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="contact-info-text">
+              <small>Horaires d'ouverture</small>
+              <strong>Lun–Ven : 9h – 18h</strong>
+              <p>Sam : 9h – 13h</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Urgence -->
+        <div class="urgence-card">
+          <div class="urgence-card-title">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Aide d'urgence
+          </div>
+          <div class="urgence-row">
+            <span>Urgence en mer</span>
+            <strong>CROSS : 196</strong>
+          </div>
+          <div class="urgence-row">
+            <span>Assistance SailingLoc 24h/7j</span>
+            <strong>+33 8 00 XX XX XX</strong>
+          </div>
+          <div class="urgence-row">
+            <span>Numéro WhatsApp urgences</span>
+            <strong>+33 6 XX XX XX XX</strong>
+          </div>
+          <p style="font-size: .75rem; color: #991B1B; margin-top: 12px; line-height: 1.6;">
+            En cas de danger immédiat en mer, composez le <strong>196</strong> (CROSS) ou le <strong>15</strong> (SAMU) depuis terre.
+          </p>
+        </div>
+
+        <!-- Réseaux sociaux -->
+        <div class="contact-info-card">
+          <h4><i class="fa-solid fa-share-nodes" style="color:var(--primary)"></i> Suivez-nous</h4>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="#" style="display: flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); font-size: .8125rem; font-weight: 600; color: var(--text); transition: var(--transition);" onmouseover="this.style.borderColor='#1877F2';this.style.color='#1877F2'" onmouseout="this.style.borderColor=''">
+              <i class="fa-brands fa-facebook" style="font-size:1.1rem;"></i> Facebook
+            </a>
+            <a href="#" style="display: flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); font-size: .8125rem; font-weight: 600; color: var(--text); transition: var(--transition);" onmouseover="this.style.borderColor='#E1306C';this.style.color='#E1306C'" onmouseout="this.style.borderColor=''">
+              <i class="fa-brands fa-instagram" style="font-size:1.1rem;"></i> Instagram
+            </a>
+            <a href="#" style="display: flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); font-size: .8125rem; font-weight: 600; color: var(--text); transition: var(--transition);">
+              <i class="fa-brands fa-x-twitter" style="font-size:1.1rem;"></i> Twitter / X
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     FAQ
+================================================ -->
+<section class="faq-section">
+  <div class="container">
+    <div class="faq-header">
+      <h2>Questions fréquentes</h2>
+      <p>Trouvez rapidement les réponses à vos questions les plus courantes.</p>
+    </div>
+    <div class="faq-tabs-row">
+      <button class="faq-tab active" data-tab="faq-resa">Réservations</button>
+      <button class="faq-tab" data-tab="faq-pay">Paiement</button>
+      <button class="faq-tab" data-tab="faq-doc">Documents</button>
+      <button class="faq-tab" data-tab="faq-assur">Assurance</button>
+      <button class="faq-tab" data-tab="faq-prop">Propriétaires</button>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-col">
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Comment annuler ma réservation sans frais ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>Vous pouvez annuler gratuitement jusqu'à 72 heures avant votre départ. Passé ce délai, des frais d'annulation peuvent s'appliquer selon la politique du propriétaire. Pour annuler, rendez-vous dans votre espace "Mes réservations".</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Quels documents dois-je fournir pour louer ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>Pour les bateaux nécessitant un permis, vous devrez fournir une copie de votre permis côtier ou hauturier valide. Une pièce d'identité est toujours requise. Ces documents sont à présenter lors du check-in avec le propriétaire.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Comment fonctionne le paiement sécurisé ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>SailingLoc utilise un système de paiement sécurisé par séquestre. Votre paiement est débité lors de la réservation mais n'est reversé au propriétaire qu'après votre embarquement. En cas de problème, vous êtes protégé à 100%.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Puis-je sous-louer le bateau à des tiers ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>Non. La sous-location est strictement interdite par nos conditions générales d'utilisation. Seuls les passagers déclarés lors de la réservation sont autorisés à bord du bateau.</p>
+          </div>
+        </div>
+      </div>
+      <div class="faq-col">
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Pourquoi ne pas traiter directement avec le propriétaire ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>En passant par SailingLoc, vous bénéficiez d'une assurance, d'une assistance 24h/7j, d'un paiement sécurisé par séquestre et d'une garantie en cas de problème. Les transactions directes hors plateforme ne vous offrent aucune protection.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Comment mettre mon bateau en location sur SailingLoc ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>Créez un compte propriétaire gratuitement, publiez votre annonce avec photos et description, définissez vos tarifs et disponibilités. SailingLoc prend une commission de 15% sur chaque location. L'inscription et la publication d'annonces sont gratuites.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Quelle est la couverture de l'assurance incluse ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>Notre assurance couvre la responsabilité civile du locataire, les dommages causés au bateau (sous déduction de la caution) et l'assistance en mer. Elle est valable dans les eaux européennes pour les bateaux déclarés sur SailingLoc.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-btn">
+            Que faire si le bateau est endommagé ?
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="accordion-body">
+            <p>En cas de dommage, contactez immédiatement notre assistance 24h/7j. Photographiez les dégâts et remplissez un constat à l'amiable avec le propriétaire. Notre équipe vous guidera dans les démarches d'assurance et de remboursement de caution.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+     CTA FINAL
+================================================ -->
+<section class="cta-final">
+  <div class="container">
+    <div class="cta-final-tag"><i class="fa-solid fa-anchor"></i> Prêt à partir ?</div>
+    <h2>Prêt à prendre <em>le large ?</em></h2>
+    <p>Des centaines de bateaux vous attendent en France et en Europe. Votre prochaine aventure nautique commence ici.</p>
+    <div class="cta-final-btns">
+      <a href="categorie.html" class="btn btn-white btn-xl">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        Trouver un bateau
+      </a>
+      <a href="#" class="btn btn-xl btn-white-outline">
+        <i class="fa-solid fa-anchor"></i>
+        Mettre en location
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo"><i class="fa-solid fa-anchor"></i> SailingLoc</div>
+        <p>La plateforme de référence pour la location de bateaux entre particuliers en France et en Europe. Accessible à tous.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Annonces</h5>
+        <ul>
+          <li><a href="categorie.html">Trouver un bateau</a></li>
+          <li><a href="categorie.html">Destinations</a></li>
+          <li><a href="categorie.html">Voiliers</a></li>
+          <li><a href="categorie.html">Sans permis</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Propriétaires</h5>
+        <ul>
+          <li><a href="#">Mettre en location</a></li>
+          <li><a href="#">Assurance propriétaire</a></li>
+          <li><a href="#">Tarifs &amp; commissions</a></li>
+          <li><a href="#">Espace propriétaire</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Informations</h5>
+        <ul>
+          <li><a href="contact.html" class="active">Contact</a></li>
+          <li><a href="#">À propos</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Politique RGPD</a></li>
+          <li><a href="#">Blog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Abonnement</h5>
+        <ul>
+          <li><a href="#">Application mobile</a></li>
+          <li><a href="#">Newsletter</a></li>
+          <li><a href="#">Nos partenaires</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 SailingLoc.com — Tous droits réservés</span>
+      <div class="footer-bottom-links">
+        <a href="#">CGU</a>
+        <a href="#">Cookies</a>
+        <a href="#">Confidentialité</a>
+        <a href="#">Mentions légales</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // FAQ tabs
+  document.querySelectorAll('.faq-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.faq-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+  // Subject radio labels click
+  document.querySelectorAll('.contact-radio label').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.contact-radio').forEach(r => r.classList.remove('active'));
+      label.closest('.contact-radio').classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

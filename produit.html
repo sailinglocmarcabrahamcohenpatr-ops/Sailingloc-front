@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sun Odyssey 440 — Bercy · SailingLoc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Breadcrumb ───────────────────────────── */
+    .breadcrumb { padding: 16px 0; display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--text-2); flex-wrap: wrap; }
+    .breadcrumb a:hover { color: var(--primary); text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-3); }
+
+    /* ── Gallery ─────────────────────────────── */
+    .gallery { display: grid; grid-template-columns: 1fr 280px; grid-template-rows: repeat(2, 1fr); gap: 8px; height: 440px; border-radius: var(--radius-2xl); overflow: hidden; margin-bottom: 8px; }
+    .gallery-main { grid-row: 1 / 3; border-radius: 0; overflow: hidden; position: relative; cursor: pointer; }
+    .gallery-main img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+    .gallery-main:hover img { transform: scale(1.03); }
+    .gallery-thumb { overflow: hidden; position: relative; cursor: pointer; border-radius: 0; }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+    .gallery-thumb:hover img, .gallery-thumb.active img { transform: scale(1.05); }
+    .gallery-thumb.active::after { content: ''; position: absolute; inset: 0; border: 3px solid var(--primary); border-radius: 4px; pointer-events: none; }
+    .gallery-actions { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 28px; }
+    .gallery-act-btn { display: flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--white); font-size: .8125rem; font-weight: 600; color: var(--text); cursor: pointer; transition: var(--transition); }
+    .gallery-act-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Page layout ─────────────────────────── */
+    .product-layout { display: grid; grid-template-columns: 1fr 360px; gap: 48px; align-items: start; padding-bottom: 80px; }
+    .booking-sentinel { position: absolute; top: 0; }
+
+    /* ── Product header ──────────────────────── */
+    .product-header { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .product-type-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); background: var(--primary-light); padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; }
+    .product-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 12px; }
+    .product-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .product-rating { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+    .product-rating i { color: var(--star); }
+    .product-rating a { color: var(--text-2); font-weight: 400; font-size: .875rem; text-decoration: underline; }
+    .product-loc { display: flex; align-items: center; gap: 5px; color: var(--text-2); font-size: .9375rem; }
+    .product-loc i { color: var(--primary); }
+    .product-owner { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+    .product-owner-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+    .product-owner-info small { font-size: .75rem; color: var(--text-3); }
+    .product-owner-info strong { display: block; font-size: .9375rem; }
+    .product-owner-info a { color: var(--primary); font-size: .8125rem; font-weight: 600; }
+
+    /* ── Characteristics ─────────────────────── */
+    .specs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .spec-card { background: var(--bg); border-radius: var(--radius-lg); padding: 16px; text-align: center; }
+    .spec-card .spec-icon { font-size: 1.25rem; color: var(--primary); margin-bottom: 8px; }
+    .spec-card .spec-val { font-size: 1.0625rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .spec-card .spec-lbl { font-size: .75rem; color: var(--text-2); margin-top: 4px; }
+
+    /* ── Description ─────────────────────────── */
+    .description { padding: 28px 0; border-top: 1px solid var(--border); }
+    .description h3 { margin-bottom: 16px; }
+    .description p { font-size: .9375rem; color: var(--text-2); line-height: 1.8; margin-bottom: 12px; }
+    .read-more { color: var(--primary); font-weight: 600; font-size: .9375rem; cursor: pointer; border: none; background: none; padding: 0; margin-top: 8px; display: flex; align-items: center; gap: 5px; }
+
+    /* ── Equipment ───────────────────────────── */
+    .equipment { padding: 28px 0; border-top: 1px solid var(--border); }
+    .equipment h3 { margin-bottom: 20px; }
+    .equip-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .equip-item { display: flex; align-items: center; gap: 10px; font-size: .875rem; color: var(--text-2); }
+    .equip-item i { color: var(--green); font-size: .8rem; width: 18px; }
+
+    /* ── Rules ───────────────────────────────── */
+    .rules { padding: 28px 0; border-top: 1px solid var(--border); }
+    .rules h3 { margin-bottom: 20px; }
+    .rules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .rule-item { display: flex; flex-direction: column; gap: 4px; }
+    .rule-item strong { font-size: .875rem; color: var(--text); display: flex; align-items: center; gap: 7px; }
+    .rule-item strong i { color: var(--primary); width: 16px; }
+    .rule-item p { font-size: .8125rem; color: var(--text-2); line-height: 1.6; margin: 0; }
+
+    /* ── Reviews ─────────────────────────────── */
+    .reviews-section { padding: 28px 0; border-top: 1px solid var(--border); }
+    .reviews-section h3 { margin-bottom: 24px; }
+    .reviews-overview { display: grid; grid-template-columns: 120px 1fr; gap: 28px; align-items: center; margin-bottom: 32px; padding: 24px; background: var(--bg); border-radius: var(--radius-xl); }
+    .reviews-score-big { text-align: center; }
+    .reviews-score-num { font-size: 4rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .reviews-score-max { font-size: 1rem; color: var(--text-2); margin-bottom: 8px; }
+    .reviews-bars { display: flex; flex-direction: column; gap: 8px; }
+    .review-bar-row { display: flex; align-items: center; gap: 10px; }
+    .review-bar-label { font-size: .75rem; color: var(--text-2); min-width: 100px; }
+    .review-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .review-bar-fill { height: 100%; background: var(--star); border-radius: 4px; }
+    .review-bar-pct { font-size: .75rem; font-weight: 700; color: var(--text); min-width: 30px; text-align: right; }
+    .review-card { display: flex; flex-direction: column; gap: 10px; padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .review-card:last-child { border-bottom: none; }
+    .review-author { display: flex; align-items: center; gap: 12px; }
+    .review-author-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 700; font-size: 1rem; }
+    .review-author-info strong { display: block; font-size: .9375rem; color: var(--text); }
+    .review-author-info span { font-size: .8125rem; color: var(--text-3); }
+    .review-rating { display: flex; align-items: center; gap: 4px; }
+    .review-rating i { color: var(--star); font-size: .8rem; }
+    .review-body { font-size: .9375rem; color: var(--text-2); line-height: 1.75; }
+    .review-imgs { display: flex; gap: 8px; }
+    .review-imgs img { width: 80px; height: 60px; object-fit: cover; border-radius: var(--radius); }
+
+    /* ── Localisation ────────────────────────── */
+    .location-section { padding: 28px 0; border-top: 1px solid var(--border); }
+    .location-section h3 { margin-bottom: 16px; }
+    .location-map { background: linear-gradient(135deg, #E8F4FD, #B0D4F1); height: 260px; border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: var(--primary); position: relative; overflow: hidden; cursor: pointer; }
+    .location-map::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(24,102,242,.08) 1px, transparent 1px); background-size: 20px 20px; }
+    .location-map i { font-size: 3rem; position: relative; z-index: 1; }
+    .location-map span { font-weight: 600; font-size: 1rem; position: relative; z-index: 1; }
+    .location-label { margin-top: 12px; font-size: .9375rem; color: var(--text-2); display: flex; align-items: flex-start; gap: 8px; }
+    .location-label i { color: var(--primary); margin-top: 2px; }
+
+    /* ── Booking card ────────────────────────── */
+    .booking-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden; position: sticky; top: 88px; }
+    .booking-header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-3) 100%); padding: 24px; }
+    .booking-price { font-size: 2rem; font-weight: 800; color: var(--white); }
+    .booking-price span { font-size: 1rem; font-weight: 400; color: rgba(255,255,255,.7); }
+    .booking-rating { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .booking-rating i { color: var(--star); font-size: .875rem; }
+    .booking-rating span { font-size: .875rem; color: rgba(255,255,255,.75); }
+    .booking-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .booking-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .booking-date-field { padding: 12px; }
+    .booking-date-field:first-child { border-right: 1px solid var(--border); }
+    .booking-date-field label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); display: block; margin-bottom: 4px; }
+    .booking-date-field input { border: none; outline: none; width: 100%; font-size: .9375rem; font-weight: 600; color: var(--text); }
+    .booking-guests { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-lg); }
+    .booking-guests label { font-size: .875rem; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .booking-guests label i { color: var(--primary); }
+    .guest-counter { display: flex; align-items: center; gap: 12px; }
+    .guest-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: var(--transition); background: var(--white); color: var(--text); }
+    .guest-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .guest-count { font-size: 1rem; font-weight: 700; min-width: 20px; text-align: center; }
+    .booking-total { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--bg); border-radius: var(--radius-lg); }
+    .booking-total-row { display: flex; justify-content: space-between; align-items: center; font-size: .9375rem; }
+    .booking-total-row span { color: var(--text-2); }
+    .booking-total-row strong { color: var(--text); font-weight: 700; }
+    .booking-total-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .booking-total-final { display: flex; justify-content: space-between; font-size: 1.0625rem; font-weight: 800; color: var(--text); }
+    .booking-cta { width: 100%; padding: 15px; justify-content: center; border-radius: var(--radius-lg); font-size: 1rem; }
+    .booking-note { text-align: center; font-size: .8125rem; color: var(--text-3); margin-top: -8px; }
+    .booking-info { display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--text-2); padding: 12px 16px; background: #FFFBEB; border-radius: var(--radius); border: 1px solid #FCD34D; }
+    .booking-info i { color: #F59E0B; margin-top: 2px; flex-shrink: 0; }
+    .booking-contact { display: flex; justify-content: center; gap: 20px; padding-top: 8px; }
+    .booking-contact a { font-size: .8125rem; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+    .booking-contact a:hover { color: var(--primary); }
+
+    /* ── Responsive produit ──────────────────── */
+    @media (max-width: 1024px) {
+      .product-layout { grid-template-columns: 1fr; }
+      .booking-card { position: static; }
+      .specs-grid { grid-template-columns: repeat(3, 1fr); }
+      .gallery { grid-template-columns: 1fr 200px; height: 360px; }
+    }
+    @media (max-width: 768px) {
+      .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
+      .gallery-main { height: 260px; }
+      .gallery-thumb { display: none; }
+      .specs-grid { grid-template-columns: repeat(2, 1fr); }
+      .equip-grid, .rules-grid { grid-template-columns: 1fr; }
+      .reviews-overview { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="index.html" class="navbar-logo"><i class="fa-solid fa-anchor"></i> SailingLoc</a>
+    <nav class="navbar-nav">
+      <a href="categorie.html">Bateaux</a>
+      <a href="categorie.html">Destinations</a>
+      <a href="#">Comment ça marche</a>
+      <a href="#">Propriétaires</a>
+    </nav>
+    <div class="navbar-actions">
+      <a href="#" class="btn btn-ghost">Se connecter</a>
+      <a href="#" class="btn btn-primary">Inscrire mon bateau</a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-nav" id="mobileNav">
+  <a href="index.html">Accueil</a>
+  <a href="categorie.html">Bateaux</a>
+  <a href="#">Se connecter</a>
+  <a href="#" class="btn btn-primary mobile-cta">Inscrire mon bateau</a>
+</div>
+
+<main>
+  <div class="container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a href="index.html"><i class="fa-solid fa-house"></i> Accueil</a>
+      <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+      <a href="categorie.html">Région de location</a>
+      <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+      <a href="categorie.html">Voiliers Marseille</a>
+      <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+      <span>Sun Odyssey 440 — Bercy</span>
+    </nav>
+
+    <!-- Gallery -->
+    <div class="gallery">
+      <div class="gallery-main">
+        <img src="https://picsum.photos/seed/odyssey-main/1200/800" alt="Sun Odyssey 440 vue principale" id="mainGalleryImg">
+      </div>
+      <div class="gallery-thumb active">
+        <img src="https://picsum.photos/seed/odyssey-cockpit/600/400" alt="Cockpit du Sun Odyssey 440" class="gallery-thumb-img" data-src="https://picsum.photos/seed/odyssey-cockpit/1200/800">
+      </div>
+      <div class="gallery-thumb">
+        <img src="https://picsum.photos/seed/odyssey-cabin/600/400" alt="Cabine principale" data-src="https://picsum.photos/seed/odyssey-cabin/1200/800">
+      </div>
+    </div>
+    <div class="gallery-actions">
+      <button class="gallery-act-btn"><i class="fa-solid fa-heart"></i> Enregistrer</button>
+      <button class="gallery-act-btn"><i class="fa-solid fa-share-nodes"></i> Partager</button>
+      <button class="gallery-act-btn"><i class="fa-regular fa-images"></i> Voir toutes les photos</button>
+    </div>
+
+    <!-- Product layout -->
+    <div class="product-layout">
+      <div style="position: relative;">
+        <div class="booking-sentinel"></div>
+
+        <!-- Header -->
+        <div class="product-header">
+          <div class="product-type-tag"><i class="fa-solid fa-sailboat"></i> Voilier</div>
+          <h1 class="product-title">Sun Odyssey 440 — Bercy</h1>
+          <div class="product-meta">
+            <div class="product-rating">
+              <i class="fa-solid fa-star"></i>
+              4.9 &nbsp;·&nbsp;
+              <a href="#avis">47 avis</a>
+            </div>
+            <div class="product-loc">
+              <i class="fa-solid fa-location-dot"></i>
+              Marseille, Vieux-Port · Bouches-du-Rhône
+            </div>
+          </div>
+          <div class="product-owner">
+            <img src="https://i.pravatar.cc/96?u=marc-owner" alt="Marc" class="product-owner-avatar">
+            <div class="product-owner-info">
+              <small>Proposé par</small>
+              <strong>Marc D.</strong>
+              <a href="#">Voir le profil <i class="fa-solid fa-arrow-right" style="font-size:.7rem"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caractéristiques -->
+        <div class="specs-grid">
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-ruler-horizontal"></i></div>
+            <div class="spec-val">13,5 m</div>
+            <div class="spec-lbl">Longueur</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-arrows-left-right"></i></div>
+            <div class="spec-val">4,35 m</div>
+            <div class="spec-lbl">Largeur</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="spec-val">8 pers.</div>
+            <div class="spec-lbl">Capacité</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-bed"></i></div>
+            <div class="spec-val">5 cab.</div>
+            <div class="spec-lbl">Couchettes</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-regular fa-calendar"></i></div>
+            <div class="spec-val">2023</div>
+            <div class="spec-lbl">Année</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-id-card"></i></div>
+            <div class="spec-val">Requis</div>
+            <div class="spec-lbl">Permis</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-gas-pump"></i></div>
+            <div class="spec-val">Diesel</div>
+            <div class="spec-lbl">Carburant</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-icon"><i class="fa-solid fa-gauge-high"></i></div>
+            <div class="spec-val">9 nœuds</div>
+            <div class="spec-lbl">Vitesse</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="description">
+          <h3>Description</h3>
+          <p>Le Sun Odyssey 440 est un voilier moderne et confortable, idéal pour une croisière en famille ou entre amis en Méditerranée. Lancé en 2023, il allie performance et habitabilité grâce à son large cockpit ouvert et ses 5 cabines indépendantes avec chacune leur propre salle de bains.</p>
+          <p>Basé au Vieux-Port de Marseille, ce voilier vous permettra d'explorer les calanques, les îles du Frioul et de rejoindre facilement la Corse ou la Côte d'Azur. Un vrai bijou de navigation pour les passionnés de voile.</p>
+          <button class="read-more">Lire la suite <i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+
+        <!-- Équipements -->
+        <div class="equipment">
+          <h3>Équipements &amp; confort</h3>
+          <div class="equip-grid">
+            <div class="equip-item"><i class="fa-solid fa-check"></i> GPS &amp; chartplotter</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Wi-Fi à bord</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Climatisation</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Pilote automatique</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Réfrigérateur</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Cuisinière au gaz (3 feux)</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Panneau solaire</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Dessalinisateur</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Dinghy + moteur HB</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Équipements de plongée</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> VHF portatif</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Équipements de sécurité</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Draps &amp; serviettes</div>
+            <div class="equip-item"><i class="fa-solid fa-check"></i> Antifouling récent (2024)</div>
+          </div>
+        </div>
+
+        <!-- Règles & conditions -->
+        <div class="rules">
+          <h3>Règles &amp; conditions de location</h3>
+          <div class="rules-grid">
+            <div class="rule-item">
+              <strong><i class="fa-solid fa-clock"></i> Heure d'arrivée</strong>
+              <p>À partir de 17h00. Départ avant 09h00. Remise des clés au port.</p>
+            </div>
+            <div class="rule-item">
+              <strong><i class="fa-solid fa-shield-halved"></i> Caution</strong>
+              <p>Caution de 5 000 € par empreinte bancaire. Restituée sous 5 jours après le retour.</p>
+            </div>
+            <div class="rule-item">
+              <strong><i class="fa-solid fa-gas-pump"></i> Carburant</strong>
+              <p>Plein fourni au départ. Retour avec le même niveau de carburant.</p>
+            </div>
+            <div class="rule-item">
+              <strong><i class="fa-solid fa-circle-question"></i> Comment ?</strong>
+              <p>Check-in avec briefing de 45 minutes. Skipper disponible sur demande.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avis -->
+        <div class="reviews-section" id="avis">
+          <h3><i class="fa-solid fa-star" style="color:var(--star)"></i> 4.9 · 47 avis</h3>
+          <div class="reviews-overview">
+            <div class="reviews-score-big">
+              <div class="reviews-score-num">4.9</div>
+              <div class="reviews-score-max">/ 5</div>
+              <div class="stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+              </div>
+            </div>
+            <div class="reviews-bars">
+              <div class="review-bar-row">
+                <span class="review-bar-label">État général</span>
+                <div class="review-bar-track"><div class="review-bar-fill" style="width:96%"></div></div>
+                <span class="review-bar-pct">4.8</span>
+              </div>
+              <div class="review-bar-row">
+                <span class="review-bar-label">Confort</span>
+                <div class="review-bar-track"><div class="review-bar-fill" style="width:98%"></div></div>
+                <span class="review-bar-pct">4.9</span>
+              </div>
+              <div class="review-bar-row">
+                <span class="review-bar-label">Équipements</span>
+                <div class="review-bar-track"><div class="review-bar-fill" style="width:94%"></div></div>
+                <span class="review-bar-pct">4.7</span>
+              </div>
+              <div class="review-bar-row">
+                <span class="review-bar-label">Communication</span>
+                <div class="review-bar-track"><div class="review-bar-fill" style="width:100%"></div></div>
+                <span class="review-bar-pct">5.0</span>
+              </div>
+              <div class="review-bar-row">
+                <span class="review-bar-label">Rapport qualité/prix</span>
+                <div class="review-bar-track"><div class="review-bar-fill" style="width:90%"></div></div>
+                <span class="review-bar-pct">4.5</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avis individuels -->
+          <div class="review-card">
+            <div class="review-author">
+              <div class="review-author-avatar">S</div>
+              <div class="review-author-info">
+                <strong>Sophie &amp; Tancrède</strong>
+                <span>Juillet 2025</span>
+              </div>
+            </div>
+            <div class="review-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="review-body">Bateau exceptionnel ! Marc est un propriétaire très à l'écoute qui nous a parfaitement briefés. Le Sun Odyssey 440 est en parfait état, très bien équipé. Nous avons fait un merveilleux tour des calanques puis rejoint l'île de Porquerolles. Expérience inoubliable, on reviendra sans hésiter.</div>
+            <div class="review-imgs">
+              <img src="https://picsum.photos/seed/review-calanque/160/120" alt="Photo de voyage">
+              <img src="https://picsum.photos/seed/review-sunset/160/120" alt="Coucher de soleil">
+            </div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-author">
+              <div class="review-author-avatar">T</div>
+              <div class="review-author-info">
+                <strong>Thomas &amp; Clara</strong>
+                <span>Juin 2025</span>
+              </div>
+            </div>
+            <div class="review-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star-half-stroke"></i>
+            </div>
+            <div class="review-body">Très belle expérience avec ce voilier. Le bateau est superbe et Marc répond très rapidement. Quelques petits équipements à améliorer (barbecue en fin de vie) mais l'ensemble est vraiment au niveau. La navigation en Méditerranée depuis Marseille est fantastique avec ce bateau.</div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-author">
+              <div class="review-author-avatar">A</div>
+              <div class="review-author-info">
+                <strong>Antoine B.</strong>
+                <span>Mai 2025</span>
+              </div>
+            </div>
+            <div class="review-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="review-body">Cinquième location avec SailingLoc et toujours aussi satisfait ! Ce Sun Odyssey est vraiment l'un des meilleurs bateaux de la flotte. Excellent rapport qualité-prix pour ce niveau de confort.</div>
+          </div>
+
+          <div style="text-align: center; margin-top: 24px;">
+            <button class="btn btn-outline"><i class="fa-solid fa-comments"></i> Voir les 47 avis</button>
+          </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="location-section">
+          <h3>Localisation</h3>
+          <div class="location-map">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Marseille, Vieux-Port — PACA</span>
+          </div>
+          <p class="location-label">
+            <i class="fa-solid fa-location-dot"></i>
+            Quai de Rive Neuve, 13007 Marseille — L'adresse exacte vous sera communiquée après confirmation de la réservation.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Booking card ─────────────────────── -->
+      <aside>
+        <div class="booking-card">
+          <div class="booking-header">
+            <div class="booking-price">890 € <span>/ jour</span></div>
+            <div class="booking-rating">
+              <i class="fa-solid fa-star"></i>
+              <span>4.9 · 47 avis</span>
+            </div>
+          </div>
+          <div class="booking-body">
+            <div class="booking-dates">
+              <div class="booking-date-field">
+                <label>Arrivée</label>
+                <input type="date" value="2025-07-10">
+              </div>
+              <div class="booking-date-field">
+                <label>Départ</label>
+                <input type="date" value="2025-07-17">
+              </div>
+            </div>
+
+            <div class="booking-guests">
+              <label><i class="fa-solid fa-user"></i> Passagers</label>
+              <div class="guest-counter">
+                <button class="guest-btn" id="guestMinus"><i class="fa-solid fa-minus"></i></button>
+                <span class="guest-count" id="guestCount">4</span>
+                <button class="guest-btn" id="guestPlus"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+
+            <div class="booking-info">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Ce bateau est très demandé. Il ne reste que 2 disponibilités ce mois-ci.</span>
+            </div>
+
+            <div class="booking-total">
+              <div class="booking-total-row">
+                <span>890 € × 7 jours</span>
+                <strong>6 230 €</strong>
+              </div>
+              <div class="booking-total-row">
+                <span>Frais de service SailingLoc</span>
+                <strong>430 €</strong>
+              </div>
+              <div class="booking-total-row">
+                <span>Assurance incluse</span>
+                <strong style="color: var(--green);">Offerte</strong>
+              </div>
+              <div class="booking-total-divider"></div>
+              <div class="booking-total-final">
+                <span>Total</span>
+                <span>6 660 €</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary booking-cta">
+              <i class="fa-solid fa-calendar-check"></i>
+              Réserver maintenant
+            </button>
+            <p class="booking-note">Vous ne serez débité qu'après confirmation du propriétaire</p>
+            <div class="booking-contact">
+              <a href="contact.html"><i class="fa-regular fa-comment"></i> Contacter Marc</a>
+              <a href="#"><i class="fa-solid fa-phone"></i> Appeler</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infos rapides -->
+        <div style="margin-top: 20px; background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; gap: 10px; font-size: .875rem; color: var(--text-2);">
+            <i class="fa-solid fa-shield-halved" style="color:var(--green); margin-top:2px; flex-shrink:0"></i>
+            <span><strong style="color:var(--text)">Réservation sécurisée</strong> — Paiement protégé par SailingLoc</span>
+          </div>
+          <div style="display: flex; gap: 10px; font-size: .875rem; color: var(--text-2);">
+            <i class="fa-solid fa-rotate-left" style="color:var(--primary); margin-top:2px; flex-shrink:0"></i>
+            <span><strong style="color:var(--text)">Annulation gratuite</strong> jusqu'à 72h avant le départ</span>
+          </div>
+          <div style="display: flex; gap: 10px; font-size: .875rem; color: var(--text-2);">
+            <i class="fa-solid fa-headset" style="color:var(--primary); margin-top:2px; flex-shrink:0"></i>
+            <span><strong style="color:var(--text)">Support 7j/7</strong> en cas de problème pendant votre croisière</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo"><i class="fa-solid fa-anchor"></i> SailingLoc</div>
+        <p>La plateforme de référence pour la location de bateaux entre particuliers en France et en Europe.</p>
+      </div>
+      <div class="footer-col"><h5>Annonces</h5><ul><li><a href="categorie.html">Trouver un bateau</a></li><li><a href="categorie.html">Destinations</a></li></ul></div>
+      <div class="footer-col"><h5>Propriétaires</h5><ul><li><a href="#">Mettre en location</a></li><li><a href="#">Assurance</a></li></ul></div>
+      <div class="footer-col"><h5>Informations</h5><ul><li><a href="contact.html">Contact</a></li><li><a href="#">FAQ</a></li></ul></div>
+      <div class="footer-col"><h5>Abonnement</h5><ul><li><a href="#">App mobile</a></li><li><a href="#">Newsletter</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 SailingLoc.com — Tous droits réservés</span>
+      <div class="footer-bottom-links"><a href="#">CGU</a><a href="#">Cookies</a><a href="#">Mentions légales</a></div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // Counter passagers
+  const guestCount = document.getElementById('guestCount');
+  document.getElementById('guestMinus').addEventListener('click', () => {
+    const v = parseInt(guestCount.textContent);
+    if (v > 1) guestCount.textContent = v - 1;
+  });
+  document.getElementById('guestPlus').addEventListener('click', () => {
+    const v = parseInt(guestCount.textContent);
+    if (v < 8) guestCount.textContent = v + 1;
+  });
+
+  // Galerie miniatures
+  document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
+      const src = thumb.querySelector('img').dataset.src || thumb.querySelector('img').src;
+      document.getElementById('mainGalleryImg').src = src;
+    });
+  });
+</script>
+</body>
+</html>
