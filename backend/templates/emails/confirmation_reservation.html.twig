@@ -1,0 +1,72 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block sujet %}Confirmation de réservation #{{ reservation.id }}{% endblock %}
+
+{% block contenu %}
+    <h2>Bonjour {{ locataire.prenom }} 👋</h2>
+    <p>
+        Votre réservation a bien été enregistrée et est en attente de paiement.
+        Retrouvez ci-dessous le récapitulatif de votre location.
+    </p>
+
+    <div class="card">
+        <div class="card-row">
+            <span class="label">Bateau</span>
+            <span class="value">{{ bateau.nom }} ({{ bateau.type }})</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Localisation</span>
+            <span class="value">{{ bateau.localisation }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Arrivée</span>
+            <span class="value">{{ reservation.dateDebut|date('d/m/Y') }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Départ</span>
+            <span class="value">{{ reservation.dateFin|date('d/m/Y') }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Durée</span>
+            <span class="value">{{ reservation.nombreJours }} jour(s)</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Personnes</span>
+            <span class="value">{{ reservation.nombrePersonnes }}</span>
+        </div>
+        <hr class="divider">
+        <div class="card-row">
+            <span class="label">Location ({{ reservation.nombreJours }} j × {{ bateau.prixJourEuros|number_format(2, ',', ' ') }} €)</span>
+            <span class="value">{{ (reservation.montantBateauCentimes / 100)|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Frais de service (10 %)</span>
+            <span class="value">{{ reservation.fraisServiceEuros|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="total-row">
+            <span>Total</span>
+            <span>{{ reservation.montantTotalEuros|number_format(2, ',', ' ') }} €</span>
+        </div>
+    </div>
+
+    <p style="text-align:center;">
+        <span class="badge badge-pending">En attente de paiement</span>
+    </p>
+
+    <p>
+        Pour confirmer votre réservation, veuillez procéder au paiement en cliquant sur le bouton ci-dessous.
+        Votre place ne sera définitivement réservée qu'après validation du paiement.
+    </p>
+
+    <p style="text-align:center;">
+        <a class="btn" href="{{ url('paiement_checkout', {reservationId: reservation.id}) }}">
+            Payer {{ reservation.montantTotalEuros|number_format(2, ',', ' ') }} €
+        </a>
+    </p>
+
+    <hr class="divider">
+    <p style="font-size:13px; color:#a0aec0;">
+        Numéro de réservation : <strong>#{{ reservation.id }}</strong><br>
+        Propriétaire du bateau : {{ bateau.proprietaire.nomComplet }}
+    </p>
+{% endblock %}

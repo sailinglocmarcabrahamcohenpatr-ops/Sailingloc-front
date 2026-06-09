@@ -1,0 +1,34 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block sujet %}Annulation de réservation #{{ reservation.id }}{% endblock %}
+
+{% block contenu %}
+    <h2>Réservation annulée</h2>
+    <p>
+        Bonjour {{ destinataire.prenom }},<br>
+        La réservation n° <strong>#{{ reservation.id }}</strong> pour le bateau
+        <strong>{{ bateau.nom }}</strong> a bien été annulée.
+    </p>
+
+    <div class="card">
+        <div class="card-row">
+            <span class="label">Bateau</span>
+            <span class="value">{{ bateau.nom }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Dates annulées</span>
+            <span class="value">{{ reservation.dateDebut|date('d/m/Y') }} → {{ reservation.dateFin|date('d/m/Y') }}</span>
+        </div>
+    </div>
+
+    <p>
+        Si vous avez des questions, n'hésitez pas à nous contacter à
+        <a href="mailto:contact@sailingloc.com">contact@sailingloc.com</a>.
+    </p>
+
+    <p style="text-align:center;">
+        <a class="btn" href="{{ url('reservation_nouvelle', {bateauId: bateau.id}) }}">
+            Faire une nouvelle réservation
+        </a>
+    </p>
+{% endblock %}

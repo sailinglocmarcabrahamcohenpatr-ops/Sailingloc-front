@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paiement confirmé — SailingLoc{% endblock %}
+{% block body %}
+<div style="text-align:center; padding: 64px 16px;">
+    <div style="font-size:64px;">✅</div>
+    <h1 style="color: #155724; margin: 16px 0 8px;">Paiement réussi !</h1>
+    <p style="color: #4a5568; font-size:16px; max-width:480px; margin:0 auto 32px;">
+        Votre réservation <strong>#{{ reservation.id }}</strong> est confirmée.
+        Un email récapitulatif vous a été envoyé à <strong>{{ reservation.locataire.email }}</strong>.
+    </p>
+
+    <div style="background:#fff; border-radius:12px; padding:24px; max-width:480px; margin:0 auto 32px; text-align:left; box-shadow:0 2px 12px rgba(0,0,0,.06);">
+        <p style="margin:0 0 8px;"><strong>{{ reservation.bateau.nom }}</strong></p>
+        <p style="margin:0 0 4px; color:#718096; font-size:14px;">{{ reservation.dateDebut|date('d/m/Y') }} → {{ reservation.dateFin|date('d/m/Y') }} · {{ reservation.nombreJours }} j</p>
+        <p style="margin:8px 0 0; font-size:18px; font-weight:700; color:var(--primary);">
+            {{ reservation.montantTotalEuros|number_format(2, ',', ' ') }} € payés
+        </p>
+    </div>
+
+    <a href="{{ path('reservation_liste') }}" style="background:var(--primary); color:#fff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600;">
+        Voir mes réservations
+    </a>
+</div>
+{% endblock %}

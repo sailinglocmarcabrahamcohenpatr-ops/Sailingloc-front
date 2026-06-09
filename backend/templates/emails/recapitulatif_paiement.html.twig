@@ -1,0 +1,82 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block sujet %}Récapitulatif de paiement — Réservation #{{ reservation.id }}{% endblock %}
+
+{% block contenu %}
+    <h2>Paiement confirmé ✅</h2>
+    <p>
+        Félicitations <strong>{{ locataire.prenom }}</strong> ! Votre paiement a bien été reçu.
+        Votre réservation est maintenant <strong>confirmée</strong>. Voici votre récapitulatif complet.
+    </p>
+
+    <p style="text-align:center;">
+        <span class="badge badge-success">Réservation confirmée</span>
+    </p>
+
+    <div class="card">
+        <div class="card-row">
+            <span class="label">Réservation n°</span>
+            <span class="value">#{{ reservation.id }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Bateau</span>
+            <span class="value">{{ bateau.nom }} ({{ bateau.type }})</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Localisation</span>
+            <span class="value">{{ bateau.localisation }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Du</span>
+            <span class="value">{{ reservation.dateDebut|date('d/m/Y') }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Au</span>
+            <span class="value">{{ reservation.dateFin|date('d/m/Y') }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Durée</span>
+            <span class="value">{{ reservation.nombreJours }} jour(s)</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Personnes</span>
+            <span class="value">{{ reservation.nombrePersonnes }}</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-row">
+            <span class="label">Location</span>
+            <span class="value">{{ (reservation.montantBateauCentimes / 100)|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Frais de service</span>
+            <span class="value">{{ reservation.fraisServiceEuros|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="total-row">
+            <span>Total débité</span>
+            <span>{{ reservation.montantTotalEuros|number_format(2, ',', ' ') }} €</span>
+        </div>
+        {% if paiement %}
+        <div class="card-row" style="margin-top:12px;">
+            <span class="label">Référence paiement</span>
+            <span class="value" style="font-size:12px; word-break:break-all;">{{ paiement.stripePaymentIntentId }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Date de paiement</span>
+            <span class="value">{{ paiement.payeAt|date('d/m/Y à H:i') }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <p>
+        Conservez cet email comme preuve de paiement. Le propriétaire du bateau a été notifié
+        et vous contactera prochainement pour les détails pratiques de la remise des clés.
+    </p>
+
+    <p style="text-align:center;">
+        <a class="btn" href="{{ url('reservation_detail', {id: reservation.id}) }}">
+            Voir ma réservation
+        </a>
+    </p>
+{% endblock %}

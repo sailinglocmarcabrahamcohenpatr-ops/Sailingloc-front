@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paiement annulé — SailingLoc{% endblock %}
+{% block body %}
+<div style="text-align:center; padding: 64px 16px;">
+    <div style="font-size:64px;">❌</div>
+    <h1 style="color: #721c24; margin: 16px 0 8px;">Paiement annulé</h1>
+    <p style="color: #4a5568; font-size:16px; max-width:480px; margin:0 auto 32px;">
+        Vous avez annulé le paiement. Votre réservation <strong>#{{ reservation.id }}</strong>
+        reste en attente. Vous pouvez réessayer à tout moment.
+    </p>
+
+    <a href="{{ path('paiement_checkout', {reservationId: reservation.id}) }}"
+       style="background:var(--primary); color:#fff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; margin-right:12px;">
+        Réessayer le paiement
+    </a>
+    <a href="{{ path('reservation_liste') }}"
+       style="background:#e2e8f0; color:#1a1a2e; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600;">
+        Mes réservations
+    </a>
+</div>
+{% endblock %}

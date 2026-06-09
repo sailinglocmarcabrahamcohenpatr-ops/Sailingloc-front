@@ -1,0 +1,51 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block sujet %}Nouvelle réservation pour {{ bateau.nom }}{% endblock %}
+
+{% block contenu %}
+    <h2>Bonjour {{ proprietaire.prenom }} 🎉</h2>
+    <p>
+        Bonne nouvelle ! Votre bateau <strong>{{ bateau.nom }}</strong> vient de faire l'objet
+        d'une nouvelle réservation confirmée. Voici les détails.
+    </p>
+
+    <p style="text-align:center;">
+        <span class="badge badge-success">Réservation confirmée</span>
+    </p>
+
+    <div class="card">
+        <div class="card-row">
+            <span class="label">Locataire</span>
+            <span class="value">{{ locataire.nomComplet }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Contact</span>
+            <span class="value">{{ locataire.email }}{% if locataire.telephone %} · {{ locataire.telephone }}{% endif %}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Dates</span>
+            <span class="value">{{ reservation.dateDebut|date('d/m/Y') }} → {{ reservation.dateFin|date('d/m/Y') }}</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Durée</span>
+            <span class="value">{{ reservation.nombreJours }} jour(s)</span>
+        </div>
+        <div class="card-row">
+            <span class="label">Personnes à bord</span>
+            <span class="value">{{ reservation.nombrePersonnes }}</span>
+        </div>
+        <div class="total-row">
+            <span>Vous percevrez</span>
+            <span>{{ (reservation.montantBateauCentimes / 100)|number_format(2, ',', ' ') }} €</span>
+        </div>
+    </div>
+
+    <p>
+        Le paiement est sécurisé par séquestre : les fonds vous seront reversés après l'embarquement
+        du locataire. Veuillez contacter le locataire pour organiser la remise du bateau.
+    </p>
+
+    <p style="font-size:13px; color:#a0aec0;">
+        Réservation n° <strong>#{{ reservation.id }}</strong>
+    </p>
+{% endblock %}
