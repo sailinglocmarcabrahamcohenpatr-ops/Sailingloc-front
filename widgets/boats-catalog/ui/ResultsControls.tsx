@@ -1,0 +1,54 @@
+"use client";
+
+import { useState } from "react";
+
+type ViewMode = "grid" | "list";
+
+interface ResultsControlsProps {
+  count: number;
+  dates?: string;
+  subtitle?: string;
+}
+
+export default function ResultsControls({ count, dates, subtitle }: ResultsControlsProps) {
+  const [view, setView] = useState<ViewMode>("grid");
+
+  return (
+    <div className="results-header">
+      <div>
+        <div className="results-count">
+          <strong>{count} bateau{count !== 1 ? "x" : ""} disponible{count !== 1 ? "s" : ""}</strong>
+          {subtitle && <span> — {subtitle}</span>}
+          {dates && <span> · {dates}</span>}
+        </div>
+      </div>
+      <div className="results-controls">
+        <div className="view-toggle" role="group" aria-label="Mode d'affichage">
+          <button
+            className={`view-btn${view === "grid" ? " active" : ""}`}
+            title="Grille"
+            aria-pressed={view === "grid"}
+            onClick={() => setView("grid")}
+          >
+            <i className="fa-solid fa-grip" aria-hidden="true" />
+          </button>
+          <button
+            className={`view-btn${view === "list" ? " active" : ""}`}
+            title="Liste"
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
+          >
+            <i className="fa-solid fa-list" aria-hidden="true" />
+          </button>
+        </div>
+        <select className="sort-select" aria-label="Trier les résultats">
+          <option>Trier par : Pertinence</option>
+          <option>Prix croissant</option>
+          <option>Prix décroissant</option>
+          <option>Mieux notés</option>
+          <option>Nouveautés</option>
+        </select>
+      </div>
+    </div>
+  );
+}
