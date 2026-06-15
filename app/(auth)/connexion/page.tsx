@@ -7,9 +7,21 @@ export const metadata: Metadata = {
   description: "Connectez-vous à votre espace SailingLoc pour accéder à vos réservations et messages.",
 };
 
-export default function ConnexionPage() {
+interface PageProps {
+  searchParams: Promise<{ registered?: string }>;
+}
+
+export default async function ConnexionPage({ searchParams }: PageProps) {
+  const { registered } = await searchParams;
+
   return (
     <div className="auth-card">
+      {registered === "1" && (
+        <div className="auth-success" role="alert">
+          <i className="fa-solid fa-circle-check" aria-hidden="true" />
+          Compte créé avec succès ! Connectez-vous maintenant.
+        </div>
+      )}
       <div className="auth-card-header">
         <h1>Bon retour !</h1>
         <p className="auth-card-sub">Connectez-vous à votre espace SailingLoc</p>

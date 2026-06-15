@@ -1,5 +1,7 @@
 import { api, setToken, removeToken, ApiError } from "./api-client";
 
+export type { ApiError };
+
 export type BackendRole = "ROLE_USER" | "ROLE_PROPRIETAIRE" | "ROLE_ADMIN";
 
 export interface LoginPayload {
@@ -10,65 +12,82 @@ export interface LoginPayload {
 export interface RegisterPayload {
   email: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
-  prenom?: string;
-  nom?: string;
+  nom: string;
+  prenom: string;
   telephone?: string;
-  role?: BackendRole;
 }
 
-export interface AuthResponse {
-  token?: string;
-  accessToken?: string;
-  type?: string;
-  id?: number;
+interface LoginResponse {
+  token: string;
+}
+
+interface JwtPayload {
+  sub?: string;
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  username?: string;
   prenom?: string;
   nom?: string;
+  firstName?: string;
+  lastName?: string;
   roles?: BackendRole[];
-  role?: BackendRole;
+  authorities?: Array<{ authority: string } | string>;
+  exp?: number;
+  iat?: number;
 }
 
-function extractToken(data: AuthResponse): string {
-  const t = data.token ?? data.accessToken;
-  if (!t) throw new ApiError(200, "Token manquant dans la réponse du serveur");
-  return t;
+function decodeJwt(token: string): JwtPayload {
+  try {
+    const base64 = token.split(".")[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    return JSON.parse(atob(base64)) as JwtPayload;
+  } catch {
+    return {};
+  }
 }
 
-function extractRole(data: AuthResponse): BackendRole {
-  if (Array.isArray(data.roles) && data.roles.length > 0) return data.roles[0];
-  return data.role ?? "ROLE_USER";
+function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
+  const roles: string[] = [];
+
+  if (Array.isArray(payload.roles)) {
+    roles.push(...payload.roles);
+  }
+  if (Array.isArray(payload.authorities)) {
+    for (const a of payload.authorities) {
+      roles.push(typeof a === "string" ? a : a.authority);
+    }
+  }
+
+  return roles.some((r) => r.includes("PROPRIETAIRE")) ? "proprietaire" : "locataire";
 }
 
-function backendRoleToLocal(role: BackendRole): "locataire" | "proprietaire" {
-  return role === "ROLE_PROPRIETAIRE" ? "proprietaire" : "locataire";
+function extractNameFromJwt(payload: JwtPayload, fallbackEmail: string): string {
+  const prenom = payload.prenom ?? payload.firstName ?? "";
+  const nom = payload.nom ?? payload.lastName ?? "";
+  if (prenom || nom) return [prenom, nom].filter(Boolean).join(" ");
+  return (payload.sub ?? payload.email ?? payload.username ?? fallbackEmail).split("@")[0];
 }
 
 export async function apiLogin(payload: LoginPayload) {
-  const data = await api.post<AuthResponse>("/api/auth/login", payload, false);
-  const token = extractToken(data);
+  const data = await api.post<LoginResponse>("/api/auth/login", payload, false);
+  const token = data.token;
+  if (!token) throw new ApiError(200, "Token manquant dans la réponse du serveur");
+
   setToken(token);
+
+  const jwt = decodeJwt(token);
+  const email = jwt.sub ?? jwt.email ?? jwt.username ?? payload.email;
+
   return {
     token,
-    email: data.email ?? payload.email,
-    name: [data.prenom ?? data.firstName, data.nom ?? data.lastName].filter(Boolean).join(" ") || payload.email.split("@")[0],
-    role: backendRoleToLocal(extractRole(data)),
+    email,
+    name: extractNameFromJwt(jwt, email),
+    role: extractRoleFromJwt(jwt),
   };
 }
 
 export async function apiRegister(payload: RegisterPayload) {
-  const data = await api.post<AuthResponse>("/api/auth/register", payload, false);
-  const token = extractToken(data);
-  setToken(token);
-  return {
-    token,
-    email: data.email ?? payload.email,
-    name: [data.prenom ?? data.firstName ?? payload.prenom ?? payload.firstName, data.nom ?? data.lastName ?? payload.nom ?? payload.lastName].filter(Boolean).join(" ") || payload.email.split("@")[0],
-    role: backendRoleToLocal(extractRole(data)),
-  };
+  await api.post<unknown>("/api/auth/register", payload, false);
 }
 
 export function apiLogout() {

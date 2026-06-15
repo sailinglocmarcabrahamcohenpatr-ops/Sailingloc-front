@@ -4,14 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AccountType } from "@/shared/types";
-import { useAuth } from "@/shared/lib";
 import { apiRegister, ApiError } from "@/shared/lib";
 
 const STEPS = ["Votre compte", "Vos informations", "Confirmation"];
 
 export default function RegisterForm() {
   const router = useRouter();
-  const { login } = useAuth();
 
   const [step, setStep] = useState(0);
   const [accountType, setAccountType] = useState<AccountType>("locataire");
@@ -26,6 +24,7 @@ export default function RegisterForm() {
 
   const next = () => {
     if (step === 0 && (!email || !password)) { setError("E-mail et mot de passe requis."); return; }
+    if (step === 0 && password.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères."); return; }
     if (step === 1 && (!firstName || !lastName)) { setError("Prénom et nom requis."); return; }
     setError("");
     setStep((s) => s + 1);
@@ -37,19 +36,19 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      const result = await apiRegister({
+      await apiRegister({
         email,
         password,
         prenom: firstName,
         nom: lastName,
         telephone: phone || undefined,
-        role: accountType === "proprietaire" ? "ROLE_PROPRIETAIRE" : "ROLE_USER",
       });
-      login(result.email, result.role);
-      router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
+      router.push("/connexion?registered=1");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 409 ? "Un compte existe déjà avec cet e-mail." : err.message);
+        setError(err.status === 409
+          ? "Un compte existe déjà avec cet e-mail."
+          : err.message);
       } else {
         setError("Impossible de joindre le serveur. Réessayez dans un instant.");
       }
@@ -97,7 +96,7 @@ export default function RegisterForm() {
             <input id="reg-email" type="email" placeholder="vous@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="form-group">
-            <label htmlFor="reg-password">Mot de passe</label>
+            <label htmlFor="reg-password">Mot de passe <span className="form-optional">(8 caractères min.)</span></label>
             <div className="input-password-wrap">
               <input id="reg-password" type={showPwd ? "text" : "password"} placeholder="8 caractères minimum" value={password} onChange={(e) => setPassword(e.target.value)} required />
               <button type="button" className="input-password-toggle" onClick={() => setShowPwd((v) => !v)} aria-label={showPwd ? "Masquer" : "Afficher"}>
@@ -161,7 +160,7 @@ export default function RegisterForm() {
           </div>
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
             {loading
-              ? <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Création…</>
+              ? <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Création en cours…</>
               : <><i className="fa-solid fa-check" aria-hidden="true" /> Créer mon compte</>
             }
           </button>

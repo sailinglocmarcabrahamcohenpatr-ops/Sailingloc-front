@@ -28,8 +28,6 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const dest = await getDestinationBySlug(slug);
   if (!dest) notFound();
 
-  const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
-
   return (
     <>
       <section className="dest-detail-hero">
@@ -116,11 +114,11 @@ export default async function DestinationDetailPage({ params }: PageProps) {
               <div className="dest-weather">
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-thermometer-half" />
-                  <div><strong>{dest.avgTemp}°C</strong><span>Température moy.</span></div>
+                  <div><strong>{dest.avgTemp}</strong><span>Température moy.</span></div>
                 </div>
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-wind" />
-                  <div><strong>{dest.avgWind} kn</strong><span>Vent moyen</span></div>
+                  <div><strong>{dest.avgWind}</strong><span>Vent moyen</span></div>
                 </div>
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-calendar-days" />

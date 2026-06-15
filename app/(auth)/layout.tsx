@@ -48,7 +48,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Link href="/contact">Contact</Link>
           <Link href="#">CGU</Link>
           <Link href="#">Confidentialité</Link>
-          <span>© 2025 SailingLoc</span>
+          <span>© 2026 SailingLoc</span>
         </footer>
       </div>
 

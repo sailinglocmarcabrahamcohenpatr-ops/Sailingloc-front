@@ -19,7 +19,17 @@ interface PageProps {
   }>;
 }
 
-const PAGES = [1, 2, 3, 14];
+const TYPE_LABELS: Record<string, string> = {
+  voilier: "Voiliers",
+  catamaran: "Catamarans",
+  moteur: "Bateaux à moteur",
+  habitable: "Habitables",
+  "semi-rigide": "Semi-rigides",
+  "sans-permis": "Sans permis",
+  ponton: "Pontons",
+};
+
+const PAGINATION_PAGES = [1, 2, 3, 4, 5, 14];
 
 export default async function BoatsPage({ searchParams }: PageProps) {
   const { type, destination } = await searchParams;
@@ -31,7 +41,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
   });
 
   const subtitle = [
-    type && type !== "tous" ? type.charAt(0).toUpperCase() + type.slice(1) + "s" : null,
+    type && type !== "tous" ? (TYPE_LABELS[type] ?? type) : null,
     destination ? `à ${destination}` : null,
   ]
     .filter(Boolean)
@@ -58,14 +68,14 @@ export default async function BoatsPage({ searchParams }: PageProps) {
             )}
           </div>
 
-          {boats.length > 0 && (
+          {!type && !destination && (
             <nav className="pagination" aria-label="Pagination">
               <button className="page-btn arrow" disabled aria-label="Page précédente">
                 <i className="fa-solid fa-chevron-left" aria-hidden="true" />
               </button>
-              {PAGES.map((p, i) => (
+              {PAGINATION_PAGES.map((p, i) => (
                 <span key={p}>
-                  {i === PAGES.length - 1 && (
+                  {i === PAGINATION_PAGES.length - 1 && (
                     <span className="page-dots" aria-hidden="true">…</span>
                   )}
                   <button

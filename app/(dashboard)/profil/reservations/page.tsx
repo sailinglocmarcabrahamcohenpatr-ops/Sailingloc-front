@@ -6,11 +6,11 @@ export const metadata: Metadata = { title: "Mes réservations" };
 
 type BookingStatus = "confirmed" | "pending" | "completed" | "cancelled";
 
-const MY_BOOKINGS: Array<{ id: string; boat: string; owner: string; location: string; imageSeed: string; start: string; end: string; guests: number; total: number; status: BookingStatus }> = [
-  { id: "b1", boat: "Sun Odyssey 440", owner: "Marc D.", location: "Marseille", imageSeed: "sun-odyssey", start: "2025-07-10", end: "2025-07-17", guests: 4, total: 6230, status: "confirmed" },
-  { id: "b2", boat: "Leopard 45", owner: "Lucie M.", location: "Cannes", imageSeed: "catamaran6", start: "2025-08-20", end: "2025-08-27", guests: 6, total: 11550, status: "pending" },
-  { id: "b3", boat: "Bavaria 46", owner: "Pierre T.", location: "Nice", imageSeed: "bavaria-cruiser", start: "2025-06-01", end: "2025-06-08", guests: 4, total: 6020, status: "completed" },
-  { id: "b4", boat: "Jeanneau 54", owner: "Anne B.", location: "La Ciotat", imageSeed: "jeanneau-54", start: "2024-09-10", end: "2024-09-17", guests: 8, total: 8680, status: "completed" },
+const MY_BOOKINGS: Array<{ id: string; boatId: string; boat: string; owner: string; location: string; imageSeed: string; start: string; end: string; guests: number; total: number; status: BookingStatus }> = [
+  { id: "b1", boatId: "sun-odyssey-440", boat: "Sun Odyssey 440", owner: "Marc D.", location: "Marseille", imageSeed: "sun-odyssey", start: "2026-07-10", end: "2026-07-17", guests: 4, total: 6230, status: "confirmed" },
+  { id: "b2", boatId: "leopard-45", boat: "Leopard 45", owner: "Lucie M.", location: "Cannes", imageSeed: "catamaran6", start: "2026-08-20", end: "2026-08-27", guests: 6, total: 11550, status: "pending" },
+  { id: "b3", boatId: "bavaria-46-cruiser", boat: "Bavaria 46", owner: "Pierre T.", location: "Nice", imageSeed: "bavaria-cruiser", start: "2026-06-01", end: "2026-06-08", guests: 4, total: 6020, status: "completed" },
+  { id: "b4", boatId: "jeanneau-54-ds", boat: "Jeanneau 54", owner: "Anne B.", location: "La Ciotat", imageSeed: "jeanneau-54", start: "2025-09-10", end: "2025-09-17", guests: 8, total: 8680, status: "completed" },
 ];
 
 const STATUS = {
@@ -47,7 +47,7 @@ export default function UserReservationsPage() {
           {fmt(b.start)} → {fmt(b.end)} · {b.guests} passager{b.guests > 1 ? "s" : ""}
         </div>
         <div className="booking-card-actions">
-          <Link href={`/bateaux/${b.id}`} className="btn btn-ghost btn-sm">
+          <Link href={`/bateaux/${b.boatId}`} className="btn btn-ghost btn-sm">
             <i className="fa-solid fa-eye" /> Voir le bateau
           </Link>
           {b.status === "completed" && (

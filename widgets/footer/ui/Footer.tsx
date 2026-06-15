@@ -3,24 +3,24 @@ import Link from "next/link";
 const footerLinks = {
   annonces: [
     { href: "/bateaux", label: "Trouver un bateau" },
-    { href: "/bateaux", label: "Destinations" },
+    { href: "/destinations", label: "Destinations" },
     { href: "/bateaux?type=voilier", label: "Voiliers" },
     { href: "/bateaux?type=catamaran", label: "Catamarans" },
     { href: "/bateaux?type=moteur", label: "Bateaux moteur" },
-    { href: "/bateaux?permis=non", label: "Sans permis" },
+    { href: "/bateaux?type=sans-permis", label: "Sans permis" },
   ],
   proprietaires: [
-    { href: "#", label: "Mettre en location" },
-    { href: "#", label: "Assurance propriétaire" },
-    { href: "#", label: "Tarifs & commissions" },
-    { href: "#", label: "Aide propriétaire" },
-    { href: "#", label: "Espace propriétaire" },
+    { href: "/proprietaire", label: "Mettre en location" },
+    { href: "/comment-ca-marche#proprietaires", label: "Assurance propriétaire" },
+    { href: "/comment-ca-marche#proprietaires", label: "Tarifs & commissions" },
+    { href: "/contact", label: "Aide propriétaire" },
+    { href: "/proprietaire/bateaux", label: "Espace propriétaire" },
   ],
   informations: [
-    { href: "#", label: "À propos" },
+    { href: "/comment-ca-marche", label: "À propos de SailingLoc" },
     { href: "/contact", label: "Contact" },
-    { href: "/#comment-ca-marche", label: "Comment ça marche" },
-    { href: "#", label: "FAQ" },
+    { href: "/comment-ca-marche", label: "Comment ça marche" },
+    { href: "/comment-ca-marche#questions", label: "FAQ" },
     { href: "#", label: "Politique RGPD" },
     { href: "#", label: "Blog" },
   ],
@@ -86,7 +86,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2025 SailingLoc.com — Tous droits réservés</span>
+          <span>© 2026 SailingLoc.com — Tous droits réservés</span>
           <div className="footer-bottom-links">
             <Link href="#">CGU</Link>
             <Link href="#">Cookies</Link>

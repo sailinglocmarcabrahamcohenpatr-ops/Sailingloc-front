@@ -100,7 +100,7 @@ export default function ContactPage() {
             <Link href="/bateaux" className="btn btn-white btn-xl">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Trouver un bateau
             </Link>
-            <Link href="#" className="btn btn-xl btn-white-outline">
+            <Link href="/proprietaire" className="btn btn-xl btn-white-outline">
               <i className="fa-solid fa-anchor" aria-hidden="true" /> Mettre en location
             </Link>
           </div>
