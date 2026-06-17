@@ -296,6 +296,7 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
 
         <BookingCard
+          boatId={boat.id}
           pricePerDay={boat.pricePerDay}
           rating={boat.rating}
           reviewCount={boat.reviewCount}
