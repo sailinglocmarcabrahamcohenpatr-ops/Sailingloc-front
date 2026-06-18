@@ -11,7 +11,7 @@ export default function InscriptionPage() {
     <div className="auth-card auth-card-wide">
       <div className="auth-card-header">
         <h1>Créer un compte</h1>
-        <p>Rejoignez 50 000 navigateurs sur SailingLoc</p>
+        <p className="auth-card-sub">Rejoignez 50 000 navigateurs sur SailingLoc</p>
       </div>
       <RegisterForm />
     </div>

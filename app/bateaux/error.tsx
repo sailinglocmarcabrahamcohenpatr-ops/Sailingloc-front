@@ -15,7 +15,7 @@ export default function BateauxError({ error, reset }: ErrorProps) {
 
   return (
     <div className="error-page">
-      <div className="error-icon">⚓</div>
+      <div className="error-icon"><i className="fa-solid fa-anchor" aria-hidden="true" /></div>
       <h2 className="error-title">Impossible de charger les bateaux</h2>
       <p className="error-desc">Une erreur est survenue lors du chargement du catalogue.</p>
       <div className="error-actions">

@@ -14,12 +14,12 @@ export const metadata: Metadata = {
 };
 
 const BOAT_CATEGORIES = [
-  { type: "voilier", icon: "⛵", label: "Voilier", count: "1 240 annonces" },
-  { type: "catamaran", icon: "🚤", label: "Catamaran", count: "480 annonces" },
-  { type: "moteur", icon: "🛥️", label: "Moteur", count: "720 annonces" },
-  { type: "semi-rigide", icon: "🚣", label: "Semi-rigide", count: "310 annonces" },
-  { type: "habitable", icon: "🏠", label: "Habitable", count: "195 annonces" },
-  { type: "sans-permis", icon: "✅", label: "Sans permis", count: "255 annonces" },
+  { type: "voilier", icon: "fa-sailboat", label: "Voilier", count: "1 240 annonces" },
+  { type: "catamaran", icon: "fa-ship", label: "Catamaran", count: "480 annonces" },
+  { type: "moteur", icon: "fa-gauge-high", label: "Moteur", count: "720 annonces" },
+  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide", count: "310 annonces" },
+  { type: "habitable", icon: "fa-house", label: "Habitable", count: "195 annonces" },
+  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis", count: "255 annonces" },
 ];
 
 const HOW_IT_WORKS = [
@@ -96,7 +96,7 @@ export default async function HomePage() {
                 href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
                 className="category-card"
               >
-                <span className="category-icon" role="img" aria-label={cat.label}>{cat.icon}</span>
+                <span className="category-icon" aria-hidden="true"><i className={`fa-solid ${cat.icon}`} /></span>
                 <strong>{cat.label}</strong>
                 <span>{cat.count}</span>
               </Link>
@@ -135,7 +135,7 @@ export default async function HomePage() {
                 </div>
                 <div className="dest-home-overlay" />
                 <div className="dest-home-content">
-                  <span className="dest-home-flag">{dest.flag}</span>
+                  <span className="dest-home-flag" aria-hidden="true">{dest.flag}</span>
                   <h3>{dest.name}</h3>
                   <p>{dest.boatCount} bateaux · dès {dest.priceFrom} €/j</p>
                 </div>
@@ -255,7 +255,7 @@ export default async function HomePage() {
             <div className="owner-cta-home-visual fade-in">
               <div className="owner-cta-home-card">
                 <div className="owner-cta-home-card-header">
-                  <span>💰</span>
+                  <i className="fa-solid fa-euro-sign" aria-hidden="true" />
                   <strong>Estimateur de revenus</strong>
                 </div>
                 {[

@@ -45,28 +45,28 @@ const STEPS = [
     icon: "fa-camera",
     title: "Créez votre annonce",
     desc: "Décrivez votre bateau, ajoutez de belles photos, définissez vos tarifs et disponibilités. En moins de 15 minutes.",
-    detail: "✓ Gratuit, sans abonnement",
+    detail: "Gratuit, sans abonnement",
   },
   {
     num: "2",
     icon: "fa-bell",
     title: "Recevez des demandes",
     desc: "Les locataires vous contactent directement sur notre messagerie. Vous lisez leur profil et leur expérience.",
-    detail: "✓ Locataires vérifiés",
+    detail: "Locataires vérifiés",
   },
   {
     num: "3",
     icon: "fa-handshake",
     title: "Confirmez et préparez",
     desc: "Vous acceptez la réservation. Le contrat est généré automatiquement. La caution est prélevée en ligne.",
-    detail: "✓ Contrat légal inclus",
+    detail: "Contrat légal inclus",
   },
   {
     num: "4",
     icon: "fa-piggy-bank",
     title: "Encaissez vos revenus",
     desc: "Le paiement est viré sur votre compte dans les 24h après l'embarquement. Simple et automatique.",
-    detail: "✓ Virement sous 24h",
+    detail: "Virement sous 24h",
   },
 ];
 
@@ -196,7 +196,7 @@ export default function ProprietairePage() {
                 </div>
                 <h3>{step.title}</h3>
                 <p>{step.desc}</p>
-                <div className="prop-step-detail">{step.detail}</div>
+                <div className="prop-step-detail"><i className="fa-solid fa-check" aria-hidden="true" /> {step.detail}</div>
               </div>
             ))}
           </div>
@@ -266,7 +266,9 @@ export default function ProprietairePage() {
           <div className="prop-testimonials fade-in">
             {TESTIMONIALS.map((t) => (
               <div key={t.name} className="prop-testi-card">
-                <div className="prop-testi-stars">★★★★★</div>
+                <div className="prop-testi-stars" aria-label="5 étoiles sur 5">
+                  {[1,2,3,4,5].map((i) => <i key={i} className="fa-solid fa-star" aria-hidden="true" />)}
+                </div>
                 <p className="prop-testi-quote">"{t.quote}"</p>
                 <div className="prop-testi-footer">
                   <div className="prop-testi-avatar">{t.initial}</div>

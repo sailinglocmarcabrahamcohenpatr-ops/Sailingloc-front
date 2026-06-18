@@ -1,66 +1,74 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { reservationsApi } from "@/shared/lib";
+import type { ReservationAPI } from "@/shared/lib";
 
-export const metadata: Metadata = { title: "Mes réservations" };
+type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 
-type BookingStatus = "confirmed" | "pending" | "completed" | "cancelled";
-
-const MY_BOOKINGS: Array<{ id: string; boatId: string; boat: string; owner: string; location: string; imageSeed: string; start: string; end: string; guests: number; total: number; status: BookingStatus }> = [
-  { id: "b1", boatId: "sun-odyssey-440", boat: "Sun Odyssey 440", owner: "Marc D.", location: "Marseille", imageSeed: "sun-odyssey", start: "2026-07-10", end: "2026-07-17", guests: 4, total: 6230, status: "confirmed" },
-  { id: "b2", boatId: "leopard-45", boat: "Leopard 45", owner: "Lucie M.", location: "Cannes", imageSeed: "catamaran6", start: "2026-08-20", end: "2026-08-27", guests: 6, total: 11550, status: "pending" },
-  { id: "b3", boatId: "bavaria-46-cruiser", boat: "Bavaria 46", owner: "Pierre T.", location: "Nice", imageSeed: "bavaria-cruiser", start: "2026-06-01", end: "2026-06-08", guests: 4, total: 6020, status: "completed" },
-  { id: "b4", boatId: "jeanneau-54-ds", boat: "Jeanneau 54", owner: "Anne B.", location: "La Ciotat", imageSeed: "jeanneau-54", start: "2025-09-10", end: "2025-09-17", guests: 8, total: 8680, status: "completed" },
-];
-
-const STATUS = {
+const STATUS: Record<BadgeKey, { label: string; cls: string; icon: string }> = {
   confirmed: { label: "Confirmée", cls: "badge-status green", icon: "fa-check" },
   pending: { label: "En attente", cls: "badge-status orange", icon: "fa-clock" },
   cancelled: { label: "Annulée", cls: "badge-status red", icon: "fa-xmark" },
   completed: { label: "Terminée", cls: "badge-status grey", icon: "fa-flag-checkered" },
 };
 
-const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+function libelleToKey(libelle?: string): BadgeKey {
+  if (!libelle) return "pending";
+  const l = libelle.toLowerCase();
+  if (l.includes("confirm")) return "confirmed";
+  if (l.includes("attente")) return "pending";
+  if (l.includes("annul")) return "cancelled";
+  if (l.includes("termin")) return "completed";
+  return "pending";
+}
 
-export default function UserReservationsPage() {
-  const upcoming = MY_BOOKINGS.filter((b) => b.status === "confirmed" || b.status === "pending");
-  const past = MY_BOOKINGS.filter((b) => b.status === "completed" || b.status === "cancelled");
+const fmt = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-  const BookingCard = ({ b }: { b: typeof MY_BOOKINGS[0] }) => (
+const BookingCard = ({ r }: { r: ReservationAPI }) => {
+  const key = libelleToKey(r.statut_reservation?.libelle);
+  const st = STATUS[key];
+  const boatName = r.bateau?.nom_bateau ?? `Bateau #${r.id_bateau}`;
+  const imgSrc = `https://picsum.photos/seed/boat-${r.id_bateau}/400/300`;
+
+  return (
     <div className="booking-card">
       <div className="booking-card-img">
-        <Image src={`https://picsum.photos/seed/${b.imageSeed}/400/300`} alt={b.boat} fill sizes="140px" style={{ objectFit: "cover" }} />
+        <Image src={imgSrc} alt={boatName} fill sizes="140px" style={{ objectFit: "cover" }} />
       </div>
       <div className="booking-card-info">
         <div className="booking-card-hd">
           <div>
-            <span className={STATUS[b.status].cls}>
-              <i className={`fa-solid ${STATUS[b.status].icon}`} /> {STATUS[b.status].label}
+            <span className={st.cls}>
+              <i className={`fa-solid ${st.icon}`} /> {st.label}
             </span>
-            <h3>{b.boat}</h3>
-            <p><i className="fa-solid fa-location-dot" /> {b.location} · {b.owner}</p>
+            <h3>{boatName}</h3>
+            <p><i className="fa-solid fa-location-dot" /> {r.statut_reservation?.libelle ?? "—"}</p>
           </div>
-          <strong className="booking-price">{b.total.toLocaleString("fr-FR")} €</strong>
+          <strong className="booking-price">{r.montant_total.toLocaleString("fr-FR")} €</strong>
         </div>
         <div className="booking-card-dates">
           <i className="fa-regular fa-calendar" />
-          {fmt(b.start)} → {fmt(b.end)} · {b.guests} passager{b.guests > 1 ? "s" : ""}
+          {fmt(r.date_debut)} → {fmt(r.date_fin)}
         </div>
         <div className="booking-card-actions">
-          <Link href={`/bateaux/${b.boatId}`} className="btn btn-ghost btn-sm">
+          <Link href={`/bateaux/${r.id_bateau}`} className="btn btn-ghost btn-sm">
             <i className="fa-solid fa-eye" /> Voir le bateau
           </Link>
-          {b.status === "completed" && (
+          {key === "completed" && (
             <button className="btn btn-outline btn-sm">
               <i className="fa-solid fa-star" /> Laisser un avis
             </button>
           )}
-          {(b.status === "confirmed" || b.status === "pending") && (
+          {(key === "confirmed" || key === "pending") && (
             <button className="btn btn-ghost btn-sm">
               <i className="fa-solid fa-envelope" /> Contacter
             </button>
           )}
-          {b.status === "confirmed" && (
+          {key === "confirmed" && (
             <button className="btn btn-ghost btn-sm" style={{ color: "var(--red)" }}>
               <i className="fa-solid fa-xmark" /> Annuler
             </button>
@@ -69,13 +77,46 @@ export default function UserReservationsPage() {
       </div>
     </div>
   );
+};
+
+export default function UserReservationsPage() {
+  const [reservations, setReservations] = useState<ReservationAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    reservationsApi
+      .getAll()
+      .then(setReservations)
+      .catch(() => setError("Impossible de charger les réservations."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading)
+    return (
+      <div className="dash-page">
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="dash-page">
+        <p style={{ color: "var(--red)", padding: "24px" }}>{error}</p>
+      </div>
+    );
+
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = reservations.filter((r) => r.date_fin >= today);
+  const past = reservations.filter((r) => r.date_fin < today);
 
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
           <h1 className="dash-title">Mes réservations</h1>
-          <p className="dash-sub">{MY_BOOKINGS.length} réservation{MY_BOOKINGS.length > 1 ? "s" : ""} au total</p>
+          <p className="dash-sub">
+            {reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total
+          </p>
         </div>
         <Link href="/bateaux" className="btn btn-primary">
           <i className="fa-solid fa-magnifying-glass" /> Trouver un bateau
@@ -85,13 +126,21 @@ export default function UserReservationsPage() {
       {upcoming.length > 0 && (
         <div>
           <h3 className="dash-section-title">À venir</h3>
-          <div className="bookings-list">{upcoming.map((b) => <BookingCard key={b.id} b={b} />)}</div>
+          <div className="bookings-list">
+            {upcoming.map((r) => (
+              <BookingCard key={r.id} r={r} />
+            ))}
+          </div>
         </div>
       )}
       {past.length > 0 && (
         <div>
           <h3 className="dash-section-title">Historique</h3>
-          <div className="bookings-list">{past.map((b) => <BookingCard key={b.id} b={b} />)}</div>
+          <div className="bookings-list">
+            {past.map((r) => (
+              <BookingCard key={r.id} r={r} />
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -44,7 +44,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           <div className="dest-detail-breadcrumb">
             <Link href="/destinations">Destinations</Link> / <span>{dest.name}</span>
           </div>
-          <div className="dest-detail-flag">{dest.flag}</div>
+          <div className="dest-detail-flag" aria-hidden="true"><span className="dest-flag-code">{dest.flag}</span></div>
           <h1>{dest.name}</h1>
           <p className="dest-detail-tagline">{dest.tagline}</p>
           <div className="dest-detail-hero-meta">

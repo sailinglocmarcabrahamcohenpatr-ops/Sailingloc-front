@@ -1,84 +1,154 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = { title: "Gestion des réservations" };
+import { useState, useEffect } from "react";
+import { reservationsApi } from "@/shared/lib";
+import type { ReservationAPI } from "@/shared/lib";
 
-type ReservationStatus = "confirmed" | "pending" | "completed" | "cancelled";
+type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 
-type Reservation = { id: string; renter: string; renterInitial: string; boat: string; start: string; end: string; guests: number; days: number; total: number; status: ReservationStatus; message: string };
-
-const RESERVATIONS: Reservation[] = [
-  { id: "r1", renter: "Sophie M.", renterInitial: "SM", boat: "Sun Odyssey 440", start: "2025-07-10", end: "2025-07-17", guests: 4, days: 7, total: 6230, status: "confirmed", message: "Nous avons hâte ! Est-il possible d'embarquer à 16h ?" },
-  { id: "r2", renter: "Julien B.", renterInitial: "JB", boat: "Leopard 45", start: "2025-07-20", end: "2025-07-27", guests: 6, days: 7, total: 11550, status: "pending", message: "Bonjour, groupe de 6 navigateurs expérimentés." },
-  { id: "r3", renter: "Isabelle R.", renterInitial: "IR", boat: "Sun Odyssey 440", start: "2025-08-03", end: "2025-08-10", guests: 3, days: 7, total: 6230, status: "confirmed", message: "" },
-  { id: "r4", renter: "Pierre L.", renterInitial: "PL", boat: "Leopard 45", start: "2025-08-15", end: "2025-08-22", guests: 8, days: 7, total: 11550, status: "pending", message: "Voyage de lune de miel, avez-vous une décoration possible ?" },
-  { id: "r5", renter: "Marie T.", renterInitial: "MT", boat: "Sun Odyssey 440", start: "2025-06-01", end: "2025-06-08", guests: 4, days: 7, total: 6230, status: "completed", message: "" },
-];
-
-const STATUS = {
+const STATUS: Record<BadgeKey, { label: string; cls: string }> = {
   confirmed: { label: "Confirmée", cls: "badge-status green" },
   pending: { label: "En attente", cls: "badge-status orange" },
   cancelled: { label: "Annulée", cls: "badge-status red" },
   completed: { label: "Terminée", cls: "badge-status grey" },
 };
 
-const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+function libelleToKey(libelle?: string): BadgeKey {
+  if (!libelle) return "pending";
+  const l = libelle.toLowerCase();
+  if (l.includes("confirm")) return "confirmed";
+  if (l.includes("attente")) return "pending";
+  if (l.includes("annul")) return "cancelled";
+  if (l.includes("termin")) return "completed";
+  return "pending";
+}
 
-export default function OwnerReservationsPage() {
-  const pending = RESERVATIONS.filter((r) => r.status === "pending");
-  const active = RESERVATIONS.filter((r) => r.status === "confirmed");
-  const past = RESERVATIONS.filter((r) => r.status === "completed" || r.status === "cancelled");
+const fmt = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 
-  const Section = ({ title, items }: { title: string; items: typeof RESERVATIONS }) => (
-    items.length > 0 ? (
-      <div>
-        <h3 className="dash-section-title">{title} <span>({items.length})</span></h3>
-        <div className="reservations-list">
-          {items.map((r) => (
+function daysBetween(start: string, end: string) {
+  return Math.round(
+    (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
+  );
+}
+
+function initials(r: ReservationAPI): string {
+  const u = r.utilisateur;
+  if (!u) return "?";
+  return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
+}
+
+function renterName(r: ReservationAPI): string {
+  const u = r.utilisateur;
+  if (!u) return `Locataire #${r.id_utilisateur}`;
+  return `${u.prenom} ${u.nom}`.trim();
+}
+
+const Section = ({
+  title,
+  items,
+}: {
+  title: string;
+  items: ReservationAPI[];
+}) =>
+  items.length > 0 ? (
+    <div>
+      <h3 className="dash-section-title">
+        {title} <span>({items.length})</span>
+      </h3>
+      <div className="reservations-list">
+        {items.map((r) => {
+          const key = libelleToKey(r.statut_reservation?.libelle);
+          const st = STATUS[key];
+          const days = daysBetween(r.date_debut, r.date_fin);
+          const boatName = r.bateau?.nom_bateau ?? `Bateau #${r.id_bateau}`;
+
+          return (
             <div key={r.id} className="reservation-row">
               <div className="reservation-renter">
-                <div className="reservation-avatar">{r.renterInitial}</div>
+                <div className="reservation-avatar">{initials(r)}</div>
                 <div>
-                  <strong>{r.renter}</strong>
-                  <span>{r.boat}</span>
+                  <strong>{renterName(r)}</strong>
+                  <span>{boatName}</span>
                 </div>
               </div>
               <div className="reservation-dates">
                 <i className="fa-regular fa-calendar" />
-                {fmt(r.start)} → {fmt(r.end)} · {r.days} jours · {r.guests} pers.
+                {fmt(r.date_debut)} → {fmt(r.date_fin)} · {days} jour{days !== 1 ? "s" : ""}
               </div>
               <div className="reservation-amount">
-                <strong>{r.total.toLocaleString("fr-FR")} €</strong>
-                <span className={STATUS[r.status].cls}>{STATUS[r.status].label}</span>
+                <strong>{r.montant_total.toLocaleString("fr-FR")} €</strong>
+                <span className={st.cls}>{st.label}</span>
               </div>
               <div className="reservation-actions">
-                {r.status === "pending" && (
+                {key === "pending" && (
                   <>
-                    <button className="btn btn-primary btn-sm"><i className="fa-solid fa-check" /> Confirmer</button>
-                    <button className="btn btn-outline btn-sm"><i className="fa-solid fa-xmark" /> Refuser</button>
+                    <button className="btn btn-primary btn-sm">
+                      <i className="fa-solid fa-check" /> Confirmer
+                    </button>
+                    <button className="btn btn-outline btn-sm">
+                      <i className="fa-solid fa-xmark" /> Refuser
+                    </button>
                   </>
                 )}
-                {r.message && (
+                {key === "confirmed" && (
                   <button className="btn btn-ghost btn-sm">
-                    <i className="fa-solid fa-envelope" /> Message
+                    <i className="fa-solid fa-ellipsis" />
                   </button>
-                )}
-                {r.status === "confirmed" && (
-                  <button className="btn btn-ghost btn-sm"><i className="fa-solid fa-ellipsis" /></button>
                 )}
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    ) : null
+    </div>
+  ) : null;
+
+export default function OwnerReservationsPage() {
+  const [reservations, setReservations] = useState<ReservationAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    reservationsApi
+      .getAll()
+      .then(setReservations)
+      .catch(() => setError("Impossible de charger les réservations."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading)
+    return (
+      <div className="dash-page">
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="dash-page">
+        <p style={{ color: "var(--red)", padding: "24px" }}>{error}</p>
+      </div>
+    );
+
+  const pending = reservations.filter(
+    (r) => libelleToKey(r.statut_reservation?.libelle) === "pending"
   );
+  const active = reservations.filter(
+    (r) => libelleToKey(r.statut_reservation?.libelle) === "confirmed"
+  );
+  const past = reservations.filter((r) => {
+    const k = libelleToKey(r.statut_reservation?.libelle);
+    return k === "completed" || k === "cancelled";
+  });
 
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
           <h1 className="dash-title">Réservations</h1>
-          <p className="dash-sub">{RESERVATIONS.length} réservation{RESERVATIONS.length > 1 ? "s" : ""} au total</p>
+          <p className="dash-sub">
+            {reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total
+          </p>
         </div>
       </div>
       <Section title="En attente de confirmation" items={pending} />

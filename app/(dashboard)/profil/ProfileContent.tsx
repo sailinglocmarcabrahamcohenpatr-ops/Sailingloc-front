@@ -40,7 +40,7 @@ export default function ProfileContent() {
 
         <div className="profile-stats">
           <div className="profile-stat"><strong>8</strong><span>Voyages</span></div>
-          <div className="profile-stat"><strong>4.9 ★</strong><span>Note</span></div>
+          <div className="profile-stat"><strong>4.9 <i className="fa-solid fa-star" style={{ color: "var(--star)", fontSize: ".9em" }} aria-hidden="true" /></strong><span>Note</span></div>
           <div className="profile-stat"><strong>1 an</strong><span>Membre</span></div>
         </div>
       </div>

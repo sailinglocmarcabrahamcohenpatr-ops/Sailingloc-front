@@ -20,7 +20,7 @@ export default function CountriesSection() {
               key={country.name}
               href={`/bateaux?pays=${encodeURIComponent(country.name)}`}
               className="country-card fade-in"
-              aria-label={`${country.flag} ${country.name} — ${country.boatCount.toLocaleString("fr-FR")} bateaux`}
+              aria-label={`${country.name} — ${country.boatCount.toLocaleString("fr-FR")} bateaux`}
             >
               <Image
                 src={`https://picsum.photos/seed/${country.imageSeed}/600/400`}
@@ -31,7 +31,7 @@ export default function CountriesSection() {
               />
               <div className="country-card-overlay" aria-hidden="true" />
               <div className="country-card-label">
-                {country.flag} {country.name}
+                <span className="country-flag-code" aria-hidden="true">{country.flag}</span> {country.name}
                 <div className="country-card-sub">
                   {country.boatCount.toLocaleString("fr-FR")} bateaux
                 </div>

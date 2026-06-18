@@ -32,7 +32,7 @@ export default function BoatsSidebar() {
         </div>
         <div className="weather-rating">
           <div className="weather-rating-label">Conditions de navigation</div>
-          <div className="weather-rating-val">Excellente ★</div>
+          <div className="weather-rating-val">Excellente <i className="fa-solid fa-star" aria-hidden="true" /></div>
         </div>
       </div>
 

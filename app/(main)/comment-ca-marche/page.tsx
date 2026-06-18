@@ -57,10 +57,10 @@ const GUARANTEES = [
 ];
 
 const OWNER_STEPS = [
-  { icon: "✨", title: "Créez votre annonce", desc: "Photos, description, équipements, tarifs, disponibilités. En 15 minutes." },
-  { icon: "📩", title: "Recevez des demandes", desc: "Locataires vérifiés vous contactent. Vous lisez leur profil et choisissez." },
-  { icon: "✅", title: "Confirmez & préparez", desc: "Contrat automatique, caution prélevée, check-list d'embarquement fournie." },
-  { icon: "💰", title: "Encaissez vos revenus", desc: "Virement automatique sous 24h après l'embarquement confirmé." },
+  { icon: "fa-wand-magic-sparkles", title: "Créez votre annonce", desc: "Photos, description, équipements, tarifs, disponibilités. En 15 minutes." },
+  { icon: "fa-envelope-open-text", title: "Recevez des demandes", desc: "Locataires vérifiés vous contactent. Vous lisez leur profil et choisissez." },
+  { icon: "fa-circle-check", title: "Confirmez & préparez", desc: "Contrat automatique, caution prélevée, check-list d'embarquement fournie." },
+  { icon: "fa-piggy-bank", title: "Encaissez vos revenus", desc: "Virement automatique sous 24h après l'embarquement confirmé." },
 ];
 
 const FAQS = [
@@ -182,7 +182,7 @@ export default function HowItWorksPage() {
           <div className="prop-steps-mini fade-in">
             {OWNER_STEPS.map((step) => (
               <div key={step.title} className="prop-step-mini">
-                <div className="prop-step-mini-icon">{step.icon}</div>
+                <div className="prop-step-mini-icon"><i className={`fa-solid ${step.icon}`} aria-hidden="true" /></div>
                 <h4>{step.title}</h4>
                 <p>{step.desc}</p>
               </div>

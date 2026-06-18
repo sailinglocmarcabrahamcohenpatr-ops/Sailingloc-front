@@ -10,14 +10,14 @@ export const SERVICE_FEE_RATE = 0.069;
 export const DEFAULT_BOOKING_DAYS = 7;
 
 export const BOAT_TYPES: { value: BoatType; label: string; icon: string }[] = [
-  { value: "tous", label: "Tous les bateaux", icon: "⛵" },
-  { value: "voilier", label: "Voilier", icon: "⛵" },
-  { value: "catamaran", label: "Catamaran", icon: "🛥️" },
-  { value: "moteur", label: "Moteur", icon: "🚤" },
-  { value: "habitable", label: "Habitable", icon: "🚢" },
-  { value: "semi-rigide", label: "Semi-rigide", icon: "🛶" },
-  { value: "sans-permis", label: "Sans permis", icon: "🏄" },
-  { value: "ponton", label: "Ponton", icon: "⚓" },
+  { value: "tous", label: "Tous les bateaux", icon: "fa-sailboat" },
+  { value: "voilier", label: "Voilier", icon: "fa-sailboat" },
+  { value: "catamaran", label: "Catamaran", icon: "fa-ship" },
+  { value: "moteur", label: "Moteur", icon: "fa-gauge-high" },
+  { value: "habitable", label: "Habitable", icon: "fa-house" },
+  { value: "semi-rigide", label: "Semi-rigide", icon: "fa-person-rowing" },
+  { value: "sans-permis", label: "Sans permis", icon: "fa-circle-check" },
+  { value: "ponton", label: "Ponton", icon: "fa-anchor" },
 ];
 
 export const DESTINATIONS: Destination[] = [
@@ -30,10 +30,10 @@ export const DESTINATIONS: Destination[] = [
 ];
 
 export const COUNTRIES: Country[] = [
-  { name: "France", flag: "🇫🇷", boatCount: 1450, imageSeed: "france-sea" },
-  { name: "Espagne", flag: "🇪🇸", boatCount: 980, imageSeed: "spain-ocean" },
-  { name: "Grèce", flag: "🇬🇷", boatCount: 1230, imageSeed: "greece-island" },
-  { name: "Italie", flag: "🇮🇹", boatCount: 870, imageSeed: "italy-coast" },
+  { name: "France", flag: "FR", boatCount: 1450, imageSeed: "france-sea" },
+  { name: "Espagne", flag: "ES", boatCount: 980, imageSeed: "spain-ocean" },
+  { name: "Grèce", flag: "GR", boatCount: 1230, imageSeed: "greece-island" },
+  { name: "Italie", flag: "IT", boatCount: 870, imageSeed: "italy-coast" },
 ];
 
 export const STATS: Stat[] = [

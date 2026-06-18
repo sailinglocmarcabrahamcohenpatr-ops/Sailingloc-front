@@ -1,34 +1,75 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { boatsApi } from "@/shared/lib";
+import type { BoatAPI } from "@/shared/lib";
 
-export const metadata: Metadata = { title: "Mes bateaux" };
+type ApiStatut = "disponible" | "indisponible" | "en_attente";
+type UiStatus = "active" | "inactive" | "pending";
 
-const MY_BOATS: Array<{
-  id: string; name: string; type: string; location: string;
-  pricePerDay: number; rating: number; reviews: number;
-  status: BoatStatus; imageSeed: string; reservations: number; revenue: number;
-}> = [
-  { id: "sun-odyssey-440", name: "Sun Odyssey 440", type: "Voilier", location: "Marseille, Vieux-Port", pricePerDay: 890, rating: 4.9, reviews: 47, status: "active", imageSeed: "sun-odyssey", reservations: 12, revenue: 31200 },
-  { id: "leopard-45", name: "Leopard 45 Catamaran", type: "Catamaran", location: "Cannes, Vieux-Port", pricePerDay: 1650, rating: 4.8, reviews: 23, status: "active", imageSeed: "catamaran6", reservations: 8, revenue: 41800 },
-  { id: "dufour-430", name: "Dufour 430", type: "Voilier", location: "Cassis", pricePerDay: 480, rating: 0, reviews: 0, status: "pending", imageSeed: "boat-sail5", reservations: 0, revenue: 0 },
-];
+const STATUT_MAP: Record<ApiStatut, UiStatus> = {
+  disponible: "active",
+  indisponible: "inactive",
+  en_attente: "pending",
+};
 
-type BoatStatus = "active" | "inactive" | "pending";
-
-const STATUS_MAP: Record<BoatStatus, { label: string; cls: string }> = {
+const STATUS_MAP: Record<UiStatus, { label: string; cls: string }> = {
   active: { label: "Publié", cls: "badge-status green" },
   inactive: { label: "Désactivé", cls: "badge-status grey" },
   pending: { label: "En révision", cls: "badge-status orange" },
 };
 
+function boatImage(boat: BoatAPI): string {
+  const main = boat.photos?.find((p) => p.principale);
+  return (
+    main?.url ??
+    boat.photos?.[0]?.url ??
+    `https://picsum.photos/seed/boat-${boat.id}/400/300`
+  );
+}
+
+function boatLocation(boat: BoatAPI): string {
+  return (
+    [boat.port?.nom, boat.port?.ville].filter(Boolean).join(" – ") || "France"
+  );
+}
+
 export default function OwnerBoatsPage() {
+  const [boats, setBoats] = useState<BoatAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    boatsApi
+      .getAll()
+      .then(setBoats)
+      .catch(() => setError("Impossible de charger les bateaux."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading)
+    return (
+      <div className="dash-page">
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="dash-page">
+        <p style={{ color: "var(--red)", padding: "24px" }}>{error}</p>
+      </div>
+    );
+
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
           <h1 className="dash-title">Mes bateaux</h1>
-          <p className="dash-sub">{MY_BOATS.length} annonce{MY_BOATS.length > 1 ? "s" : ""} sur SailingLoc</p>
+          <p className="dash-sub">
+            {boats.length} annonce{boats.length !== 1 ? "s" : ""} sur SailingLoc
+          </p>
         </div>
         <Link href="/inscrire-bateau" className="btn btn-primary">
           <i className="fa-solid fa-plus" /> Ajouter un bateau
@@ -36,65 +77,75 @@ export default function OwnerBoatsPage() {
       </div>
 
       <div className="owner-boats-list">
-        {MY_BOATS.map((boat) => (
-          <div key={boat.id} className="owner-boat-card">
-            <div className="owner-boat-img">
-              <Image
-                src={`https://picsum.photos/seed/${boat.imageSeed}/400/300`}
-                alt={boat.name}
-                fill
-                sizes="160px"
-                style={{ objectFit: "cover" }}
-              />
-            </div>
-            <div className="owner-boat-info">
-              <div className="owner-boat-hd">
-                <div>
-                  <span className={STATUS_MAP[boat.status].cls}>{STATUS_MAP[boat.status].label}</span>
-                  <h3>{boat.name}</h3>
-                  <p><i className="fa-solid fa-location-dot" /> {boat.location} · {boat.type}</p>
-                </div>
-                <div className="owner-boat-price">
-                  <strong>{boat.pricePerDay.toLocaleString("fr-FR")} €</strong>
-                  <span>/ jour</span>
-                </div>
+        {boats.map((boat) => {
+          const uiStatus: UiStatus = STATUT_MAP[boat.statut] ?? "pending";
+          const st = STATUS_MAP[uiStatus];
+          const imgSrc = boatImage(boat);
+          const location = boatLocation(boat);
+          const boatType = boat.type_bateau?.libelle ?? "";
+
+          return (
+            <div key={boat.id} className="owner-boat-card">
+              <div className="owner-boat-img">
+                <Image
+                  src={imgSrc}
+                  alt={boat.nom_bateau}
+                  fill
+                  sizes="160px"
+                  style={{ objectFit: "cover" }}
+                />
               </div>
-              <div className="owner-boat-stats">
-                <div className="owner-boat-stat">
-                  <i className="fa-solid fa-calendar-check" />
-                  <span>{boat.reservations} réservation{boat.reservations !== 1 ? "s" : ""}</span>
-                </div>
-                <div className="owner-boat-stat">
-                  <i className="fa-solid fa-euro-sign" />
-                  <span>{boat.revenue.toLocaleString("fr-FR")} € générés</span>
-                </div>
-                {boat.rating > 0 && (
-                  <div className="owner-boat-stat">
-                    <i className="fa-solid fa-star" style={{ color: "var(--star)" }} />
-                    <span>{boat.rating} ({boat.reviews} avis)</span>
+              <div className="owner-boat-info">
+                <div className="owner-boat-hd">
+                  <div>
+                    <span className={st.cls}>{st.label}</span>
+                    <h3>{boat.nom_bateau}</h3>
+                    <p>
+                      <i className="fa-solid fa-location-dot" /> {location}
+                      {boatType ? ` · ${boatType}` : ""}
+                    </p>
                   </div>
-                )}
+                  <div className="owner-boat-price">
+                    <strong>{boat.prix_jour.toLocaleString("fr-FR")} €</strong>
+                    <span>/ jour</span>
+                  </div>
+                </div>
+                <div className="owner-boat-stats">
+                  <div className="owner-boat-stat">
+                    <i className="fa-solid fa-calendar-check" />
+                    <span>-- réservations</span>
+                  </div>
+                  <div className="owner-boat-stat">
+                    <i className="fa-solid fa-euro-sign" />
+                    <span>-- € générés</span>
+                  </div>
+                </div>
+              </div>
+              <div className="owner-boat-actions">
+                <Link
+                  href={`/bateaux/${boat.id}`}
+                  className="btn btn-ghost btn-sm"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <i className="fa-solid fa-eye" /> Voir
+                </Link>
+                <button className="btn btn-outline btn-sm">
+                  <i className="fa-solid fa-pen-to-square" /> Modifier
+                </button>
+                {uiStatus === "active" ? (
+                  <button className="btn btn-ghost btn-sm">
+                    <i className="fa-solid fa-pause" /> Désactiver
+                  </button>
+                ) : uiStatus === "inactive" ? (
+                  <button className="btn btn-ghost btn-sm">
+                    <i className="fa-solid fa-play" /> Activer
+                  </button>
+                ) : null}
               </div>
             </div>
-            <div className="owner-boat-actions">
-              <Link href={`/bateaux/${boat.id}`} className="btn btn-ghost btn-sm" target="_blank" rel="noopener">
-                <i className="fa-solid fa-eye" /> Voir
-              </Link>
-              <button className="btn btn-outline btn-sm">
-                <i className="fa-solid fa-pen-to-square" /> Modifier
-              </button>
-              {boat.status === "active" ? (
-                <button className="btn btn-ghost btn-sm">
-                  <i className="fa-solid fa-pause" /> Désactiver
-                </button>
-              ) : boat.status === "inactive" ? (
-                <button className="btn btn-ghost btn-sm">
-                  <i className="fa-solid fa-play" /> Activer
-                </button>
-              ) : null}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

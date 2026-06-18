@@ -14,7 +14,7 @@ export default function NotFound() {
         gap: "24px",
       }}
     >
-      <div style={{ fontSize: "4rem" }}>⚓</div>
+      <div style={{ fontSize: "4rem", color: "var(--primary)" }}><i className="fa-solid fa-anchor" aria-hidden="true" /></div>
       <h1 style={{ fontSize: "clamp(1.5rem, 4vw, 2rem)", color: "var(--text)" }}>
         Page introuvable
       </h1>

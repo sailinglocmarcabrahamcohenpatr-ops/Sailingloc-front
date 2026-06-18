@@ -35,7 +35,7 @@ export default function BoatTypesBar() {
               onClick={() => handleClick(bt.value)}
               aria-pressed={activeType === bt.value}
             >
-              <span className="icon" aria-hidden="true">{bt.icon}</span>
+              <i className={`fa-solid ${bt.icon} icon`} aria-hidden="true" />
               <span>{bt.label}</span>
             </button>
           ))}

@@ -5,7 +5,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "cote-azur",
     name: "Côte d'Azur",
     country: "France",
-    flag: "🇫🇷",
+    flag: "FR",
     region: "Méditerranée française",
     tagline: "Le joyau bleu de la Méditerranée",
     description:
@@ -31,7 +31,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "corse",
     name: "Corse",
     country: "France",
-    flag: "🇫🇷",
+    flag: "FR",
     region: "Méditerranée — Île de Beauté",
     tagline: "L'île sauvage aux mille couleurs",
     description:
@@ -57,7 +57,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "cyclades",
     name: "Cyclades",
     country: "Grèce",
-    flag: "🇬🇷",
+    flag: "GR",
     region: "Mer Égée — Grèce",
     tagline: "L'archipel des dieux",
     description:
@@ -83,7 +83,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "baleares",
     name: "Baléares",
     country: "Espagne",
-    flag: "🇪🇸",
+    flag: "ES",
     region: "Méditerranée — Espagne",
     tagline: "L'archipel espagnol du soleil",
     description:
@@ -109,7 +109,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "dalmatie",
     name: "Côte Dalmate",
     country: "Croatie",
-    flag: "🇭🇷",
+    flag: "HR",
     region: "Mer Adriatique — Croatie",
     tagline: "Mille îles, mille aventures",
     description:
@@ -135,7 +135,7 @@ export const ALL_DESTINATIONS: FullDestination[] = [
     slug: "bretagne",
     name: "Bretagne",
     country: "France",
-    flag: "🇫🇷",
+    flag: "FR",
     region: "Atlantique — France",
     tagline: "La mer à l'état brut",
     description:

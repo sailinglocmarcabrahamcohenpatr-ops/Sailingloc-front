@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
 import { useAuth } from "@/shared/lib";
 import { apiLogin, ApiError } from "@/shared/lib";
 
@@ -30,7 +29,9 @@ export default function LoginForm() {
       router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 401 ? "Identifiants incorrects. Vérifiez votre e-mail et mot de passe." : err.message);
+        setError(err.status === 401
+          ? "Identifiants incorrects. Vérifiez votre e-mail et mot de passe."
+          : err.message);
       } else {
         setError("Impossible de joindre le serveur. Réessayez dans un instant.");
       }
@@ -49,15 +50,18 @@ export default function LoginForm() {
 
       <div className="form-group">
         <label htmlFor="login-email">Adresse e-mail</label>
-        <input
-          id="login-email"
-          type="email"
-          placeholder="vous@exemple.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          required
-        />
+        <div className="input-icon-wrap">
+          <i className="fa-solid fa-envelope input-icon-left" aria-hidden="true" />
+          <input
+            id="login-email"
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+        </div>
       </div>
 
       <div className="form-group">
@@ -65,7 +69,8 @@ export default function LoginForm() {
           Mot de passe
           <Link href="/mot-de-passe-oublie" className="auth-link-inline">Oublié ?</Link>
         </label>
-        <div className="input-password-wrap">
+        <div className="input-icon-wrap input-password-wrap">
+          <i className="fa-solid fa-lock input-icon-left" aria-hidden="true" />
           <input
             id="login-password"
             type={showPwd ? "text" : "password"}
@@ -86,7 +91,12 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+      <button
+        type="submit"
+        className="btn btn-primary btn-full"
+        disabled={loading}
+        style={{ marginTop: "8px" }}
+      >
         {loading ? (
           <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Connexion en cours…</>
         ) : (
