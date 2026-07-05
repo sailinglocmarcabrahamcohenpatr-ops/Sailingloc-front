@@ -5,29 +5,30 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AccountType } from "@/shared/types";
 import { apiRegister, ApiError } from "@/shared/lib";
+import PhoneInput from "./PhoneInput";
 
 const STEPS = ["Type de compte", "Vos infos", "Confirmation"];
 
 const ACCOUNT_TYPES: {
   type: AccountType;
   icon: string;
+  bg: string;
   title: string;
   sub: string;
-  perks: string[];
 }[] = [
   {
     type: "locataire",
     icon: "fa-sailboat",
+    bg: "#1866F2",
     title: "Je loue un bateau",
-    sub: "Je cherche à naviguer",
-    perks: ["3 200+ annonces disponibles", "Assurance incluse", "Paiement sécurisé"],
+    sub: "Trouvez le voilier idéal parmi 3 200+ annonces",
   },
   {
     type: "proprietaire",
     icon: "fa-anchor",
-    title: "Je loue mon bateau",
-    sub: "Je suis propriétaire",
-    perks: ["Publication gratuite", "Jusqu'à 40 000 € / an", "Support dédié"],
+    bg: "#0B1929",
+    title: "Je propose mon bateau",
+    sub: "Rentabilisez votre bateau et gérez vos réservations",
   },
 ];
 
@@ -115,47 +116,36 @@ export default function RegisterForm() {
       {/* ── Étape 0 : type de compte + identifiants ── */}
       {step === 0 && (
         <>
-          <div className="acct-type-grid">
-            {ACCOUNT_TYPES.map(({ type, icon, title, sub, perks }) => (
+          <div className="acct-toggle">
+            {ACCOUNT_TYPES.map(({ type, icon, bg, title, sub }) => (
               <button
                 key={type}
                 type="button"
-                className={`acct-type-card${accountType === type ? " selected" : ""}`}
+                className={`acct-toggle-btn${accountType === type ? " selected" : ""}`}
                 onClick={() => setAccountType(type)}
                 aria-pressed={accountType === type}
               >
-                {accountType === type && (
-                  <span className="acct-check-badge">
-                    <i className="fa-solid fa-circle-check" aria-hidden="true" />
-                  </span>
-                )}
-                <span className="acct-type-icon">
+                <span className="acct-toggle-icon" style={{ background: bg }}>
                   <i className={`fa-solid ${icon}`} aria-hidden="true" />
                 </span>
-                <strong>{title}</strong>
-                <small>{sub}</small>
-                <ul className="acct-type-perks">
-                  {perks.map((p) => (
-                    <li key={p}>
-                      <i className="fa-solid fa-check" aria-hidden="true" />
-                      <span>{p}</span>
-                    </li>
-                  ))}
-                </ul>
+                <span className="acct-toggle-text">
+                  <strong>{title}</strong>
+                  <small>{sub}</small>
+                </span>
+                <span className="acct-toggle-check" aria-hidden="true">
+                  <i className="fa-solid fa-check" />
+                </span>
               </button>
             ))}
           </div>
 
           <div className="form-group">
             <label htmlFor="reg-email">Adresse e-mail</label>
-            <div className="input-icon-wrap">
-              <i className="fa-solid fa-envelope input-icon-left" aria-hidden="true" />
-              <input
+            <input
                 id="reg-email" type="email" placeholder="vous@exemple.com"
                 value={email} onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email" required
               />
-            </div>
           </div>
 
           <div className="form-group">
@@ -163,12 +153,12 @@ export default function RegisterForm() {
               Mot de passe
               <span className="form-optional">8 car. min.</span>
             </label>
-            <div className="input-icon-wrap input-password-wrap">
-              <i className="fa-solid fa-lock input-icon-left" aria-hidden="true" />
+            <div className="input-password-wrap" style={{ position: "relative" }}>
               <input
                 id="reg-password" type={showPwd ? "text" : "password"}
                 placeholder="8 caractères minimum"
-                value={password} onChange={(e) => setPassword(e.target.value)} required
+                value={password} onChange={(e) => setPassword(e.target.value)}
+                required style={{ width: "100%" }}
               />
               <button type="button" className="input-password-toggle"
                 onClick={() => setShowPwd((v) => !v)}
@@ -197,35 +187,31 @@ export default function RegisterForm() {
         </>
       )}
 
-      {/* ── Étape 1 : informations personnelles ── */}
+      {/* Étape 1 : informations personnelles */}
       {step === 1 && (
         <>
           <div className="form-row-2">
             <div className="form-group">
               <label htmlFor="reg-fn">Prénom</label>
-              <div className="input-icon-wrap">
-                <i className="fa-solid fa-user input-icon-left" aria-hidden="true" />
-                <input id="reg-fn" type="text" placeholder="Marie"
-                  value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-              </div>
+              <input id="reg-fn" type="text" placeholder="Marie"
+                value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
             </div>
             <div className="form-group">
               <label htmlFor="reg-ln">Nom</label>
-              <div className="input-icon-wrap">
-                <i className="fa-solid fa-user input-icon-left" aria-hidden="true" />
-                <input id="reg-ln" type="text" placeholder="Dupont"
-                  value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-              </div>
+              <input id="reg-ln" type="text" placeholder="Dupont"
+                value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="reg-phone">Téléphone <span className="form-optional">(optionnel)</span></label>
-            <div className="input-icon-wrap">
-              <i className="fa-solid fa-phone input-icon-left" aria-hidden="true" />
-              <input id="reg-phone" type="tel" placeholder="+33 6 12 34 56 78"
-                value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
+            <label htmlFor="reg-phone">
+              Téléphone <span className="form-optional">(optionnel)</span>
+            </label>
+            <PhoneInput
+              id="reg-phone"
+              value={phone}
+              onChange={setPhone}
+            />
           </div>
 
           <div className="form-group">

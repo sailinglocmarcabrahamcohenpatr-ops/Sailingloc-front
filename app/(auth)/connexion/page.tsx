@@ -23,20 +23,16 @@ export default async function ConnexionPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <div className="auth-card-brand">
-        <i className="fa-solid fa-anchor" aria-hidden="true" />
-      </div>
-
       <div className="auth-card-header">
         <h1>Bon retour !</h1>
-        <p className="auth-card-sub">Connectez-vous à votre espace SailingLoc</p>
+        <p className="auth-card-sub">Entrez vos identifiants pour accéder à votre compte</p>
       </div>
 
       <LoginForm />
 
       <p className="auth-card-create">
         Pas encore de compte ?{" "}
-        <Link href="/inscription" className="auth-link">Créer un compte gratuitement</Link>
+        <Link href="/inscription" className="auth-link">Créer un compte</Link>
       </p>
     </div>
   );

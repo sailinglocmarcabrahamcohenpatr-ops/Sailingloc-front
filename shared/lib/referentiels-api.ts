@@ -2,7 +2,7 @@ import { api } from "./api-client";
 
 export interface TypeBateauAPI {
   id: number;
-  libelle: string;
+  labelTypeBateau: string;
 }
 
 export interface PortAPI {

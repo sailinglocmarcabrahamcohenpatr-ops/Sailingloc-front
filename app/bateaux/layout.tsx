@@ -1,5 +1,6 @@
 import { Navbar } from "@/widgets/navbar";
 import { FiltersBar } from "@/features/filter-boats";
+import { SearchBarCompact } from "@/features/search-boats";
 import { Footer } from "@/widgets/footer";
 
 export default function BateauxLayout({ children }: { children: React.ReactNode }) {
@@ -8,7 +9,10 @@ export default function BateauxLayout({ children }: { children: React.ReactNode 
       <Navbar />
       <div className="catalog-filters-bar">
         <div className="container">
-          <FiltersBar />
+          <div className="catalog-search-filter-row">
+            <SearchBarCompact />
+            <FiltersBar />
+          </div>
         </div>
       </div>
       <main>{children}</main>

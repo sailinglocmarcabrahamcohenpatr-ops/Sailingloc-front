@@ -54,6 +54,11 @@ export interface Stat {
 export interface FilterItem {
   label: string;
   icon?: string;
+  /** Maps to URL ?type= param (triggers API refetch) */
+  typeParam?: string;
+  /** Maps to a URL param for client-side filtering */
+  urlParam?: string;
+  urlValue?: string;
 }
 
 export interface ContactSubject {

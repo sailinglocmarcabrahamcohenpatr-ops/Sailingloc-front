@@ -44,10 +44,22 @@ export interface CreateBoatPayload {
   statut?: string;
 }
 
+type BoatListResponse = BoatAPI[] | { "hydra:member": BoatAPI[] } | { data: BoatAPI[] } | { member: BoatAPI[] };
+
+function extractBoatArray(res: BoatListResponse): BoatAPI[] {
+  if (Array.isArray(res)) return res;
+  if ("hydra:member" in res) return res["hydra:member"];
+  if ("data" in res) return res.data;
+  if ("member" in res) return res.member;
+  return [];
+}
+
 export const boatsApi = {
-  getAll: (params?: Record<string, string>) => {
+  getAll: async (params?: Record<string, string>): Promise<BoatAPI[]> => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-    return api.get<BoatAPI[]>(`/api/bateaux${qs}`);
+    const res = await api.get<BoatListResponse>(`/api/bateaux${qs}`);
+    console.log("boatsApi.getAll response:", res);
+    return extractBoatArray(res);
   },
   getOne: (id: number | string) =>
     api.get<BoatAPI>(`/api/bateaux/${id}`),

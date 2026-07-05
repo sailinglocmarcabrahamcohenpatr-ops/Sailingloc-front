@@ -4,19 +4,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { boatsApi } from "@/shared/lib";
-import type { BoatAPI } from "@/shared/lib";
+import { boatsApi, referentielsApi } from "@/shared/lib";
+import type { BoatAPI, TypeBateauAPI } from "@/shared/lib";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
+import { ActiveFiltersBar } from "@/features/filter-boats";
 
-const TYPE_LABELS: Record<string, string> = {
-  voilier: "Voiliers",
-  catamaran: "Catamarans",
-  moteur: "Bateaux à moteur",
-  habitable: "Habitables",
-  "semi-rigide": "Semi-rigides",
-  "sans-permis": "Sans permis",
-  ponton: "Pontons",
-};
+function slugify(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, "-");
+}
 
 function getMainPhoto(boat: BoatAPI): string {
   const main = boat.photos?.find((p) => p.principale) ?? boat.photos?.[0];
@@ -73,12 +68,20 @@ export default function BoatsPage() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type") ?? undefined;
   const destination = searchParams.get("destination") ?? undefined;
+  const capaciteMin = Number(searchParams.get("capacite") ?? 0);
 
   const [boats, setBoats] = useState<BoatAPI[]>([]);
+  const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    referentielsApi.getTypesBateaux().then(setBoatTypes).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
     const params: Record<string, string> = {};
     if (type && type !== "tous") params.type = type;
     if (destination) params.destination = destination;
@@ -90,8 +93,17 @@ export default function BoatsPage() {
       .finally(() => setLoading(false));
   }, [type, destination]);
 
+  const visibleBoats = boats.filter((boat) => {
+    if (capaciteMin > 0 && boat.capacite < capaciteMin) return false;
+    return true;
+  });
+
+  const typeLabel = type && type !== "tous"
+    ? (boatTypes.find((t) => slugify(t.labelTypeBateau) === type)?.labelTypeBateau ?? type)
+    : null;
+
   const subtitle = [
-    type && type !== "tous" ? (TYPE_LABELS[type] ?? type) : null,
+    typeLabel,
     destination ? `à ${destination}` : null,
   ]
     .filter(Boolean)
@@ -101,8 +113,10 @@ export default function BoatsPage() {
     <div className="container">
       <div className="results-layout">
         <div>
+          <ActiveFiltersBar />
+
           <ResultsControls
-            count={boats.length}
+            count={visibleBoats.length}
             dates="10 / 15 juill."
             subtitle={subtitle || undefined}
           />
@@ -127,8 +141,8 @@ export default function BoatsPage() {
           {!loading && !error && (
             <>
               <div className="boats-result-grid">
-                {boats.length > 0 ? (
-                  boats.map((boat) => <BoatListCard key={boat.id} boat={boat} />)
+                {visibleBoats.length > 0 ? (
+                  visibleBoats.map((boat) => <BoatListCard key={boat.id} boat={boat} />)
                 ) : (
                   <p style={{ color: "var(--text-2)", gridColumn: "1 / -1", padding: "48px 0" }}>
                     Aucun bateau ne correspond à votre recherche.
@@ -136,7 +150,7 @@ export default function BoatsPage() {
                 )}
               </div>
 
-              {!type && !destination && boats.length > 0 && (
+              {!type && !destination && visibleBoats.length > 0 && (
                 <nav className="pagination" aria-label="Pagination">
                   <button className="page-btn arrow" disabled aria-label="Page précédente">
                     <i className="fa-solid fa-chevron-left" aria-hidden="true" />
