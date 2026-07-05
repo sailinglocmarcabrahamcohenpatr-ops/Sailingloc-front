@@ -47,7 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(USER_KEY);
-      if (stored) setUser(JSON.parse(stored));
+      if (stored) {
+        setUser(JSON.parse(stored));
+      } else if (process.env.NODE_ENV === "development") {
+        const devUser: AuthUser = { name: "Florian Marc", email: "florian.marc@test.com", initials: "FM", role: "locataire" };
+        setUser(devUser);
+        persist(devUser);
+      }
     } catch {}
   }, []);
 

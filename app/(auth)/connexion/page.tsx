@@ -8,11 +8,11 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ registered?: string }>;
+  searchParams: Promise<{ registered?: string; redirect?: string }>;
 }
 
 export default async function ConnexionPage({ searchParams }: PageProps) {
-  const { registered } = await searchParams;
+  const { registered, redirect: redirectTo } = await searchParams;
 
   return (
     <div className="auth-card">
@@ -31,9 +31,7 @@ export default async function ConnexionPage({ searchParams }: PageProps) {
         <h1>Bon retour !</h1>
         <p className="auth-card-sub">Connectez-vous à votre espace SailingLoc</p>
       </div>
-
-      <LoginForm />
-
+      <LoginForm redirectTo={redirectTo} />
       <p className="auth-card-create">
         Pas encore de compte ?{" "}
         <Link href="/inscription" className="auth-link">Créer un compte gratuitement</Link>
