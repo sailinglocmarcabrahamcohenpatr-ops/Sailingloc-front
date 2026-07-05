@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ALL_BOATS } from "@/entities/boat";
+import { ALL_BOATS, getBoatImageUrl } from "@/entities/boat";
 import { PRODUCT_REVIEWS } from "@/entities/review";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
@@ -79,9 +79,9 @@ export default async function ProductPage({ params }: PageProps) {
   if (!boat) notFound();
 
   const galleryImages = [
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-main/1200/800`, alt: `${boat.name} vue principale` },
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-cockpit/600/400`, alt: "Cockpit" },
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-cabin/600/400`, alt: "Cabine principale" },
+    { src: getBoatImageUrl(boat, 1200, 800, "main"), alt: `${boat.name} vue principale` },
+    { src: getBoatImageUrl(boat, 600, 400, "cockpit"), alt: "Cockpit" },
+    { src: getBoatImageUrl(boat, 600, 400, "cabin"), alt: "Cabine principale" },
   ];
 
   return (
@@ -117,8 +117,8 @@ export default async function ProductPage({ params }: PageProps) {
             </div>
             <div className="product-owner">
               <Image
-                src="https://i.pravatar.cc/96?u=marc-owner"
-                alt="Photo du propriétaire Marc"
+                src={`https://i.pravatar.cc/96?u=${boat.owner.avatarSeed}`}
+                alt={`Photo du propriétaire ${boat.owner.name}`}
                 width={48}
                 height={48}
                 className="product-owner-avatar"
@@ -126,7 +126,7 @@ export default async function ProductPage({ params }: PageProps) {
               />
               <div className="product-owner-info">
                 <small>Proposé par</small>
-                <strong>Marc D.</strong>
+                <strong>{boat.owner.name}</strong>
                 <Link href="#">
                   Voir le profil{" "}
                   <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
@@ -296,11 +296,12 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
 
         <BookingCard
+          boatId={boat.id}
           pricePerDay={boat.pricePerDay}
           rating={boat.rating}
           reviewCount={boat.reviewCount}
           capacity={boat.capacity ?? 8}
-          ownerName="Marc"
+          ownerName={boat.owner.name}
         />
       </div>
     </div>

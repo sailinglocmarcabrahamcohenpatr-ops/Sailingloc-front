@@ -1,6 +1,12 @@
-import Link from "next/link";
+import { ALL_BOATS } from "@/entities/boat";
+import type { Boat } from "@/entities/boat";
+import BoatsMapCard from "./BoatsMapCard";
 
-export default function BoatsSidebar() {
+interface BoatsSidebarProps {
+  boats?: Boat[];
+}
+
+export default function BoatsSidebar({ boats = ALL_BOATS }: BoatsSidebarProps) {
   return (
     <aside className="sidebar" aria-label="Informations complémentaires">
       <div className="weather-card" role="region" aria-label="Météo locale">
@@ -36,21 +42,7 @@ export default function BoatsSidebar() {
         </div>
       </div>
 
-      <div className="map-card" role="region" aria-label="Carte">
-        <div className="map-placeholder">
-          <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
-          <span>Voir sur la carte</span>
-        </div>
-        <div className="map-card-foot">
-          <span>
-            <i className="fa-solid fa-map-pin" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-            140 bateaux
-          </span>
-          <Link href="#" className="btn btn-primary btn-sm">
-            <i className="fa-solid fa-map" aria-hidden="true" /> Carte
-          </Link>
-        </div>
-      </div>
+      <BoatsMapCard boats={boats} />
 
       <div className="info-card" role="region" aria-label="Informations utiles">
         <h5>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Boat } from "../model/types";
+import { getBoatImageUrl } from "../model/image";
 import { cn, formatPrice } from "@/shared/lib/utils";
 
 interface BoatCardProps {
@@ -16,7 +17,8 @@ export default function BoatCard({
   showMeta = false,
   action,
 }: BoatCardProps) {
-  const imgSrc = `https://picsum.photos/seed/${boat.imageSeed}/600/450`;
+  const imgSrc = getBoatImageUrl(boat, 600, 450);
+  const isUploadedPhoto = imgSrc.startsWith("data:");
 
   return (
     <Link
@@ -31,6 +33,7 @@ export default function BoatCard({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           style={{ objectFit: "cover" }}
+          unoptimized={isUploadedPhoto}
         />
         {boat.badge && (
           <div
