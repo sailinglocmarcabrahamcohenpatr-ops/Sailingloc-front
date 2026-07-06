@@ -13,11 +13,25 @@ function getToken(): string | null {
 }
 
 export function setToken(token: string) {
-  if (typeof window !== "undefined") localStorage.setItem("sailingloc_token", token);
+  if (typeof window !== "undefined") {
+    localStorage.setItem("sailingloc_token", token);
+    // Cookie accessible par le middleware Next.js (pas HttpOnly volontairement)
+    document.cookie = "sailingloc_auth=1; path=/; max-age=86400; SameSite=Lax";
+  }
 }
 
 export function removeToken() {
-  if (typeof window !== "undefined") localStorage.removeItem("sailingloc_token");
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("sailingloc_token");
+    document.cookie = "sailingloc_auth=; path=/; max-age=0";
+    document.cookie = "sailingloc_role=; path=/; max-age=0";
+  }
+}
+
+export function setRoleCookie(role: string) {
+  if (typeof window !== "undefined") {
+    document.cookie = `sailingloc_role=${role}; path=/; max-age=86400; SameSite=Lax`;
+  }
 }
 
 async function request<T>(

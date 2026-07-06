@@ -30,7 +30,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
 
     try {
       const result = await apiLogin({ email, password });
-      login(result.email, result.role);
+      login(result.email, result.role, result.userId);
       if (redirectTo) {
         router.push(redirectTo);
       } else {

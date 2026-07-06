@@ -7,10 +7,11 @@ import { useAuth } from "@/shared/lib";
 type NavLink = { href: string; icon: string; label: string; badge?: number; exact?: boolean };
 
 const ownerLinks: NavLink[] = [
-  { href: "/proprietaire/bateaux", icon: "fa-sailboat", label: "Mes bateaux" },
-  { href: "/proprietaire/reservations", icon: "fa-calendar-check", label: "Réservations" },
-  { href: "/proprietaire/revenus", icon: "fa-chart-line", label: "Revenus" },
-  { href: "/proprietaire/messages", icon: "fa-envelope", label: "Messages", badge: 3 },
+  { href: "/proprietaire/bateaux",        icon: "fa-sailboat",       label: "Mes bateaux" },
+  { href: "/proprietaire/bateaux/nouveau",icon: "fa-plus",           label: "Ajouter un bateau" },
+  { href: "/proprietaire/reservations",   icon: "fa-calendar-check", label: "Réservations" },
+  { href: "/proprietaire/revenus",        icon: "fa-chart-line",     label: "Revenus" },
+  { href: "/proprietaire/messages",       icon: "fa-envelope",       label: "Messages", badge: 3 },
 ];
 
 const renterLinks: NavLink[] = [

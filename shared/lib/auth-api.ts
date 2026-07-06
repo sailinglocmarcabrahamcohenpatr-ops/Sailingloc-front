@@ -22,6 +22,7 @@ interface LoginResponse {
 }
 
 interface JwtPayload {
+  id?: number;
   sub?: string;
   email?: string;
   username?: string;
@@ -57,8 +58,14 @@ function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
       roles.push(typeof a === "string" ? a : a.authority);
     }
   }
+  console.log("JWT roles:", roles);
 
-  return roles.some((r) => r.includes("PROPRIETAIRE")) ? "proprietaire" : "locataire";
+  // ROLE_ADMIN ou ROLE_PROPRIETAIRE → espace propriétaire
+  if (roles.some((r) => r === "ROLE_ADMIN" || r.includes("PROPRIETAIRE"))) {
+    return "proprietaire";
+  }
+  // ROLE_USER (ou tout autre rôle) → espace locataire
+  return "locataire";
 }
 
 function extractNameFromJwt(payload: JwtPayload, fallbackEmail: string): string {
@@ -83,6 +90,7 @@ export async function apiLogin(payload: LoginPayload) {
     email,
     name: extractNameFromJwt(jwt, email),
     role: extractRoleFromJwt(jwt),
+    userId: jwt.id ?? 0,
   };
 }
 

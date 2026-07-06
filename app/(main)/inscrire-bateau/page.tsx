@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ListBoatForm } from "@/features/list-boat";
+import "@/features/list-boat/ui/list-boat.css";
 
 export const metadata: Metadata = {
   title: "Inscrire mon bateau — SailingLoc",

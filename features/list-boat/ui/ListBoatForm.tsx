@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import "./list-boat.css";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BOAT_TYPES } from "@/shared/config";
-import type { BoatType } from "@/shared/types";
-import { addUserBoat } from "@/entities/boat";
 import { useAuth } from "@/shared/lib";
-import { slugify } from "@/shared/lib/utils";
+import { boatsApi } from "@/shared/lib/boats-api";
+import { referentielsApi, portsApi } from "@/shared/lib/referentiels-api";
+import type { TypeBateauAPI, PortAPI } from "@/shared/lib/referentiels-api";
 import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { compressImage } from "../lib/compressImage";
 import LocationMap from "./LocationMapLoader";
+import SearchableSelect from "./SearchableSelect";
 
 const STEPS = ["Type & infos", "Photos & description", "Tarifs", "Disponibilités", "Récapitulatif"];
 const MIN_PHOTOS = 3;
@@ -22,25 +23,52 @@ export default function ListBoatForm() {
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const submittingRef = useRef(false);
 
-  const [type, setType] = useState<BoatType>("voilier");
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [city, setCity] = useState("");
+  /* ── Données API ── */
+  const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
+  const [ports,     setPorts]     = useState<PortAPI[]>([]);
+
+  useEffect(() => {
+    referentielsApi.getTypesBateaux()
+      .then((res) => {
+        const arr = Array.isArray(res) ? res
+          : (res as Record<string, unknown>)?.["hydra:member"] as TypeBateauAPI[]
+          ?? (res as Record<string, unknown>)?.["data"]         as TypeBateauAPI[]
+          ?? [];
+        setBoatTypes(arr);
+      })
+      .catch(() => {});
+    portsApi.getAll()
+      .then((res) => {
+        const arr = Array.isArray(res) ? res
+          : (res as Record<string, unknown>)?.["hydra:member"] as PortAPI[]
+          ?? (res as Record<string, unknown>)?.["data"]         as PortAPI[]
+          ?? [];
+        setPorts(arr);
+      })
+      .catch(() => {});
+  }, []);
+
+  /* ── Form state ── */
+  const [typeId,    setTypeId]    = useState<number | null>(null);
+  const [name,      setName]      = useState("");
+  const [portId,    setPortId]    = useState<number | null>(null);
   const [geocodeStatus, setGeocodeStatus] = useState<GeocodeStatus>("idle");
   const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
-  const [length, setLength] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [cabins, setCabins] = useState("");
-  const [year, setYear] = useState("");
-  const [license, setLicense] = useState("Requis");
+  const [length,    setLength]    = useState("");
+  const [capacity,  setCapacity]  = useState("");
+  const [cabins,    setCabins]    = useState("");
+  const [year,      setYear]      = useState("");
+  const [license,   setLicense]   = useState("Requis");
   const [description, setDescription] = useState("");
   const [pricePerDay, setPricePerDay] = useState("");
   const [weeklyDiscount, setWeeklyDiscount] = useState("10");
-  const [caution, setCaution] = useState("2000");
+  const [caution,   setCaution]   = useState("2000");
+  const [skipper,   setSkipper]   = useState(false);
 
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos,    setPhotos]    = useState<string[]>([]);
   const [photoError, setPhotoError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,21 +112,16 @@ export default function ListBoatForm() {
     });
   };
 
-  const handleLocateCity = async () => {
-    if (!city.trim()) return;
+  const handleLocatePort = async (portId: number) => {
+    const port = ports.find((p) => p.id === portId);
+    if (!port?.ville) return;
     setGeocodeStatus("loading");
     try {
-      const result = await geocodeCity(city.trim());
-      if (result) {
-        setGeocodeResult(result);
-        setGeocodeStatus("success");
-      } else {
-        setGeocodeResult(null);
-        setGeocodeStatus("error");
-      }
+      const result = await geocodeCity(port.ville);
+      if (result) { setGeocodeResult(result); setGeocodeStatus("success"); }
+      else { setGeocodeResult(null); setGeocodeStatus("error"); }
     } catch {
-      setGeocodeResult(null);
-      setGeocodeStatus("error");
+      setGeocodeResult(null); setGeocodeStatus("error");
     }
   };
 
@@ -107,31 +130,32 @@ export default function ListBoatForm() {
     if (submittingRef.current) return;
     submittingRef.current = true;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    setSubmitError("");
 
-    addUserBoat({
-      id: `${slugify(name || "bateau")}-${Date.now()}`,
-      name: name || "Nouveau bateau",
-      location: [location, city].filter(Boolean).join(", ") || city,
-      coordinates: geocodeResult ? { lat: geocodeResult.lat, lng: geocodeResult.lng } : undefined,
-      type,
-      rating: 5,
-      reviewCount: 0,
-      pricePerDay: parseInt(pricePerDay, 10) || 0,
-      imageUrl: "",
-      imageSeed: `${slugify(name || "bateau")}-${Date.now()}`,
-      photos: photos.length > 0 ? photos : undefined,
-      owner: { name: user?.name ?? "Vous", avatarSeed: slugify(user?.name ?? "owner") },
-      badge: { label: "Nouveau", variant: "green" },
-      cabins: cabins ? parseInt(cabins, 10) : undefined,
-      year: year ? parseInt(year, 10) : undefined,
-      capacity: capacity ? parseInt(capacity, 10) : undefined,
-      length: length ? `${length} m` : undefined,
-      license: license as "Requis" | "Non requis",
-    });
-
-    setLoading(false);
-    router.push("/bateaux");
+    try {
+      if (!typeId || !portId || !name || !pricePerDay) {
+        setSubmitError("Veuillez remplir tous les champs obligatoires.");
+        return;
+      }
+      await boatsApi.create({
+        nom_bateau:     name,
+        motorisation:   "voile",
+        taille:         length ? `${length} m` : "—",
+        prix_jour:      parseInt(pricePerDay, 10),
+        id_port:        portId,
+        id_utilisateur: user?.id ?? 0,
+        id_type_bateau: typeId,
+        capacite:       capacity ? parseInt(capacity, 10) : 1,
+        avec_skipper:   skipper,
+        statut:         "en_attente",
+      });
+      router.push("/proprietaire/bateaux");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Erreur lors de la soumission.");
+    } finally {
+      setLoading(false);
+      submittingRef.current = false;
+    }
   };
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
@@ -156,75 +180,77 @@ export default function ListBoatForm() {
         {step === 0 && (
           <div className="form-section">
             <h3>Type de bateau</h3>
-            <div className="boat-type-select-grid">
-              {BOAT_TYPES.filter((b) => b.value !== "tous").map((bt) => (
-                <button
-                  key={bt.value}
-                  type="button"
-                  className={`boat-type-select-btn${type === bt.value ? " active" : ""}`}
-                  onClick={() => setType(bt.value)}
-                >
-                  <i className={`fa-solid ${bt.icon} icon`} aria-hidden="true" />
-                  {bt.label}
-                </button>
-              ))}
-            </div>
+            {boatTypes.length === 0 ? (
+              <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>
+                <i className="fa-solid fa-circle-notch fa-spin" /> Chargement des types…
+              </p>
+            ) : (
+              <>
+                <SearchableSelect
+                  id="lb-type"
+                  options={boatTypes.map((bt) => ({ value: bt.id, label: bt.labelTypeBateau }))}
+                  value={typeId}
+                  onChange={(v) => setTypeId(Number(v))}
+                  placeholder="Sélectionner un type de bateau…"
+                  searchPlaceholder="Rechercher un type…"
+                  required
+                />
+                {/* Affichage en grille après sélection */}
+                {typeId !== null && (
+                  <div className="boat-type-select-grid" style={{ marginTop: 4 }}>
+                    {boatTypes.map((bt) => (
+                      <button
+                        key={bt.id}
+                        type="button"
+                        className={`boat-type-select-btn${typeId === bt.id ? " active" : ""}`}
+                        onClick={() => setTypeId(bt.id)}
+                      >
+                        {bt.labelTypeBateau}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
             <h3>Informations techniques</h3>
             <div className="form-group">
               <label htmlFor="lb-name">Nom du bateau *</label>
               <input id="lb-name" type="text" placeholder="Ex: Sun Odyssey 440" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
+
             <div className="form-row-2">
               <div className="form-group">
-                <label htmlFor="lb-location">Port d'attache *</label>
-                <input id="lb-location" type="text" placeholder="Ex: Vieux-Port" value={location} onChange={(e) => setLocation(e.target.value)} required />
+                <label htmlFor="lb-port">Port d'attache *</label>
+                <SearchableSelect
+                  id="lb-port"
+                  options={ports.map((p) => ({
+                    value: p.id,
+                    label: p.nom,
+                    sub: [p.ville, p.pays].filter(Boolean).join(", "),
+                  }))}
+                  value={portId}
+                  onChange={(v) => {
+                    const id = Number(v);
+                    setPortId(id || null);
+                    if (id) handleLocatePort(id);
+                  }}
+                  placeholder="Sélectionner un port…"
+                  searchPlaceholder="Rechercher par nom ou ville…"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label htmlFor="lb-year">Année de construction</label>
-                <input id="lb-year" type="number" placeholder="2020" min="1970" max="2025" value={year} onChange={(e) => setYear(e.target.value)} />
+                <input id="lb-year" type="number" placeholder="2020" min="1970" max={new Date().getFullYear()} value={year} onChange={(e) => setYear(e.target.value)} />
               </div>
             </div>
-            <div className="form-group">
-              <label htmlFor="lb-city">Ville *</label>
-              <div className="location-city-input">
-                <input
-                  id="lb-city"
-                  type="text"
-                  placeholder="Ex: Marseille"
-                  value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                    setGeocodeStatus("idle");
-                    setGeocodeResult(null);
-                  }}
-                  onBlur={handleLocateCity}
-                  required
-                />
-                <button type="button" className="btn btn-outline btn-sm" onClick={handleLocateCity} disabled={geocodeStatus === "loading"}>
-                  {geocodeStatus === "loading" ? (
-                    <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
-                  ) : (
-                    <i className="fa-solid fa-location-crosshairs" aria-hidden="true" />
-                  )}{" "}
-                  Localiser
-                </button>
+
+            {geocodeStatus === "success" && geocodeResult && (
+              <div className="location-preview-map-wrap">
+                <LocationMap lat={geocodeResult.lat} lng={geocodeResult.lng} />
               </div>
-              {geocodeStatus === "error" && (
-                <small className="form-hint" style={{ color: "var(--red)" }}>
-                  Ville introuvable, essayez un nom plus précis.
-                </small>
-              )}
-              {geocodeStatus === "success" && geocodeResult && (
-                <>
-                  <small className="form-hint">
-                    <i className="fa-solid fa-check-circle" style={{ color: "var(--green)" }} /> {geocodeResult.label}
-                  </small>
-                  <div className="location-preview-map-wrap">
-                    <LocationMap lat={geocodeResult.lat} lng={geocodeResult.lng} />
-                  </div>
-                </>
-              )}
-            </div>
+            )}
             <div className="form-row-3">
               <div className="form-group">
                 <label htmlFor="lb-length">Longueur (m)</label>
@@ -248,6 +274,17 @@ export default function ListBoatForm() {
                     {v}
                   </label>
                 ))}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Skipper disponible</label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input type="radio" name="skipper" checked={skipper} onChange={() => setSkipper(true)} /> Avec skipper
+                </label>
+                <label className="radio-label">
+                  <input type="radio" name="skipper" checked={!skipper} onChange={() => setSkipper(false)} /> Sans skipper
+                </label>
               </div>
             </div>
           </div>
@@ -479,13 +516,18 @@ export default function ListBoatForm() {
           <button type="button" className="btn btn-outline" onClick={prev}>
             <i className="fa-solid fa-arrow-left" /> Retour
           </button>
-        )}
-        {step < STEPS.length - 1 ? (
-          <button type="button" className="btn btn-primary" onClick={next}>
+        )}        {submitError && (
+          <p style={{ color: "var(--red)", fontSize: ".875rem", flex: 1, textAlign: "center" }}>
+            <i className="fa-solid fa-triangle-exclamation" /> {submitError}
+          </p>
+        )}        {step < STEPS.length - 1 ? (
+          <div style={{ width: '100%', padding: '10px', display: 'flex'  }}>
+          <button type="button" className="btn btn-primary" style={{ marginLeft: "auto" }} onClick={next}>
             Continuer <i className="fa-solid fa-arrow-right" />
           </button>
+          </div>
         ) : (
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button type="submit" className="btn btn-primary" style={{ marginLeft: "auto" }} disabled={loading}>
             {loading ? <><i className="fa-solid fa-circle-notch fa-spin" /> Publication…</> : <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>}
           </button>
         )}

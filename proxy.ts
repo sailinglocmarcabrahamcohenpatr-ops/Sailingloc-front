@@ -1,24 +1,55 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+/* ── Routes protégées ───────────────────────────── */
+const PROTECTED: Array<{ pattern: RegExp; requiredRole?: string }> = [
+  { pattern: /^\/profil(\/|$)/ },
+  { pattern: /^\/proprietaire(\/|$)/, requiredRole: "proprietaire" },
+];
 
+const AUTH_ROUTES = ["/connexion", "/inscription"];
+
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const isAuth = request.cookies.get("sailingloc_auth")?.value === "1";
+  const role   = request.cookies.get("sailingloc_role")?.value ?? "";
+
+  /* Déjà connecté sur /connexion ou /inscription → redirige */
+  if (AUTH_ROUTES.some((r) => pathname.startsWith(r)) && isAuth) {
+    const dest = role === "proprietaire" ? "/proprietaire/bateaux" : "/profil";
+    return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  /* Routes privées */
+  for (const rule of PROTECTED) {
+    if (!rule.pattern.test(pathname)) continue;
+
+    if (!isAuth) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/connexion";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    if (rule.requiredRole && role !== rule.requiredRole) {
+      return NextResponse.redirect(new URL("/profil", request.url));
+    }
+
+    break;
+  }
+
+  /* En-têtes de sécurité */
+  const response = NextResponse.next();
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(self), geolocation=()"
-  );
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
-  );
-
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   return response;
 }
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+
