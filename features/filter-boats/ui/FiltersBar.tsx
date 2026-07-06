@@ -1,201 +1,171 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { referentielsApi } from "@/shared/lib";
-import type { TypeBateauAPI } from "@/shared/lib";
-import { FEATURE_FILTERS } from "../model/constants";
-import type { FilterItem } from "@/shared/types";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { BOAT_TYPES } from "@/shared/config";
+import type { BoatType } from "@/shared/types";
+import { PRICE_OPTIONS, CAPACITY_OPTIONS, RATING_OPTIONS } from "../model/constants";
 
-function slugify(s: string): string {
-  return s?.toLowerCase().replace(/\s+/g, "-");
-}
+const TYPE_CHOICES = BOAT_TYPES.filter((t) => t.value !== "tous");
 
 export default function FiltersBar() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
-  const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+
+  const activeTypes = new Set(
+    (searchParams.get("type") ?? "").split(",").filter(Boolean)
+  );
+  const priceMax = searchParams.get("prixMax") ?? "";
+  const capacityMin = searchParams.get("capacite") ?? "";
+  const ratingMin = searchParams.get("note") ?? "";
+
+  const activeCount =
+    activeTypes.size + (priceMax ? 1 : 0) + (capacityMin ? 1 : 0) + (ratingMin ? 1 : 0);
 
   useEffect(() => {
-    referentielsApi.getTypesBateaux().then(setBoatTypes).catch(() => {});
+    function handleClick(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Close modal on Escape
-  useEffect(() => {
-    if (!modalOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
-    document.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [modalOpen]);
-
-  const currentType = searchParams.get("type");
-
-  const push = useCallback((updater: (p: URLSearchParams) => void) => {
+  const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
-    updater(params);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    }
     const qs = params.toString();
-    router.push(`${pathname}${qs ? "?" + qs : ""}`);
-  }, [searchParams, router, pathname]);
-
-  const toggleType = (libelle: string) => {
-    const slug = slugify(libelle);
-    push(p => { if (p.get("type") === slug) p.delete("type"); else p.set("type", slug); });
+    router.push(`/bateaux${qs ? "?" + qs : ""}`);
   };
 
-  const toggleFeature = (filter: FilterItem) => {
-    if (!filter.urlParam || !filter.urlValue) return;
-    push(p => {
-      if (p.get(filter.urlParam!) === filter.urlValue) p.delete(filter.urlParam!);
-      else p.set(filter.urlParam!, filter.urlValue!);
-    });
+  const toggleType = (value: BoatType) => {
+    const next = new Set(activeTypes);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    updateParams({ type: next.size > 0 ? Array.from(next).join(",") : null });
   };
 
   const clearAll = () => {
-    push(p => {
-      p.delete("type");
-      FEATURE_FILTERS.forEach(f => { if (f.urlParam) p.delete(f.urlParam); });
-    });
+    updateParams({ type: null, prixMax: null, capacite: null, note: null });
   };
 
-  // Build active filters list for the chips row
-  const activeFilters: { key: string; label: string; onRemove: () => void }[] = [];
-  if (currentType) {
-    const label = boatTypes.find(t => slugify(t.labelTypeBateau) === currentType)?.labelTypeBateau ?? currentType;
-    activeFilters.push({ key: "type", label, onRemove: () => push(p => p.delete("type")) });
-  }
-  FEATURE_FILTERS.forEach(f => {
-    if (f.urlParam && f.urlValue && searchParams.get(f.urlParam) === f.urlValue) {
-      activeFilters.push({ key: f.label, label: f.label, onRemove: () => push(p => p.delete(f.urlParam!)) });
-    }
-  });
-
-  const totalActive = activeFilters.length;
-
   return (
-    <>
-      {/*Button only (chips are rendered by ActiveFiltersBar in page) */}
-      <div className="filters-bar">
-        <div className="filters-bar-inner">
-          <button
-            className={`filter-open-btn${totalActive > 0 ? " has-active" : ""}`}
-            type="button"
-            onClick={() => setModalOpen(true)}
-            aria-haspopup="dialog"
-          >
-            <i className="fa-solid fa-sliders" aria-hidden="true" />
-            Filtres
-            {totalActive > 0 && <span className="filter-badge">{totalActive}</span>}
-          </button>
-        </div>
-      </div>
-
-      {/* ── Modal ─────────────────────────────────────── */}
-      {modalOpen && (
-        <div
-          className="filters-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Filtres de recherche"
-          onClick={() => setModalOpen(false)}
+    <div className="filters-bar">
+      <div className="filters-bar-inner" ref={wrapperRef}>
+        <button
+          type="button"
+          className="filter-btn-icon primary-filter"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-haspopup="dialog"
         >
-          <div className="filters-modal" onClick={e => e.stopPropagation()}>
+          <i className="fa-solid fa-sliders" aria-hidden="true" /> Filtres
+          {activeCount > 0 && <span className="filter-count-badge">{activeCount}</span>}
+        </button>
 
-            {/* Header */}
-            <div className="filters-modal-header">
-              <h2 className="filters-modal-title">
-                <i className="fa-solid fa-sliders" aria-hidden="true" />
-                Filtres
-              </h2>
-              <button
-                className="filters-modal-close"
-                type="button"
-                onClick={() => setModalOpen(false)}
-                aria-label="Fermer"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
+        {activeCount > 0 && (
+          <button
+            type="button"
+            className="clear-filters"
+            onClick={clearAll}
+            aria-label="Effacer tous les filtres"
+          >
+            Tout effacer
+          </button>
+        )}
+
+        {open && (
+          <div className="filter-panel" role="dialog" aria-label="Filtres avancés">
+            <div className="filter-panel-section">
+              <span className="filter-panel-label">Type de bateau</span>
+              <div className="filter-panel-chips">
+                {TYPE_CHOICES.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    className={`chip${activeTypes.has(t.value) ? " active" : ""}`}
+                    aria-pressed={activeTypes.has(t.value)}
+                    onClick={() => toggleType(t.value)}
+                  >
+                    <i className={`fa-solid ${t.icon}`} aria-hidden="true" />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Body */}
-            <div className="filters-modal-body">
-
-              <section className="filters-section">
-                <h3 className="filters-section-title">
-                  <i className="fa-solid fa-sailboat" aria-hidden="true" />
-                  Type de bateau
-                </h3>
-                <div className="filters-chips-grid">
-                  {boatTypes.map(t => {
-                    const active = currentType === slugify(t.labelTypeBateau);
-                    return (
-                      <button
-                        key={t.id}
-                        className={`filter-chip-lg${active ? " active" : ""}`}
-                        onClick={() => toggleType(t.labelTypeBateau)}
-                        aria-pressed={active}
-                        type="button"
-                      >
-                        {active && <i className="fa-solid fa-check" aria-hidden="true" />}
-                        {t.labelTypeBateau}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              <div className="filters-divider" />
-
-              <section className="filters-section">
-                <h3 className="filters-section-title">
-                  <i className="fa-solid fa-sliders" aria-hidden="true" />
-                  Options
-                </h3>
-                <div className="filters-options-list">
-                  {FEATURE_FILTERS.map(f => {
-                    const active = !!(f.urlParam && f.urlValue && searchParams.get(f.urlParam) === f.urlValue);
-                    return (
-                      <label key={f.label} className={`filters-option-row${active ? " active" : ""}`}>
-                        <div className="filters-option-label">
-                          {f.icon && <i className={`fa-solid ${f.icon}`} aria-hidden="true" />}
-                          {f.label}
-                        </div>
-                        <button
-                          className={`filters-toggle${active ? " on" : ""}`}
-                          role="switch"
-                          aria-checked={active}
-                          type="button"
-                          onClick={() => toggleFeature(f)}
-                        >
-                          <span className="filters-toggle-knob" />
-                        </button>
-                      </label>
-                    );
-                  })}
-                </div>
-              </section>
+            <div className="filter-panel-row">
+              <div className="filter-panel-section">
+                <label className="filter-panel-label" htmlFor="filter-price">
+                  Budget
+                </label>
+                <select
+                  id="filter-price"
+                  value={priceMax}
+                  onChange={(e) => updateParams({ prixMax: e.target.value || null })}
+                >
+                  {PRICE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-panel-section">
+                <label className="filter-panel-label" htmlFor="filter-capacity">
+                  Capacité
+                </label>
+                <select
+                  id="filter-capacity"
+                  value={capacityMin}
+                  onChange={(e) => updateParams({ capacite: e.target.value || null })}
+                >
+                  {CAPACITY_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-panel-section">
+                <label className="filter-panel-label" htmlFor="filter-rating">
+                  Note
+                </label>
+                <select
+                  id="filter-rating"
+                  value={ratingMin}
+                  onChange={(e) => updateParams({ note: e.target.value || null })}
+                >
+                  {RATING_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="filters-modal-footer">
-              <button className="btn btn-ghost" type="button" onClick={clearAll}>
+            <div className="filter-panel-footer">
+              <button type="button" className="clear-filters" onClick={clearAll}>
                 Réinitialiser
               </button>
-              <button className="btn btn-primary" type="button" onClick={() => setModalOpen(false)}>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => setOpen(false)}
+              >
                 Voir les résultats
-                {totalActive > 0 && (
-                  <span className="filter-badge filter-badge-white">{totalActive}</span>
-                )}
               </button>
             </div>
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 }

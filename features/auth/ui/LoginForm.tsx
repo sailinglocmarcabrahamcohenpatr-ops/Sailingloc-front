@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
 import { apiLogin, ApiError } from "@/shared/lib";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export default function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const { login } = useAuth();
 
@@ -27,7 +31,11 @@ export default function LoginForm() {
     try {
       const result = await apiLogin({ email, password });
       login(result.email, result.role);
-      router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else {
+        router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.status === 401

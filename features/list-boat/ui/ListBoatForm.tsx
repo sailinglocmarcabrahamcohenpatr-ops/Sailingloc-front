@@ -1,20 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BOAT_TYPES } from "@/shared/config";
 import type { BoatType } from "@/shared/types";
+import { addUserBoat } from "@/entities/boat";
+import { useAuth } from "@/shared/lib";
+import { slugify } from "@/shared/lib/utils";
+import { geocodeCity, type GeocodeResult } from "../api/geocode";
+import { compressImage } from "../lib/compressImage";
+import LocationMap from "./LocationMapLoader";
 
 const STEPS = ["Type & infos", "Photos & description", "Tarifs", "Disponibilités", "Récapitulatif"];
+const MIN_PHOTOS = 3;
+const MAX_PHOTOS = 8;
+
+type GeocodeStatus = "idle" | "loading" | "success" | "error";
 
 export default function ListBoatForm() {
   const router = useRouter();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   const [type, setType] = useState<BoatType>("voilier");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [geocodeStatus, setGeocodeStatus] = useState<GeocodeStatus>("idle");
+  const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
   const [length, setLength] = useState("");
   const [capacity, setCapacity] = useState("");
   const [cabins, setCabins] = useState("");
@@ -25,15 +40,98 @@ export default function ListBoatForm() {
   const [weeklyDiscount, setWeeklyDiscount] = useState("10");
   const [caution, setCaution] = useState("2000");
 
-  const next = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoError, setPhotoError] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const canContinue = step !== 1 || photos.length >= MIN_PHOTOS;
+
+  const next = () => {
+    if (!canContinue) {
+      setPhotoError(`Ajoutez au moins ${MIN_PHOTOS} photos pour continuer.`);
+      return;
+    }
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  };
   const prev = () => setStep((s) => Math.max(s - 1, 0));
+
+  const addFiles = async (files: FileList | File[]) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length === 0) return;
+    setPhotoError("");
+    const room = MAX_PHOTOS - photos.length;
+    const accepted = imageFiles.slice(0, room);
+    const compressed = await Promise.all(accepted.map((f) => compressImage(f)));
+    setPhotos((prev) => [...prev, ...compressed]);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const setMainPhoto = (index: number) => {
+    setPhotos((prev) => {
+      const next = [...prev];
+      const [picked] = next.splice(index, 1);
+      return [picked, ...next];
+    });
+  };
+
+  const handleLocateCity = async () => {
+    if (!city.trim()) return;
+    setGeocodeStatus("loading");
+    try {
+      const result = await geocodeCity(city.trim());
+      if (result) {
+        setGeocodeResult(result);
+        setGeocodeStatus("success");
+      } else {
+        setGeocodeResult(null);
+        setGeocodeStatus("error");
+      }
+    } catch {
+      setGeocodeResult(null);
+      setGeocodeStatus("error");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
+
+    addUserBoat({
+      id: `${slugify(name || "bateau")}-${Date.now()}`,
+      name: name || "Nouveau bateau",
+      location: [location, city].filter(Boolean).join(", ") || city,
+      coordinates: geocodeResult ? { lat: geocodeResult.lat, lng: geocodeResult.lng } : undefined,
+      type,
+      rating: 5,
+      reviewCount: 0,
+      pricePerDay: parseInt(pricePerDay, 10) || 0,
+      imageUrl: "",
+      imageSeed: `${slugify(name || "bateau")}-${Date.now()}`,
+      photos: photos.length > 0 ? photos : undefined,
+      owner: { name: user?.name ?? "Vous", avatarSeed: slugify(user?.name ?? "owner") },
+      badge: { label: "Nouveau", variant: "green" },
+      cabins: cabins ? parseInt(cabins, 10) : undefined,
+      year: year ? parseInt(year, 10) : undefined,
+      capacity: capacity ? parseInt(capacity, 10) : undefined,
+      length: length ? `${length} m` : undefined,
+      license: license as "Requis" | "Non requis",
+    });
+
     setLoading(false);
-    router.push("/proprietaire/bateaux");
+    router.push("/bateaux");
   };
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
@@ -66,7 +164,7 @@ export default function ListBoatForm() {
                   className={`boat-type-select-btn${type === bt.value ? " active" : ""}`}
                   onClick={() => setType(bt.value)}
                 >
-                  <span className="icon">{bt.icon}</span>
+                  <i className={`fa-solid ${bt.icon} icon`} aria-hidden="true" />
                   {bt.label}
                 </button>
               ))}
@@ -79,12 +177,53 @@ export default function ListBoatForm() {
             <div className="form-row-2">
               <div className="form-group">
                 <label htmlFor="lb-location">Port d'attache *</label>
-                <input id="lb-location" type="text" placeholder="Ex: Marseille, Vieux-Port" value={location} onChange={(e) => setLocation(e.target.value)} required />
+                <input id="lb-location" type="text" placeholder="Ex: Vieux-Port" value={location} onChange={(e) => setLocation(e.target.value)} required />
               </div>
               <div className="form-group">
                 <label htmlFor="lb-year">Année de construction</label>
                 <input id="lb-year" type="number" placeholder="2020" min="1970" max="2025" value={year} onChange={(e) => setYear(e.target.value)} />
               </div>
+            </div>
+            <div className="form-group">
+              <label htmlFor="lb-city">Ville *</label>
+              <div className="location-city-input">
+                <input
+                  id="lb-city"
+                  type="text"
+                  placeholder="Ex: Marseille"
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setGeocodeStatus("idle");
+                    setGeocodeResult(null);
+                  }}
+                  onBlur={handleLocateCity}
+                  required
+                />
+                <button type="button" className="btn btn-outline btn-sm" onClick={handleLocateCity} disabled={geocodeStatus === "loading"}>
+                  {geocodeStatus === "loading" ? (
+                    <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+                  ) : (
+                    <i className="fa-solid fa-location-crosshairs" aria-hidden="true" />
+                  )}{" "}
+                  Localiser
+                </button>
+              </div>
+              {geocodeStatus === "error" && (
+                <small className="form-hint" style={{ color: "var(--red)" }}>
+                  Ville introuvable, essayez un nom plus précis.
+                </small>
+              )}
+              {geocodeStatus === "success" && geocodeResult && (
+                <>
+                  <small className="form-hint">
+                    <i className="fa-solid fa-check-circle" style={{ color: "var(--green)" }} /> {geocodeResult.label}
+                  </small>
+                  <div className="location-preview-map-wrap">
+                    <LocationMap lat={geocodeResult.lat} lng={geocodeResult.lng} />
+                  </div>
+                </>
+              )}
             </div>
             <div className="form-row-3">
               <div className="form-group">
@@ -117,14 +256,74 @@ export default function ListBoatForm() {
         {step === 1 && (
           <div className="form-section">
             <h3>Photos de votre bateau</h3>
-            <div className="photo-upload-zone">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => {
+                if (e.target.files?.length) addFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <div
+              className={`photo-upload-zone${dragActive ? " drag-active" : ""}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={handleDrop}
+              role="button"
+              tabIndex={0}
+            >
               <i className="fa-solid fa-cloud-arrow-up" />
               <p><strong>Glissez vos photos ici</strong> ou cliquez pour sélectionner</p>
-              <small>JPG, PNG — Max 10 Mo par photo — Minimum 3 photos</small>
-              <button type="button" className="btn btn-outline btn-sm">
+              <small>JPG, PNG — Minimum {MIN_PHOTOS} photos, {MAX_PHOTOS} maximum</small>
+              <button type="button" className="btn btn-outline btn-sm" onClick={(e) => e.stopPropagation()}>
                 <i className="fa-solid fa-image" /> Choisir des photos
               </button>
             </div>
+
+            <div className="photo-count-hint" data-ok={photos.length >= MIN_PHOTOS}>
+              <i className={`fa-solid ${photos.length >= MIN_PHOTOS ? "fa-circle-check" : "fa-circle-info"}`} aria-hidden="true" />
+              {photos.length} / {MIN_PHOTOS} photos minimum
+            </div>
+            {photoError && (
+              <small className="form-hint" style={{ color: "var(--red)" }}>
+                {photoError}
+              </small>
+            )}
+
+            {photos.length > 0 && (
+              <div className="photo-preview-grid">
+                {photos.map((src, i) => (
+                  <div key={src.slice(-24) + i} className="photo-preview-item">
+                    <img src={src} alt={`Photo ${i + 1} du bateau`} />
+                    {i === 0 ? (
+                      <span className="photo-preview-main-badge">
+                        <i className="fa-solid fa-star" aria-hidden="true" /> Principale
+                      </span>
+                    ) : (
+                      <button type="button" className="photo-set-main-btn" onClick={() => setMainPhoto(i)}>
+                        Définir comme principale
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="photo-preview-remove"
+                      onClick={() => removePhoto(i)}
+                      aria-label="Retirer cette photo"
+                    >
+                      <i className="fa-solid fa-xmark" aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="photo-tips">
               <h4>Conseils pour de bonnes photos</h4>
               <ul>
@@ -245,6 +444,10 @@ export default function ListBoatForm() {
               <div className="recap-row">
                 <span><i className="fa-solid fa-location-dot" /> Port d'attache</span>
                 <strong>{location || "—"}</strong>
+              </div>
+              <div className="recap-row">
+                <span><i className="fa-solid fa-city" /> Ville</span>
+                <strong>{city || "—"}{geocodeResult ? " (localisée sur la carte)" : ""}</strong>
               </div>
               <div className="recap-row">
                 <span><i className="fa-solid fa-euro-sign" /> Prix / jour</span>
