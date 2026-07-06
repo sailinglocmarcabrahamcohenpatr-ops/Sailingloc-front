@@ -20,6 +20,7 @@ const renterLinks: NavLink[] = [
   { href: "/profil/documents", icon: "fa-id-card", label: "Documents" },
   { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements" },
   { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres" },
+  { href: "/inscrire-bateau", icon: "fa-plus", label: "Ajouter un bateau" },
 ];
 
 const bottomLinks: NavLink[] = [
