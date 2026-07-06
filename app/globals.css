@@ -1790,6 +1790,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   min-height: 100vh;
   background: var(--bg);
 }
+.dashboard-layout.has-navbar { min-height: calc(100vh - 64px); height: calc(100vh - 64px); overflow: hidden; }
 .dashboard-sidebar {
   width: 260px;
   flex-shrink: 0;
@@ -1803,6 +1804,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   height: 100vh;
   overflow-y: auto;
 }
+.dashboard-layout.has-navbar .dashboard-sidebar { top: 64px; height: calc(100vh - 64px); }
 .dash-sidebar-logo {
   display: flex;
   align-items: center;
@@ -2142,14 +2144,18 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .messages-page-hd-status.has-unread { color: #EF4444; }
 
 /* Messages (style "Chatbox") */
+.messages-dash-page { height: calc(100vh - 80px); }
+.dashboard-layout.has-navbar .messages-dash-page { height: calc(100vh - 144px); }
+.messages-dash-page .messages-layout { flex: 1; min-height: 0; }
+@media (max-width: 900px) { .messages-dash-page { height: auto; } }
+
 .messages-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 24px;
-  height: calc(100vh - 250px);
   min-height: 560px;
 }
-@media (max-width: 900px) { .messages-layout { grid-template-columns: 1fr; height: auto; } }
+@media (max-width: 900px) { .messages-layout { grid-template-columns: 1fr; } }
 .messages-list {
   background: var(--white);
   border-radius: var(--radius-2xl);
@@ -2157,6 +2163,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 .messages-list-search {
   padding: 16px 18px 10px;
@@ -2226,6 +2233,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 .messages-thread-hd {
   display: flex;
@@ -2257,7 +2265,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   background: var(--bg);
 }
 .thread-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 75%; }
-.thread-msg--me { align-items: flex-end; align-self: flex-end; }
+.thread-msg--me { align-items: flex-end; align-self: flex-end; margin-left: auto; }
 .thread-msg-bubble {
   background: var(--white);
   border: 1px solid var(--border);

@@ -129,7 +129,7 @@ export default function OwnerMessagesPage() {
   };
 
   return (
-    <div className="dash-page">
+    <div className="dash-page messages-dash-page">
       <div className="dash-page-hd">
         <div>
           <h1 className="dash-title">Messages</h1>

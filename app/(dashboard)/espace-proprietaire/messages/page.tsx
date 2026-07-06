@@ -273,7 +273,7 @@ export default function UserMessagesPage() {
   const firstName = user?.name?.split(" ")[0] ?? "Moi";
 
   return (
-    <div className="dash-page">
+    <div className="dash-page messages-dash-page">
       <div className="dash-page-hd">
         <div className="messages-page-hd">
           <div className="messages-page-hd-icon">
