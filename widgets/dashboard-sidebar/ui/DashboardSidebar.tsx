@@ -15,12 +15,12 @@ const ownerLinks: NavLink[] = [
 
 const renterLinks: NavLink[] = [
   { href: "/espace-proprietaire", icon: "fa-user", label: "Espace propriétaire", exact: true },
+  { href: "/inscrire-bateau", icon: "fa-plus", label: "Ajouter un bateau" },
   { href: "/espace-proprietaire/reservations", icon: "fa-calendar-check", label: "Mes réservations" },
   { href: "/espace-proprietaire/messages", icon: "fa-envelope", label: "Messages", badge: 1 },
   { href: "/espace-proprietaire/documents", icon: "fa-id-card", label: "Documents" },
   { href: "/espace-proprietaire/paiements", icon: "fa-credit-card", label: "Paiements" },
   { href: "/espace-proprietaire/parametres", icon: "fa-sliders", label: "Paramètres" },
-  { href: "/inscrire-bateau", icon: "fa-plus", label: "Ajouter un bateau" },
 ];
 
 const bottomLinks: NavLink[] = [
