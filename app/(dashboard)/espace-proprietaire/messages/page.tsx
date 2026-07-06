@@ -363,17 +363,6 @@ export default function UserMessagesPage() {
                   {selected.online ? "En ligne" : selected.otherRole} · {selected.boatName}
                 </p>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="messages-thread-icon-btn" title="Appel vidéo">
-                  <i className="fa-solid fa-video" />
-                </button>
-                <button className="messages-thread-icon-btn" title="Appel">
-                  <i className="fa-solid fa-phone" />
-                </button>
-                <button className="messages-thread-icon-btn" title="Plus d'options">
-                  <i className="fa-solid fa-ellipsis" />
-                </button>
-              </div>
             </div>
 
             {/* Messages */}

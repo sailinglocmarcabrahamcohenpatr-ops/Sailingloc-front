@@ -2146,9 +2146,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   display: grid;
   grid-template-columns: 340px 1fr;
   gap: 24px;
+  height: calc(100vh - 250px);
   min-height: 560px;
 }
-@media (max-width: 900px) { .messages-layout { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .messages-layout { grid-template-columns: 1fr; height: auto; } }
 .messages-list {
   background: var(--white);
   border-radius: var(--radius-2xl);
@@ -2253,7 +2254,6 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   flex-direction: column;
   gap: 14px;
   min-height: 200px;
-  max-height: 460px;
   background: var(--bg);
 }
 .thread-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 75%; }
