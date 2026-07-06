@@ -2,6 +2,7 @@
 
 /* ── Variables ─────────────────────────────────── */
 :root {
+  color-scheme: light;
   --primary:       #1866F2;
   --primary-dark:  #1255D6;
   --primary-light: #EEF3FE;
@@ -638,11 +639,16 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 .boat-map-marker-pin { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(45deg); background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
 .boat-map-marker-pin i { transform: rotate(-45deg); font-size: .8rem; }
+.boat-map-marker-pin--sm { width: 30px; height: 30px; }
+.boat-map-marker-pin--sm i { font-size: .5rem; }
 .boat-map-popup { display: flex; flex-direction: column; gap: 4px; min-width: 180px; font-size: .8125rem; }
 .boat-map-popup strong { font-size: .9rem; }
 .boat-map-popup i { color: var(--primary); width: 14px; }
 .boat-map-popup-price { font-weight: 700; color: var(--primary); }
 .boat-map-popup .btn { margin-top: 6px; text-align: center; }
+.boat-map-popup .btn-primary,
+.boat-map-popup .btn-primary:link,
+.boat-map-popup .btn-primary:visited { color: var(--white) !important; }
 
 .map-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
 .map-modal { position: relative; width: 100%; max-width: 960px; height: min(80vh, 720px); background: var(--white); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
@@ -753,6 +759,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .location-map::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(24,102,242,.08) 1px, transparent 1px); background-size: 20px 20px; }
 .location-map i { font-size: 3rem; position: relative; z-index: 1; }
 .location-map span { font-weight: 600; font-size: 1rem; position: relative; z-index: 1; }
+.location-map--interactive { padding: 0; cursor: default; }
+.location-map--interactive::before { display: none; }
+.location-map--interactive .location-preview-map { width: 100%; height: 100%; }
 .location-label { margin-top: 12px; font-size: .9375rem; color: var(--text-2); display: flex; align-items: flex-start; gap: 8px; }
 .location-label i { color: var(--primary); margin-top: 2px; }
 .booking-card { display: block; background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden; position: sticky; top: 88px; }

@@ -6,9 +6,9 @@ import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
 const pinIcon = divIcon({
   className: "boat-map-marker",
-  html: '<span class="boat-map-marker-pin"><i class="fa-solid fa-anchor" aria-hidden="true"></i></span>',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  html: '<span class="boat-map-marker-pin boat-map-marker-pin--sm"><i class="fa-solid fa-anchor" aria-hidden="true"></i></span>',
+  iconSize: [30, 30],
+  iconAnchor: [15, 30],
 });
 
 interface LocationMapProps {

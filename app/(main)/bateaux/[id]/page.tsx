@@ -6,6 +6,7 @@ import { ALL_BOATS, getBoatImageUrl } from "@/entities/boat";
 import { PRODUCT_REVIEWS } from "@/entities/review";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
+import { LocationMapLoader } from "@/features/list-boat";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -284,10 +285,16 @@ export default async function ProductPage({ params }: PageProps) {
 
           <section className="location-section" aria-labelledby="location-title">
             <h3 id="location-title">Localisation</h3>
-            <div className="location-map" role="img" aria-label={`Carte : ${boat.location}`}>
-              <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
-              <span>{boat.location}</span>
-            </div>
+            {boat.coordinates ? (
+              <div className="location-map location-map--interactive">
+                <LocationMapLoader lat={boat.coordinates.lat} lng={boat.coordinates.lng} />
+              </div>
+            ) : (
+              <div className="location-map" role="img" aria-label={`Carte : ${boat.location}`}>
+                <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
+                <span>{boat.location}</span>
+              </div>
+            )}
             <p className="location-label">
               <i className="fa-solid fa-location-dot" aria-hidden="true" />
               {boat.location} — L'adresse exacte vous sera communiquée après confirmation de la réservation.
