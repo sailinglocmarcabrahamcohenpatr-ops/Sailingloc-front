@@ -68,7 +68,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                  href={user.role === "proprietaire" ? "/proprietaire/messages" : "/espace-proprietaire/messages"}
                   className="navbar-icon-btn"
                   aria-label="Messages"
                 >
@@ -99,18 +99,18 @@ export default function Navbar() {
                       <div className="navbar-dropdown-sep" />
                       {user.role === "locataire" ? (
                         <>
-                          <Link href="/profil" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-user" /> Mon profil
+                          <Link href="/espace-proprietaire" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <i className="fa-solid fa-user" /> Espace propriétaire
                           </Link>
-                          <Link href="/profil/reservations" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/espace-proprietaire/reservations" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-calendar-check" /> Mes réservations
                           </Link>
-                          <Link href="/profil/messages" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/espace-proprietaire/messages" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-envelope" /> Messages
                           </Link>
                           <div className="navbar-dropdown-sep" />
                           <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-sailboat" /> Espace propriétaire
+                            <i className="fa-solid fa-sailboat" /> Mode propriétaire
                           </Link>
                         </>
                       ) : (
@@ -125,7 +125,7 @@ export default function Navbar() {
                             <i className="fa-solid fa-chart-line" /> Revenus
                           </Link>
                           <div className="navbar-dropdown-sep" />
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/espace-proprietaire" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-user" /> Espace locataire
                           </Link>
                         </>
@@ -164,7 +164,7 @@ export default function Navbar() {
         ))}
         {user ? (
           <>
-            <Link href={user.role === "locataire" ? "/profil" : "/proprietaire/bateaux"} onClick={() => setMobileOpen(false)}>
+            <Link href={user.role === "locataire" ? "/espace-proprietaire" : "/proprietaire/bateaux"} onClick={() => setMobileOpen(false)}>
               Mon espace
             </Link>
             <button className="btn btn-outline mobile-cta" onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}>

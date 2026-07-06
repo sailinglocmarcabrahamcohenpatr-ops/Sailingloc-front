@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useAuth } from "@/shared/lib";
 
 const QUICK_LINKS = [
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", color: "#1866F2", bg: "#EEF3FE" },
-  { href: "/profil/messages", icon: "fa-envelope", label: "Messages", badge: 1, color: "#10B981", bg: "#D1FAE5" },
-  { href: "/profil/documents", icon: "fa-id-card", label: "Documents", color: "#8B5CF6", bg: "#F5F3FF" },
-  { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements", color: "#D97706", bg: "#FEF3C7" },
-  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres", color: "#0284C7", bg: "#E0F2FE" },
+  { href: "/espace-proprietaire/reservations", icon: "fa-calendar-check", label: "Réservations", color: "#1866F2", bg: "#EEF3FE" },
+  { href: "/espace-proprietaire/messages", icon: "fa-envelope", label: "Messages", badge: 1, color: "#10B981", bg: "#D1FAE5" },
+  { href: "/espace-proprietaire/documents", icon: "fa-id-card", label: "Documents", color: "#8B5CF6", bg: "#F5F3FF" },
+  { href: "/espace-proprietaire/paiements", icon: "fa-credit-card", label: "Paiements", color: "#D97706", bg: "#FEF3C7" },
+  { href: "/espace-proprietaire/parametres", icon: "fa-sliders", label: "Paramètres", color: "#0284C7", bg: "#E0F2FE" },
   { href: "/contact", icon: "fa-headset", label: "Support", color: "#DB2777", bg: "#FCE7F3" },
 ];
 

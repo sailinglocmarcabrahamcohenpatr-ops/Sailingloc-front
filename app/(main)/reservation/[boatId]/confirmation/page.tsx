@@ -110,7 +110,7 @@ export default async function ConfirmationPage({ searchParams }: PageProps) {
           </div>
 
           <div className="res-confirm-btns">
-            <Link href="/profil/reservations" className="btn btn-primary btn-lg">
+            <Link href="/espace-proprietaire/reservations" className="btn btn-primary btn-lg">
               <i className="fa-solid fa-calendar-check" aria-hidden="true" />
               Voir mes réservations
             </Link>

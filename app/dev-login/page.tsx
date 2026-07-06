@@ -14,7 +14,7 @@ export default function DevLogin() {
       role: "locataire",
     };
     localStorage.setItem("sailingloc_user", JSON.stringify(user));
-    router.push("/profil");
+    router.push("/espace-proprietaire");
   }, [router]);
 
   return (

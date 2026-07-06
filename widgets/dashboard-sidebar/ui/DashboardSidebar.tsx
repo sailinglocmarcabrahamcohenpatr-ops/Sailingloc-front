@@ -14,12 +14,12 @@ const ownerLinks: NavLink[] = [
 ];
 
 const renterLinks: NavLink[] = [
-  { href: "/profil", icon: "fa-user", label: "Mon profil", exact: true },
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Mes réservations" },
-  { href: "/profil/messages", icon: "fa-envelope", label: "Messages", badge: 1 },
-  { href: "/profil/documents", icon: "fa-id-card", label: "Documents" },
-  { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements" },
-  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres" },
+  { href: "/espace-proprietaire", icon: "fa-user", label: "Espace propriétaire", exact: true },
+  { href: "/espace-proprietaire/reservations", icon: "fa-calendar-check", label: "Mes réservations" },
+  { href: "/espace-proprietaire/messages", icon: "fa-envelope", label: "Messages", badge: 1 },
+  { href: "/espace-proprietaire/documents", icon: "fa-id-card", label: "Documents" },
+  { href: "/espace-proprietaire/paiements", icon: "fa-credit-card", label: "Paiements" },
+  { href: "/espace-proprietaire/parametres", icon: "fa-sliders", label: "Paramètres" },
   { href: "/inscrire-bateau", icon: "fa-plus", label: "Ajouter un bateau" },
 ];
 
@@ -45,7 +45,7 @@ export default function DashboardSidebar() {
 
   const handleSwitchRole = () => {
     switchRole();
-    if (isOwner) router.push("/profil");
+    if (isOwner) router.push("/espace-proprietaire");
     else router.push("/proprietaire/bateaux");
   };
 

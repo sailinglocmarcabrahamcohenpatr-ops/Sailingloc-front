@@ -34,7 +34,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       if (redirectTo) {
         router.push(redirectTo);
       } else {
-        router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
+        router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/espace-proprietaire");
       }
     } catch (err) {
       if (err instanceof ApiError) {
