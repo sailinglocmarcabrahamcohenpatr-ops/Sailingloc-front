@@ -15,10 +15,10 @@ export function proxy(request: NextRequest) {
   const isAuth = request.cookies.get("sailingloc_auth")?.value === "1";
   const role   = request.cookies.get("sailingloc_role")?.value ?? "";
 
-  /* Déjà connecté sur /connexion ou /inscription → redirige */
+  /* Déjà connecté sur /connexion ou /inscription → redirige vers l'espace
+     locataire par défaut, quel que soit le rôle du compte. */
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r)) && isAuth) {
-    const dest = role === "proprietaire" ? "/proprietaire/bateaux" : "/profil";
-    return NextResponse.redirect(new URL(dest, request.url));
+    return NextResponse.redirect(new URL("/profil", request.url));
   }
 
   /* Routes privées */

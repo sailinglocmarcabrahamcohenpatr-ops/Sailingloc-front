@@ -34,7 +34,10 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       if (redirectTo) {
         router.push(redirectTo);
       } else {
-        router.push(result.role === "proprietaire" ? "/proprietaire/bateaux" : "/profil");
+        // Toujours atterrir dans l'espace locataire après connexion, même
+        // pour un compte propriétaire — la bascule reste à un clic (menu
+        // du compte / sidebar) si besoin d'aller dans l'espace propriétaire.
+        router.push("/profil");
       }
     } catch (err) {
       if (err instanceof ApiError) {
