@@ -1,0 +1,17 @@
+/* ── Proprietaire Dashboard Overview ────────────── */
+.dash-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dash-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (max-width: 600px) {
+  .dash-action-row { flex-direction: column; }
+  .dash-action-row .btn { width: 100%; justify-content: center; }
+}

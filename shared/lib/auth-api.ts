@@ -1,6 +1,8 @@
 import { api, setToken, removeToken, ApiError } from "./api-client";
+import type { UtilisateurAPI } from "./referentiels-api";
 
 export type { ApiError };
+export type { UtilisateurAPI };
 
 export type BackendRole = "ROLE_USER" | "ROLE_PROPRIETAIRE" | "ROLE_ADMIN";
 
@@ -84,14 +86,33 @@ export async function apiLogin(payload: LoginPayload) {
 
   const jwt = decodeJwt(token);
   const email = jwt.sub ?? jwt.email ?? jwt.username ?? payload.email;
+  const userId = jwt.id ?? 0;
+  const role = extractRoleFromJwt(jwt);
+
+  // Fetch real user data from DB
+  let name = extractNameFromJwt(jwt, email);
+  let telephone: string | undefined;
+  try {
+    const user = await apiGetUserByEmail(email);
+    console.log("Fetched user data:", user);
+    name = [user.prenom, user.nom].filter(Boolean).join(" ") || name;
+    telephone = user.telephone;
+  } catch {
+    // fallback to JWT data if fetch fails
+  }
 
   return {
     token,
     email,
-    name: extractNameFromJwt(jwt, email),
-    role: extractRoleFromJwt(jwt),
-    userId: jwt.id ?? 0,
+    name,
+    role,
+    userId,
+    telephone,
   };
+}
+
+export async function apiGetUserByEmail(email: string): Promise<UtilisateurAPI> {
+  return api.get<UtilisateurAPI>(`/utilisateurs/search/email?email=${encodeURIComponent(email)}`);
 }
 
 export async function apiRegister(payload: RegisterPayload) {

@@ -1,27 +1,19 @@
 import { api } from "./api-client";
 
-export interface BoatAPI {
-  id: number;
-  nom_bateau: string;
-  motorisation: string;
-  taille: string;
-  prix_jour: number;
-  capacite: number;
-  avec_skipper: boolean;
-  statut: "disponible" | "indisponible" | "en_attente";
-  id_port: number;
-  id_utilisateur: number;
-  id_type_bateau: number;
-  port?: { id: number; nom: string; ville: string };
-  type_bateau?: { id: number; libelle: string };
-  photos?: PhotoAPI[];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+/** Résout une URL photo relative (ex: /uploads/…) vers une URL absolue */
+export function resolvePhotoUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 export interface PhotoAPI {
   id: number;
-  url: string;
-  principale: boolean;
-  id_bateau: number;
+  url: string;             // peut être relatif → utiliser resolvePhotoUrl
+  description?: string;
+  ordreAffichage?: number; // 0 = principale
 }
 
 export interface DisponibiliteAPI {
@@ -31,20 +23,52 @@ export interface DisponibiliteAPI {
   id_bateau: number;
 }
 
-export interface CreateBoatPayload {
-  nom_bateau: string;
+export interface BoatAPI {
+  id: number;
+  nomBateau: string;
   motorisation: string;
   taille: string;
-  prix_jour: number;
-  id_port: number;
-  id_utilisateur: number;
-  id_type_bateau: number;
-  capacite: number;
-  avec_skipper: boolean;
-  statut?: string;
+  prixJour: string | number;   // l'API renvoie une string "175.00"
+  prixHeure?: string | number | null;
+  capacite?: number | null;
+  avecSkipper: boolean;
+  description?: string | null;
+  statut: "disponible" | "indisponible" | "en_attente";
+  caution?: string | number | null;
+  carburantInclus?: boolean;
+  permisRequis?: boolean;
+  nombreCabines?: number | null;
+  id_port?: number;
+  id_type_bateau?: number;
+  port?: { id: number; nom: string; ville: string };
+  type_bateau?: { id: number; libelle: string };
+  photos?: PhotoAPI[];
+  disponibilites?: DisponibiliteAPI[];
 }
 
-type BoatListResponse = BoatAPI[] | { "hydra:member": BoatAPI[] } | { data: BoatAPI[] } | { member: BoatAPI[] };
+export interface CreateBoatPayload {
+  nom_bateau:       string;
+  motorisation:     string;
+  taille:           string;
+  prix_jour:        number;
+  id_port:          number;
+  id_utilisateur:   number;
+  id_type_bateau:   number;
+  capacite?:        number;
+  avec_skipper?:    boolean;
+  statut?:          string;
+  description?:     string;
+  caution?:         number;
+  permis_requis?:   boolean;
+  nombre_cabines?:  number;
+  carburant_inclus?: boolean;
+}
+
+type BoatListResponse =
+  | BoatAPI[]
+  | { "hydra:member": BoatAPI[] }
+  | { data: BoatAPI[]; pagination?: unknown }
+  | { member: BoatAPI[] };
 
 function extractBoatArray(res: BoatListResponse): BoatAPI[] {
   if (Array.isArray(res)) return res;
@@ -58,7 +82,6 @@ export const boatsApi = {
   getAll: async (params?: Record<string, string>): Promise<BoatAPI[]> => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     const res = await api.get<BoatListResponse>(`/api/bateaux${qs}`);
-    console.log("boatsApi.getAll response:", res);
     return extractBoatArray(res);
   },
   getOne: (id: number | string) =>

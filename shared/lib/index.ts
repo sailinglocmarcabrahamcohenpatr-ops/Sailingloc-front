@@ -6,7 +6,7 @@ export { api, setToken, removeToken, setRoleCookie, ApiError } from "./api-clien
 export { apiLogin, apiRegister, apiLogout } from "./auth-api";
 export type { LoginPayload, RegisterPayload } from "./auth-api";
 
-export { boatsApi } from "./boats-api";
+export { boatsApi, resolvePhotoUrl } from "./boats-api";
 export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload } from "./boats-api";
 
 export { reservationsApi, avisApi } from "./reservations-api";

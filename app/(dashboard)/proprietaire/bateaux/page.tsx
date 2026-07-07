@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { boatsApi } from "@/shared/lib";
+import { boatsApi, resolvePhotoUrl } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
 
 type ApiStatut = "disponible" | "indisponible" | "en_attente";
@@ -22,12 +22,11 @@ const STATUS_MAP: Record<UiStatus, { label: string; cls: string }> = {
 };
 
 function boatImage(boat: BoatAPI): string {
-  const main = boat.photos?.find((p) => p.principale);
-  return (
-    main?.url ??
-    boat.photos?.[0]?.url ??
-    `https://picsum.photos/seed/boat-${boat.id}/400/300`
-  );
+  if (!boat.photos?.length) return "";
+  const main = boat.photos
+    .slice()
+    .sort((a, b) => (a.ordreAffichage ?? 99) - (b.ordreAffichage ?? 99))[0];
+  return main?.url ? resolvePhotoUrl(main.url) : "";
 }
 
 function boatLocation(boat: BoatAPI): string {
@@ -40,6 +39,7 @@ export default function OwnerBoatsPage() {
   const [boats, setBoats] = useState<BoatAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  console.log("OwnerBoatsPage render", { boats, loading, error });
 
   useEffect(() => {
     boatsApi
@@ -71,13 +71,13 @@ export default function OwnerBoatsPage() {
             {boats.length} annonce{boats.length !== 1 ? "s" : ""} sur SailingLoc
           </p>
         </div>
-        <Link href="/inscrire-bateau" className="btn btn-primary">
+        <Link href="/proprietaire/bateaux/nouveau" className="btn btn-primary">
           <i className="fa-solid fa-plus" /> Ajouter un bateau
         </Link>
       </div>
 
       <div className="owner-boats-list">
-        {boats.map((boat) => {
+        {boats.map((boat, i) => {
           const uiStatus: UiStatus = STATUT_MAP[boat.statut] ?? "pending";
           const st = STATUS_MAP[uiStatus];
           const imgSrc = boatImage(boat);
@@ -87,26 +87,34 @@ export default function OwnerBoatsPage() {
           return (
             <div key={boat.id} className="owner-boat-card">
               <div className="owner-boat-img">
-                <Image
-                  src={imgSrc}
-                  alt={boat.nom_bateau}
-                  fill
-                  sizes="160px"
-                  style={{ objectFit: "cover" }}
-                />
+                {imgSrc ? (
+                  <Image
+                    src={imgSrc}
+                    alt={boat.nomBateau}
+                    fill
+                    sizes="160px"
+                    style={{ objectFit: "cover" }}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    priority={i === 0}
+                  />
+                ) : (
+                  <div className="owner-boat-img-placeholder">
+                    <i className="fa-solid fa-sailboat" />
+                  </div>
+                )}
               </div>
               <div className="owner-boat-info">
                 <div className="owner-boat-hd">
                   <div>
                     <span className={st.cls}>{st.label}</span>
-                    <h3>{boat.nom_bateau}</h3>
+                    <h3>{boat.nomBateau}</h3>
                     <p>
                       <i className="fa-solid fa-location-dot" /> {location}
                       {boatType ? ` · ${boatType}` : ""}
                     </p>
                   </div>
                   <div className="owner-boat-price">
-                    <strong>{boat.prix_jour.toLocaleString("fr-FR")} €</strong>
+                    <strong>{boat.prixJour != null ? boat.prixJour.toLocaleString("fr-FR") : "—"} €</strong>
                     <span>/ jour</span>
                   </div>
                 </div>

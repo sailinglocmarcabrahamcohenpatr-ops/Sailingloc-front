@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { removeToken, setRoleCookie } from "./api-client";
+import { apiGetUserByEmail } from "./auth-api";
 
 export type UserRole = "locataire" | "proprietaire";
 
@@ -11,11 +12,20 @@ export interface AuthUser {
   email: string;
   initials: string;
   role: UserRole;
+  telephone?: string;
+}
+
+interface LoginParams {
+  email: string;
+  name: string;
+  role: UserRole;
+  userId?: number;
+  telephone?: string;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (email: string, role?: UserRole, userId?: number) => void;
+  login: (params: LoginParams) => void;
   logout: () => void;
   switchRole: () => void;
 }
@@ -27,45 +37,75 @@ const AuthContext = createContext<AuthContextType>({
   switchRole: () => {},
 });
 
-const USER_KEY = "sailingloc_user";
-
-function buildUser(email: string, role: UserRole, id?: number): AuthUser {
-  const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const initials = name.split(" ").map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
-  return { id, name, email, initials, role };
+function buildUser(params: LoginParams): AuthUser {
+  const initials = params.name
+    .split(" ")
+    .map((w) => w[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return { id: params.userId, name: params.name, email: params.email, initials, role: params.role, telephone: params.telephone };
 }
 
-function persist(u: AuthUser | null) {
+function getJwtPayload(token: string): { id?: number; sub?: string; email?: string; username?: string; roles?: string[]; authorities?: Array<{ authority: string } | string> } | null {
   try {
-    if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
-    else localStorage.removeItem(USER_KEY);
-  } catch {}
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
+  // Rehydrate from DB on mount using stored JWT — no user data in localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      if (stored) {
-        const u = JSON.parse(stored) as AuthUser;
-        setUser(u);
-        setRoleCookie(u.role); // resync cookie après rechargement
-      }
-    } catch {}
+    const token = typeof window !== "undefined" ? localStorage.getItem("sailingloc_token") : null;
+    if (!token) return;
+
+    const jwt = getJwtPayload(token);
+    if (!jwt) return;
+
+    const userId = jwt.id;
+    const email = jwt.sub ?? jwt.email ?? jwt.username ?? "";
+    const roles: string[] = [
+      ...(Array.isArray(jwt.roles) ? jwt.roles : []),
+      ...(Array.isArray(jwt.authorities)
+        ? jwt.authorities.map((a) => (typeof a === "string" ? a : a.authority))
+        : []),
+    ];
+    const role: UserRole = roles.some((r) => r === "ROLE_ADMIN" || r.includes("PROPRIETAIRE"))
+      ? "proprietaire"
+      : "locataire";
+
+    if (email) {
+      apiGetUserByEmail(email)
+        .then((u) => {
+          const name = [u.prenom, u.nom].filter(Boolean).join(" ") || email.split("@")[0];
+          const userId = u.id;
+          setUser(buildUser({ email, name, role, userId, telephone: u.telephone }));
+          setRoleCookie(role);
+        })
+        .catch(() => {
+          // Token invalide ou expiré
+          localStorage.removeItem("sailingloc_token");
+        });
+    } else {
+      const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      setUser(buildUser({ email, name, role }));
+      setRoleCookie(role);
+    }
   }, []);
 
-  const login = useCallback((email: string, role: UserRole = "locataire", userId?: number) => {
-    const u = buildUser(email, role, userId);
+  const login = useCallback((params: LoginParams) => {
+    const u = buildUser(params);
     setUser(u);
-    persist(u);
-    setRoleCookie(role);
+    setRoleCookie(params.role);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    persist(null);
     removeToken();
   }, []);
 
@@ -76,7 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...prev,
         role: prev.role === "locataire" ? "proprietaire" : "locataire",
       };
-      persist(next);
       return next;
     });
   }, []);

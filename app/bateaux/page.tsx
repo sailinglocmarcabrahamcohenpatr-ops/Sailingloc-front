@@ -2,22 +2,26 @@ import { Suspense } from "react";
 import { searchBoats } from "@/entities/boat";
 import { BoatCard } from "@/entities/boat";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
-import { boatsApi, type BoatAPI } from "@/shared/lib/boats-api";
+import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib/boats-api";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 function adaptBoat(b: BoatAPI): Boat {
+  const mainPhoto = b.photos
+    ?.slice()
+    .sort((a, b) => (a.ordreAffichage ?? 99) - (b.ordreAffichage ?? 99))[0];
+
   return {
-    id:           String(b.id),
-    name:         b.nom_bateau,
-    location:     b.port ? `${b.port.ville}` : "France",
-    type:         (b.type_bateau?.libelle?.toLowerCase() ?? "voilier") as BoatType,
-    rating:       4.5,
-    reviewCount:  0,
-    pricePerDay:  b.prix_jour,
-    imageUrl:     b.photos?.find((p) => p.principale)?.url ?? "",
-    imageSeed:    String(b.id),
-    capacity:     b.capacite,
-    owner:        { name: "Propriétaire", avatarSeed: String(b.id_utilisateur) },
+    id:          String(b.id),
+    name:        b.nomBateau,
+    location:    b.port ? b.port.ville : "France",
+    type:        (b.type_bateau?.libelle?.toLowerCase() ?? "voilier") as BoatType,
+    rating:      4.5,
+    reviewCount: 0,
+    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    imageUrl:    mainPhoto ? resolvePhotoUrl(mainPhoto.url) : "",
+    imageSeed:   String(b.id),
+    capacity:    b.capacite ?? undefined,
+    owner:       { name: "Propriétaire", avatarSeed: String(b.id) },
   };
 }
 

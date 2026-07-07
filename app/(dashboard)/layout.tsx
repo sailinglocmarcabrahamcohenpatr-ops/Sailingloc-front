@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { DashboardSidebar } from "@/widgets/dashboard-sidebar";
+import { DashboardSidebar, DashboardTopbar } from "@/widgets/dashboard-sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,7 +11,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="dashboard-layout">
         <DashboardSidebar />
-        <main className="dashboard-main">{children}</main>
+        <div className="dashboard-main-wrapper">
+          <DashboardTopbar />
+          <main className="dashboard-main">{children}</main>
+        </div>
       </div>
     );
   }

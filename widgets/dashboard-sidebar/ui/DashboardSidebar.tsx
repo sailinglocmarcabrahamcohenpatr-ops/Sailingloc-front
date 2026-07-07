@@ -7,6 +7,7 @@ import { useAuth } from "@/shared/lib";
 type NavLink = { href: string; icon: string; label: string; badge?: number; exact?: boolean };
 
 const ownerLinks: NavLink[] = [
+  { href: "/proprietaire/dashboard",      icon: "fa-house",          label: "Dashboard", exact: true },
   { href: "/proprietaire/bateaux",        icon: "fa-sailboat",       label: "Mes bateaux" },
   { href: "/proprietaire/bateaux/nouveau",icon: "fa-plus",           label: "Ajouter un bateau" },
   { href: "/proprietaire/reservations",   icon: "fa-calendar-check", label: "Réservations" },
