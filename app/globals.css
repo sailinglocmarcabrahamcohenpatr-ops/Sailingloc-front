@@ -43,7 +43,7 @@
   --text:          #1A202C;
   --text-2:        #637083;
   --text-3:        #9CA3AF;
-  --border: oklch(0.922 0 0);
+  --border: #D6DCE3;
   --bg:            #F8FAFC;
   --white:         #FFFFFF;
   --star:          #F59E0B;
@@ -244,6 +244,7 @@ footer {
 /* ── Cards — bateau ─────────────────────────────── */
 .boat-card {
   background: var(--white); border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow); overflow: hidden;
   cursor: pointer; transition: var(--transition);
   display: flex; flex-direction: column;
@@ -503,6 +504,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .how-card {
   background: var(--white); border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   padding: 36px 28px; text-align: center;
   box-shadow: var(--shadow); transition: var(--transition);
 }
@@ -738,7 +740,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .weather-day-icon { font-size: 1.1rem; line-height: 1; }
 .weather-day-max { font-size: .875rem; font-weight: 700; }
 .weather-day-min { font-size: .75rem; opacity: .55; }
-.info-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 24px; }
+.info-card { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 24px; }
 .info-card h5 { font-size: .9375rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
 .info-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .info-row:last-child { border-bottom: none; padding-bottom: 0; }
@@ -747,7 +749,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .info-row-text small { font-size: .75rem; color: var(--text-3); display: block; }
 .info-row-text strong { font-size: .875rem; color: var(--text); }
 .info-row-badge { font-size: .75rem; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 3px 10px; border-radius: 12px; }
-.map-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; }
+.map-card { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
 .map-embed-wrap { width: 100%; height: 180px; position: relative; }
 .boats-map { width: 100%; height: 100%; z-index: 0; }
 .boats-map-loading { width: 100%; height: 180px; background: linear-gradient(135deg, #E8F4FD, #B0D4F1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2rem; }
@@ -1470,7 +1472,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 /* Benefits grid */
 .prop-benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.prop-benefit-card { background: var(--white); border-radius: var(--radius-xl); padding: 28px 22px; box-shadow: var(--shadow); }
+.prop-benefit-card { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 28px 22px; box-shadow: var(--shadow); }
 .prop-benefit-icon { width: 52px; height: 52px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 16px; }
 .prop-benefit-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
 .prop-benefit-card p { font-size: .875rem; color: var(--text-2); line-height: 1.7; }
@@ -1494,7 +1496,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .prop-revenue-inner { display: grid; grid-template-columns: 1fr 480px; gap: 60px; align-items: center; }
 .prop-revenue-text h2 { color: var(--white); }
 .prop-revenue-text p { color: rgba(255,255,255,.72); font-size: 1.0625rem; line-height: 1.75; margin-top: 14px; }
-.prop-revenue-table { background: var(--white); border-radius: var(--radius-xl); overflow: hidden; }
+.prop-revenue-table { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); overflow: hidden; }
 .prop-revenue-table-hd { display: grid; grid-template-columns: 2fr 1fr 1.25fr; padding: 14px 20px; background: var(--bg); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); border-bottom: 1px solid var(--border); }
 .prop-revenue-row { display: grid; grid-template-columns: 2fr 1fr 1.25fr; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: .875rem; }
 .prop-revenue-row:last-of-type { border-bottom: none; }
@@ -1504,7 +1506,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 /* Testimonials props */
 .prop-testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.prop-testi-card { background: var(--white); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 16px; }
+.prop-testi-card { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 28px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 16px; }
 .prop-testi-stars { color: var(--star); font-size: 1rem; display: flex; gap: 3px; }
 .prop-testi-quote { font-size: .9375rem; color: var(--text); line-height: 1.7; flex: 1; }
 .prop-testi-footer { display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -1578,7 +1580,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .docs-info-banner i { color: var(--primary); font-size: 1.125rem; margin-top: 2px; }
 .docs-info-banner strong { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
 .docs-info-banner p { font-size: .875rem; color: var(--text-2); line-height: 1.5; }
-.docs-list { display: flex; flex-direction: column; gap: 0; background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; }
+.docs-list { display: flex; flex-direction: column; gap: 0; background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
 .doc-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
 .doc-item:last-child { border-bottom: none; }
 .doc-icon { width: 44px; height: 44px; border-radius: var(--radius-lg); background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.125rem; flex-shrink: 0; }
@@ -1995,6 +1997,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .dash-stat-card {
   background: var(--white);
   border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   padding: 20px 24px;
   box-shadow: var(--shadow);
   display: flex;
@@ -2020,6 +2023,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .dash-card {
   background: var(--white);
   border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   padding: 24px;
   box-shadow: var(--shadow);
 }
@@ -2347,6 +2351,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .messages-list {
   background: var(--white);
   border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   overflow: hidden;
   display: flex;
@@ -2416,6 +2421,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .messages-thread {
   background: var(--white);
   border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
@@ -2725,6 +2731,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .testimonial-card {
   background: var(--white);
   border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   padding: 28px;
   box-shadow: var(--shadow);
   display: flex;
@@ -2862,7 +2869,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 @media (max-width: 700px) { .dest-gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 160px 160px; } .dest-gallery-main { grid-row: span 1; } }
 
 .dest-detail-aside { display: flex; flex-direction: column; gap: 20px; }
-.dest-aside-card { background: var(--white); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow); }
+.dest-aside-card { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 24px; box-shadow: var(--shadow); }
 .dest-aside-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
 .dest-weather { display: flex; flex-direction: column; gap: 14px; }
 .dest-weather-item { display: flex; align-items: center; gap: 14px; font-size: .9rem; }
