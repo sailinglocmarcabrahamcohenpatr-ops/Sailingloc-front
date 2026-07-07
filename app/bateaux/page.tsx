@@ -6,9 +6,11 @@ import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib/boats-api"
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 function adaptBoat(b: BoatAPI): Boat {
-  const mainPhoto = b.photos
-    ?.slice()
-    .sort((a, b) => (a.ordreAffichage ?? 99) - (b.ordreAffichage ?? 99))[0];
+  const sortedPhotos = (b.photos ?? [])
+    .slice()
+    .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99));
+
+  const photos = sortedPhotos.map((p) => resolvePhotoUrl(p.url)).filter(Boolean);
 
   return {
     id:          String(b.id),
@@ -18,9 +20,11 @@ function adaptBoat(b: BoatAPI): Boat {
     rating:      4.5,
     reviewCount: 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
-    imageUrl:    mainPhoto ? resolvePhotoUrl(mainPhoto.url) : "",
+    imageUrl:    photos[0] ?? "",
     imageSeed:   String(b.id),
     capacity:    b.capacite ?? undefined,
+    cabins:      b.nombreCabines ?? undefined,
+    photos:      photos.length > 0 ? photos : undefined,
     owner:       { name: "Propriétaire", avatarSeed: String(b.id) },
   };
 }
