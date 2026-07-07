@@ -113,6 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     removeToken();
+    // Le site public (hors session) reste toujours en version claire —
+    // le mode sombre est une préférence de l'espace connecté, pas du site
+    // vitrine. On efface la préférence stockée et on repasse l'affichage
+    // en clair immédiatement, sans attendre un rechargement de page.
+    try {
+      localStorage.removeItem("sailingloc_prefs");
+    } catch {}
+    const root = document.documentElement;
+    root.setAttribute("data-theme", "light");
+    root.setAttribute("data-text-size", "normal");
+    root.removeAttribute("data-motion");
   }, []);
 
   const switchRole = useCallback(() => {
