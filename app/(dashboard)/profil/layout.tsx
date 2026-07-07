@@ -31,7 +31,7 @@ function avatarBg(seed: string) {
 export default function ProfilLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
 
   const initials = user?.initials ?? "?";
   const name     = user?.name    ?? "Mon compte";
@@ -43,6 +43,11 @@ export default function ProfilLayout({ children }: { children: React.ReactNode }
   const handleLogout = () => {
     logout();
     router.push("/");
+  };
+
+  const handleSwitchToOwner = () => {
+    switchRole();
+    router.push("/proprietaire/bateaux");
   };
 
   return (
@@ -72,6 +77,17 @@ export default function ProfilLayout({ children }: { children: React.ReactNode }
                 </span>
               </div>
             </div>
+
+            <button
+              type="button"
+              className="profil-switch-btn"
+              onClick={handleSwitchToOwner}
+              title="Changer d'espace"
+            >
+              <i className="fa-solid fa-sailboat" aria-hidden="true" />
+              Espace propriétaire
+              <i className="fa-solid fa-arrow-right-arrow-left profil-switch-btn-icon" aria-hidden="true" />
+            </button>
 
             {/* Navigation principale */}
             <nav className="profil-nav" aria-label="Mon espace">

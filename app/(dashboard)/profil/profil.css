@@ -95,6 +95,35 @@
   margin-top: 4px;
 }
 
+/* Bascule vers l'espace propriétaire — même principe que le bouton
+   "Espace locataire" du côté propriétaire (widgets/dashboard-sidebar). */
+.profil-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--radius-lg);
+  font-size: .8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  width: 100%;
+  text-align: left;
+}
+.profil-switch-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.profil-switch-btn-icon {
+  margin-left: auto;
+  font-size: .75rem;
+  opacity: .7;
+}
+
 /* Navigation */
 .profil-nav {
   background: var(--white);
