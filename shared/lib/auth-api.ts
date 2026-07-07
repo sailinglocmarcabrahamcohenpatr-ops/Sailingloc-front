@@ -119,6 +119,10 @@ export async function apiRegister(payload: RegisterPayload) {
   await api.post<unknown>("/api/auth/register", payload, false);
 }
 
+export async function apiForgotPassword(email: string): Promise<void> {
+  await api.post<unknown>("/api/auth/forgot-password", { email }, false);
+}
+
 export function apiLogout() {
   removeToken();
 }

@@ -3,7 +3,7 @@ export type { AuthUser, UserRole } from "./auth-context";
 
 export { api, setToken, removeToken, setRoleCookie, ApiError } from "./api-client";
 
-export { apiLogin, apiRegister, apiLogout } from "./auth-api";
+export { apiLogin, apiRegister, apiLogout, apiForgotPassword } from "./auth-api";
 export type { LoginPayload, RegisterPayload } from "./auth-api";
 
 export { boatsApi, resolvePhotoUrl } from "./boats-api";
