@@ -40,6 +40,7 @@ export interface BoatAPI {
   nombreCabines?: number | null;
   id_port?: number;
   id_type_bateau?: number;
+  id_utilisateur?: number;
   port?: { id: number; nom: string; ville: string };
   type_bateau?: { id: number; libelle: string };
   photos?: PhotoAPI[];

@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // TEMP DEV: simule une connexion en tant que propriétaire (a retirer une fois l'auth reelle testee)
       document.cookie = "sailingloc_auth=1; path=/; max-age=86400; SameSite=Lax";
       setRoleCookie("proprietaire");
-      setUser(buildUser({ email: "dev-owner@sailingloc.test", name: "Alex Dupont", role: "proprietaire" }));
+      setUser(buildUser({ email: "dev-owner@sailingloc.test", name: "Alex Dupont", role: "proprietaire", userId: 1 }));
       return;
     }
 
