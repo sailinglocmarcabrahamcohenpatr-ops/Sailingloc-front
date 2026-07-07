@@ -2406,6 +2406,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .messages-empty {
   background: var(--white);
   border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
