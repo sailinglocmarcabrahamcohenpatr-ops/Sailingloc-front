@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type ViewMode = "grid" | "list";
 
@@ -23,6 +24,9 @@ export default function ResultsControls({ count, dates, subtitle }: ResultsContr
         </div>
       </div>
       <div className="results-controls">
+        <Link href="#" className="btn btn-primary btn-sm">
+          <i className="fa-solid fa-map" aria-hidden="true" /> Carte
+        </Link>
         <div className="view-toggle" role="group" aria-label="Mode d'affichage">
           <button
             className={`view-btn${view === "grid" ? " active" : ""}`}

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 /* ── Types ──────────────────────────────────────────── */
 interface CurrentWeather {
@@ -213,23 +212,6 @@ export default function BoatsSidebar() {
             </div>
           </>
         )}
-      </div>
-
-      {/* ── Map card ───────────────────────────────────── */}
-      <div className="map-card" role="region" aria-label="Carte">
-        <div className="map-placeholder">
-          <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
-          <span>Voir sur la carte</span>
-        </div>
-        <div className="map-card-foot">
-          <span>
-            <i className="fa-solid fa-map-pin" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-            140 bateaux
-          </span>
-          <Link href="#" className="btn btn-primary btn-sm">
-            <i className="fa-solid fa-map" aria-hidden="true" /> Carte
-          </Link>
-        </div>
       </div>
 
       {/* ── Info card ──────────────────────────────────── */}
