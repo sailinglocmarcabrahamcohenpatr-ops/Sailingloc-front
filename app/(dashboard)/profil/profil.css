@@ -31,7 +31,7 @@
 
 /* Carte utilisateur */
 .profil-user-card {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 20px 16px;
@@ -126,7 +126,7 @@
 
 /* Navigation */
 .profil-nav {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 6px;
@@ -218,7 +218,7 @@
 }
 
 .profil-stat-card {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 18px;
@@ -257,7 +257,7 @@
 }
 
 .profil-quick-link {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -321,7 +321,7 @@
 
 /* ── Header ─────────────────────────────────────── */
 .profil-header {
-  background: var(--white);
+  background: var(--card-bg);
   border-bottom: 1px solid var(--border);
   padding-top: 32px;
 }
@@ -436,7 +436,7 @@
 }
 
 .profil-stat-card {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -475,7 +475,7 @@
 }
 
 .profil-quick-link {
-  background: var(--white);
+  background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 18px 16px;

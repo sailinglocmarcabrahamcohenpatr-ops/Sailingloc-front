@@ -48,7 +48,7 @@
    LIST-BOAT FORM — wizard
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .list-boat-form {
-  background: var(--white);
+  background: var(--card-bg);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   padding: 36px 40px 32px;
@@ -78,7 +78,7 @@
   padding: 4px 10px;
   border: 1px solid #BFDBFE;
   border-radius: var(--radius);
-  background: var(--white);
+  background: var(--card-bg);
   color: #1D4ED8;
   font-size: .8125rem;
   cursor: pointer;
@@ -140,7 +140,7 @@
 .boat-type-select-btn {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 14px 8px; border: 1.5px solid var(--border); border-radius: var(--radius-lg);
-  background: var(--white); font-size: .8125rem; font-weight: 600; color: var(--text-2);
+  background: var(--card-bg); font-size: .8125rem; font-weight: 600; color: var(--text-2);
   cursor: pointer; transition: var(--transition); text-align: center;
 }
 .boat-type-select-btn:hover  { border-color: var(--primary); background: var(--primary-light); }
@@ -192,7 +192,7 @@
 .month-btn-label {
   display: flex; align-items: center; justify-content: center;
   padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--radius);
-  font-size: .8125rem; font-weight: 600; cursor: pointer; background: var(--white); transition: var(--transition);
+  font-size: .8125rem; font-weight: 600; cursor: pointer; background: var(--card-bg); transition: var(--transition);
 }
 .month-btn-label:has(input:checked) { border-color: var(--primary); background: var(--primary); color: var(--white); }
 .month-btn-label input { position: absolute; opacity: 0; pointer-events: none; }
@@ -221,7 +221,7 @@
   align-items: center;
   gap: 10px;
   padding: 11px 36px 11px 14px; /* padding-right réservé pour le clear btn */
-  background: var(--white);
+  background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   font-size: .9rem;
@@ -373,7 +373,7 @@
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 10px 14px;
   border: 1.5px solid var(--border); border-radius: var(--radius);
-  background: var(--white); cursor: pointer;
+  background: var(--card-bg); cursor: pointer;
   font-size: .9375rem; color: var(--text);
   transition: border-color .15s;
   text-align: left;
@@ -392,7 +392,7 @@
 
 .ss-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--white);
+  background: var(--card-bg);
   border: 1.5px solid var(--border); border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   z-index: 400;

@@ -2,8 +2,24 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
-import { AuthProvider } from "@/shared/lib";
+import { AuthProvider, PreferencesProvider } from "@/shared/lib";
 import { cn } from "@/lib/utils";
+
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var raw = localStorage.getItem("sailingloc_prefs");
+    var prefs = raw ? JSON.parse(raw) : {};
+    var theme = prefs.theme || "system";
+    var resolved = theme === "system"
+      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      : theme;
+    document.documentElement.setAttribute("data-theme", resolved);
+    document.documentElement.setAttribute("data-text-size", prefs.textSize || "normal");
+    if (prefs.reduceMotion) document.documentElement.setAttribute("data-motion", "reduced");
+  } catch (e) {}
+})();
+`;
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -39,7 +55,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "light",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -54,11 +70,14 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
         <AuthProvider>
-          {children}
-          <FadeInObserver />
+          <PreferencesProvider>
+            {children}
+            <FadeInObserver />
+          </PreferencesProvider>
         </AuthProvider>
       </body>
     </html>

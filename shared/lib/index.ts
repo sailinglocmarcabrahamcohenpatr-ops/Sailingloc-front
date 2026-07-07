@@ -1,6 +1,9 @@
 export { AuthProvider, useAuth } from "./auth-context";
 export type { AuthUser, UserRole } from "./auth-context";
 
+export { PreferencesProvider, usePreferences } from "./preferences-context";
+export type { Theme, TextSize } from "./preferences-context";
+
 export { api, setToken, removeToken, setRoleCookie, ApiError } from "./api-client";
 
 export { apiLogin, apiRegister, apiLogout, apiForgotPassword } from "./auth-api";
