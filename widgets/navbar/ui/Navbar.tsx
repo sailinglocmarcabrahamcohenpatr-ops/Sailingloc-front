@@ -27,6 +27,11 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
+  // sur le compte — pour qu'on ne se retrouve jamais renvoyé vers l'espace
+  // propriétaire alors qu'on navigue dans l'espace locataire (ou l'inverse).
+  const isOwnerSection = pathname.startsWith("/proprietaire");
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -68,7 +73,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                  href={isOwnerSection ? "/proprietaire/messages" : "/profil/messages"}
                   className="navbar-icon-btn"
                   aria-label="Messages"
                 >
@@ -93,12 +98,16 @@ export default function Navbar() {
                       <div className="navbar-dropdown-user">
                         <span className="navbar-dropdown-name">{user.name}</span>
                         <span className="navbar-dropdown-role">
-                          {user.role === "proprietaire" ? "Propriétaire" : "Locataire"}
+                          {isOwnerSection ? "Propriétaire" : "Locataire"}
                         </span>
                       </div>
                       <div className="navbar-dropdown-sep" />
-                      {user.role === "locataire" ? (
+                      {!isOwnerSection ? (
                         <>
+                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <i className="fa-solid fa-sailboat" /> Espace propriétaire
+                          </Link>
+                          <div className="navbar-dropdown-sep" />
                           <Link href="/profil" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-user" /> Mon profil
                           </Link>
@@ -108,13 +117,13 @@ export default function Navbar() {
                           <Link href="/profil/messages" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-envelope" /> Messages
                           </Link>
-                          <div className="navbar-dropdown-sep" />
-                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-sailboat" /> Espace propriétaire
-                          </Link>
                         </>
                       ) : (
                         <>
+                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <i className="fa-solid fa-user" /> Espace locataire
+                          </Link>
+                          <div className="navbar-dropdown-sep" />
                           <Link href="/proprietaire/bateaux" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-sailboat" /> Mes bateaux
                           </Link>
@@ -123,10 +132,6 @@ export default function Navbar() {
                           </Link>
                           <Link href="/proprietaire/revenus" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-chart-line" /> Revenus
-                          </Link>
-                          <div className="navbar-dropdown-sep" />
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-user" /> Espace locataire
                           </Link>
                         </>
                       )}
@@ -164,7 +169,7 @@ export default function Navbar() {
         ))}
         {user ? (
           <>
-            <Link href={user.role === "locataire" ? "/profil" : "/proprietaire/bateaux"} onClick={() => setMobileOpen(false)}>
+            <Link href={isOwnerSection ? "/proprietaire/bateaux" : "/profil"} onClick={() => setMobileOpen(false)}>
               Mon espace
             </Link>
             <button className="btn btn-outline mobile-cta" onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}>
