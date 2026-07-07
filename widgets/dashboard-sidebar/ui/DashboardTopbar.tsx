@@ -3,7 +3,6 @@
 import "./DashboardTopbar.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/shared/lib";
 
 const PAGE_TITLES: Record<string, string> = {
   "/proprietaire/dashboard":          "Dashboard",
@@ -24,11 +23,7 @@ function getPageTitle(pathname: string): string {
 
 export default function DashboardTopbar() {
   const pathname = usePathname();
-  const { user } = useAuth();
-
   const title = getPageTitle(pathname);
-  const displayName = user?.name ?? "Propriétaire";
-  const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <header className="dashboard-topbar">
@@ -42,14 +37,6 @@ export default function DashboardTopbar() {
         >
           <i className="fa-solid fa-envelope" aria-hidden="true" />
           <span className="topbar-badge">3</span>
-        </Link>
-
-        <Link
-          href="/profil"
-          className="topbar-avatar"
-          title="Mon profil"
-        >
-          {initials}
         </Link>
       </div>
     </header>
