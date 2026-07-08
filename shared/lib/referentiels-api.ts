@@ -46,6 +46,7 @@ export interface UtilisateurAPI {
   prenom: string;
   nom: string;
   telephone?: string;
+  statutCompte?: boolean;
   roles: string[];
 }
 
@@ -77,12 +78,16 @@ export const portsApi = {
 };
 
 export const utilisateursApi = {
+  getAll: () =>
+    api.get<UtilisateurAPI[]>("/api/utilisateurs"),
   getOne: (id: number | string) =>
     api.get<UtilisateurAPI>(`/api/utilisateurs/${id}`),
   update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">>) =>
     api.put<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
   patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">>) =>
     api.patch<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/utilisateurs/${id}`),
 };
 
 export const disponibilitesApi = {

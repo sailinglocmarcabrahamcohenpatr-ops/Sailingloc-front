@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import EmojiPicker, { type EmojiClickData, Theme } from "emoji-picker-react";
 import { useAuth } from "@/shared/lib";
+import "./messages.css";
 
 interface MockMsg {
   id: number;
@@ -84,6 +86,8 @@ export default function OwnerMessagesPage() {
   const [convs, setConvs] = useState<MockConv[]>(MOCK_CONVS);
   const [selectedKey, setSelectedKey] = useState<string | null>("conv-1");
   const [reply, setReply] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const emojiRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -93,6 +97,23 @@ export default function OwnerMessagesPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedKey, convs]);
+
+  /* Fermer le picker en cliquant dehors */
+  useEffect(() => {
+    if (!emojiOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setEmojiOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [emojiOpen]);
+
+  function onEmojiClick(data: EmojiClickData) {
+    setReply((r) => r + data.emoji);
+    inputRef.current?.focus();
+  }
 
   const handleSelect = (key: string) => {
     setSelectedKey(key);
@@ -129,18 +150,7 @@ export default function OwnerMessagesPage() {
   };
 
   return (
-    <div className="dash-page">
-      <div className="dash-page-hd">
-        <div>
-          <h1 className="dash-title">Messages</h1>
-          <p className="dash-sub">
-            {unreadTotal > 0
-              ? `${unreadTotal} message${unreadTotal > 1 ? "s" : ""} non lu${unreadTotal > 1 ? "s" : ""}`
-              : "Tous les messages lus"}
-          </p>
-        </div>
-      </div>
-
+    <div className="messages-full-wrap">
       <div className="messages-layout">
         {/* ── Liste des conversations ── */}
         <div className="messages-list">
@@ -256,24 +266,63 @@ export default function OwnerMessagesPage() {
             </div>
 
             <form className="messages-reply-form" onSubmit={handleSend}>
-              <button type="button" className="btn btn-ghost btn-sm" title="Joindre un fichier">
-                <i className="fa-solid fa-paperclip" />
-              </button>
-              <input
-                ref={inputRef}
-                type="text"
-                className="messages-reply-input"
-                placeholder={`Message à ${selected.otherName.split(" ")[0]}…`}
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoComplete="off"
-              />
+              <div className="messages-reply-input-wrap">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="messages-reply-input"
+                  placeholder="Écrire un message…"
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  autoComplete="off"
+                />
+                <div className="emoji-picker-wrap" ref={emojiRef}>
+                  <button
+                    type="button"
+                    className={`messages-reply-icon-btn${emojiOpen ? " active" : ""}`}
+                    title="Emoji"
+                    onClick={() => setEmojiOpen((o) => !o)}
+                  >
+                    <i className="fa-regular fa-face-smile" />
+                  </button>
+                  {emojiOpen && (
+                    <div className="emoji-picker-popover" style={{ position: "absolute", bottom: "calc(100% + 12px)", right: 0, zIndex: 300 }}>
+                      <EmojiPicker
+                        onEmojiClick={onEmojiClick}
+                        theme={Theme.LIGHT}
+                        lazyLoadEmojis
+                        searchPlaceholder="Rechercher…"
+                        width={320}
+                        height={400}
+                        style={{
+                          "--epr-bg-color": "#ffffff",
+                          "--epr-category-label-bg-color": "#ffffff",
+                          "--epr-search-input-bg-color": "#F8FAFC",
+                          "--epr-hover-bg-color": "#EEF3FE",
+                          "--epr-focus-bg-color": "#EEF3FE",
+                          "--epr-highlight-color": "#1866F2",
+                          "--epr-search-border-color": "#D6DCE3",
+                          "--epr-border-color": "#D6DCE3",
+                          "--epr-text-color": "#1A202C",
+                          "--epr-search-input-text-color": "#1A202C",
+                          "--epr-search-input-placeholder-color": "#9CA3AF",
+                          boxShadow: "0 20px 40px rgba(0,0,0,.12)",
+                          borderRadius: "16px",
+                          border: "1px solid #D6DCE3",
+                        } as React.CSSProperties}
+                      />
+                    </div>
+                  )}
+                </div>
+                <button type="button" className="messages-reply-icon-btn" title="Joindre un fichier">
+                  <i className="fa-solid fa-paperclip" />
+                </button>
+              </div>
               <button
                 type="submit"
-                className="btn btn-primary btn-sm"
+                className="messages-reply-send"
                 disabled={!reply.trim()}
-                style={{ borderRadius: "50%", width: 38, height: 38, padding: 0, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
                 title="Envoyer"
               >
                 <i className="fa-solid fa-paper-plane" />

@@ -6,8 +6,9 @@ import { DashboardSidebar, DashboardTopbar } from "@/widgets/dashboard-sidebar";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isOwner = pathname.startsWith("/proprietaire");
+  const isAdmin = pathname.startsWith("/admin");
 
-  if (isOwner) {
+  if (isOwner || isAdmin) {
     return (
       <div className="dashboard-layout">
         <DashboardSidebar />

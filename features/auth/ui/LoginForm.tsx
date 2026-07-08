@@ -33,10 +33,11 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       login({ email: result.email, name: result.name, role: result.role, userId: result.userId, telephone: result.telephone });
       if (redirectTo) {
         router.push(redirectTo);
+      } else if (result.role === "admin") {
+        router.push("/admin/dashboard");
+      } else if (result.role === "proprietaire") {
+        router.push("/proprietaire/dashboard");
       } else {
-        // Toujours atterrir dans l'espace locataire après connexion, même
-        // pour un compte propriétaire — la bascule reste à un clic (menu
-        // du compte / sidebar) si besoin d'aller dans l'espace propriétaire.
         router.push("/profil");
       }
     } catch (err) {

@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { removeToken, setRoleCookie } from "./api-client";
 import { apiGetUserByEmail } from "./auth-api";
 
-export type UserRole = "locataire" | "proprietaire";
+export type UserRole = "locataire" | "proprietaire" | "admin";
 
 export interface AuthUser {
   id?: number;
@@ -67,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       document.cookie = "sailingloc_auth=1; path=/; max-age=86400; SameSite=Lax";
       setRoleCookie("proprietaire");
       setUser(buildUser({ email: "dev-owner@sailingloc.test", name: "Alex Dupont", role: "proprietaire", userId: 1 }));
+      // Pour tester l'admin, remplacer la ligne ci-dessus par :
+      // setRoleCookie("admin");
+      // setUser(buildUser({ email: "dev-admin@sailingloc.test", name: "Admin SailingLoc", role: "admin", userId: 0 }));
       return;
     }
 
@@ -81,7 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? jwt.authorities.map((a) => (typeof a === "string" ? a : a.authority))
         : []),
     ];
-    const role: UserRole = roles.some((r) => r === "ROLE_ADMIN" || r.includes("PROPRIETAIRE"))
+    const role: UserRole = roles.some((r) => r === "ROLE_ADMIN")
+      ? "admin"
+      : roles.some((r) => r.includes("PROPRIETAIRE"))
       ? "proprietaire"
       : "locataire";
 
@@ -128,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = useCallback(() => {
     setUser((prev) => {
-      if (!prev) return prev;
+      if (!prev || prev.role === "admin") return prev;
       const next: AuthUser = {
         ...prev,
         role: prev.role === "locataire" ? "proprietaire" : "locataire",

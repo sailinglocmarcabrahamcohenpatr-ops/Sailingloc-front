@@ -15,6 +15,16 @@ const ownerLinks: NavLink[] = [
   { href: "/proprietaire/messages",       icon: "fa-envelope",       label: "Messages", badge: 3 },
 ];
 
+const adminLinks: NavLink[] = [
+  { href: "/admin/dashboard",         icon: "fa-house",          label: "Dashboard", exact: true },
+  { href: "/admin/avis",              icon: "fa-star",           label: "Avis" },
+  { href: "/admin/reservations",      icon: "fa-calendar-check", label: "Réservations" },
+  { href: "/admin/utilisateurs",      icon: "fa-users",          label: "Utilisateurs" },
+  { href: "/admin/bateaux",           icon: "fa-sailboat",       label: "Ajouter un bateau" },
+  { href: "/admin/demandes-proprio",  icon: "fa-user-check",     label: "Demandes propriétaire" },
+  { href: "/admin/messages",          icon: "fa-envelope",       label: "Messages", badge: 3 },
+];
+
 const renterLinks: NavLink[] = [
   { href: "/profil", icon: "fa-user", label: "Mon profil", exact: true },
   { href: "/profil/reservations", icon: "fa-calendar-check", label: "Mes réservations" },
@@ -35,14 +45,15 @@ export default function DashboardSidebar() {
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
 
-  const isOwner = pathname.startsWith("/proprietaire");
-  const links = isOwner ? ownerLinks : renterLinks;
+  const isAdmin = pathname.startsWith("/admin");
+  const isOwner = !isAdmin && pathname.startsWith("/proprietaire");
+  const links = isAdmin ? adminLinks : isOwner ? ownerLinks : renterLinks;
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
-  const displayName = user?.name ?? (isOwner ? "Marc Dupont" : "Marie Dupont");
-  const displayRole = isOwner ? "Propriétaire" : "Locataire";
+  const displayName = user?.name ?? (isAdmin ? "Admin" : isOwner ? "Marc Dupont" : "Marie Dupont");
+  const displayRole = isAdmin ? "Administrateur" : isOwner ? "Propriétaire" : "Locataire";
   const initials = displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const handleSwitchRole = () => {
@@ -71,14 +82,18 @@ export default function DashboardSidebar() {
         </div>
       </div>
 
-      <button className="dash-role-switch" onClick={handleSwitchRole} title="Changer d'espace">
-        <i className={`fa-solid ${isOwner ? "fa-user" : "fa-sailboat"}`} aria-hidden="true" />
-        {isOwner ? "Espace locataire" : "Espace propriétaire"}
-        <i className="fa-solid fa-arrow-right-arrow-left dash-role-switch-icon" aria-hidden="true" />
-      </button>
+      {!isAdmin && (
+        <button className="dash-role-switch" onClick={handleSwitchRole} title="Changer d'espace">
+          <i className={`fa-solid ${isOwner ? "fa-user" : "fa-sailboat"}`} aria-hidden="true" />
+          {isOwner ? "Espace locataire" : "Espace propriétaire"}
+          <i className="fa-solid fa-arrow-right-arrow-left dash-role-switch-icon" aria-hidden="true" />
+        </button>
+      )}
 
       <nav className="dash-sidebar-nav" aria-label="Navigation dashboard">
-        <span className="dash-nav-section">{isOwner ? "Espace propriétaire" : "Mon espace"}</span>
+        <span className="dash-nav-section">
+          {isAdmin ? "Administration" : isOwner ? "Espace propriétaire" : "Mon espace"}
+        </span>
         {links.map((l) => (
           <Link
             key={l.href}

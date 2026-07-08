@@ -49,7 +49,7 @@ function decodeJwt(token: string): JwtPayload {
   }
 }
 
-function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
+function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" | "admin" {
   const roles: string[] = [];
 
   if (Array.isArray(payload.roles)) {
@@ -62,11 +62,8 @@ function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
   }
   console.log("JWT roles:", roles);
 
-  // ROLE_ADMIN ou ROLE_PROPRIETAIRE → espace propriétaire
-  if (roles.some((r) => r === "ROLE_ADMIN" || r.includes("PROPRIETAIRE"))) {
-    return "proprietaire";
-  }
-  // ROLE_USER (ou tout autre rôle) → espace locataire
+  if (roles.some((r) => r === "ROLE_ADMIN")) return "admin";
+  if (roles.some((r) => r.includes("PROPRIETAIRE"))) return "proprietaire";
   return "locataire";
 }
 
