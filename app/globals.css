@@ -1219,9 +1219,23 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   align-items: center;
   overflow: hidden;
 }
+.hero-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: saturate(1.2) contrast(1.05) brightness(1.25);
+  animation: heroVideoZoom 24s ease-in-out infinite alternate;
+}
+@keyframes heroVideoZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
 .hero-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(6,18,40,.82) 0%, rgba(11,30,60,.6) 55%, rgba(24,102,242,.18) 100%);
+  background:
+    linear-gradient(180deg, rgba(5,14,28,.55) 0%, rgba(5,14,28,.2) 26%, rgba(5,14,28,.26) 58%, rgba(5,14,28,.58) 100%),
+    radial-gradient(ellipse at 50% 45%, rgba(4,12,26,.06) 0%, rgba(4,12,26,.3) 100%);
 }
 .hero-content {
   position: relative; z-index: 1;
@@ -1231,13 +1245,14 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(8,20,40,.35);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.28);
   padding: 8px 20px; border-radius: 30px;
   font-size: .8125rem; font-weight: 600;
   color: rgba(255,255,255,.95);
   margin-bottom: 24px; letter-spacing: .02em;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
 .hero-title {
   color: var(--white);
@@ -1246,15 +1261,17 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   line-height: 1.08;
   letter-spacing: -.5px;
   margin-bottom: 20px;
-  text-shadow: 0 2px 20px rgba(0,0,0,.3);
+  text-shadow: 0 2px 20px rgba(0,0,0,.45);
   max-width: 780px;
   margin-left: auto; margin-right: auto;
 }
 .hero-title-accent {
-  background: linear-gradient(135deg, #5EEAD4 0%, #60A5FA 100%);
+  position: relative;
+  background: linear-gradient(135deg, #2DD4BF 0%, #3B82F6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.55)) drop-shadow(0 8px 24px rgba(0,0,0,.4));
 }
 .hero-sub {
   color: rgba(255,255,255,.85);
@@ -1273,12 +1290,13 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .hero-trust {
   display: flex; align-items: center; gap: 0;
   justify-content: center;
-  background: rgba(255,255,255,.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(8,20,40,.32);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.18);
   border-radius: 16px;
   padding: 16px 32px;
   max-width: 680px; margin: 0 auto;
+  box-shadow: 0 12px 32px rgba(0,0,0,.2);
 }
 .hero-trust-item { text-align: center; padding: 0 24px; flex: 1; }
 .hero-trust-item strong { display: block; font-size: 1.25rem; font-weight: 800; color: var(--white); }
