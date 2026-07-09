@@ -62,9 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Rehydrate from DB on mount using stored JWT — no user data in localStorage
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("sailingloc_token") : null;
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     const jwt = getJwtPayload(token);
     if (!jwt) return;
