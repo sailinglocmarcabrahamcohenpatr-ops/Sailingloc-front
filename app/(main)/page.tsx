@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
+import { DestinationsHome } from "@/widgets/destinations-home";
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -117,31 +117,7 @@ export default async function HomePage() {
               Toutes les destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </Link>
           </div>
-          <div className="destinations-home-grid fade-in">
-            {destinations.slice(0, 6).map((dest, i) => (
-              <Link
-                key={dest.slug}
-                href={`/destinations/${dest.slug}`}
-                className={`dest-home-card${i === 0 ? " dest-home-card--large" : ""}`}
-              >
-                <div className="dest-home-img">
-                  <Image
-                    src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
-                    alt={dest.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-                <div className="dest-home-overlay" />
-                <div className="dest-home-content">
-                  <span className="dest-home-flag" aria-hidden="true">{dest.flag}</span>
-                  <h3>{dest.name}</h3>
-                  <p>{dest.boatCount} bateaux · dès {dest.priceFrom} €/j</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <DestinationsHome destinations={destinations} />
         </div>
       </section>
 
