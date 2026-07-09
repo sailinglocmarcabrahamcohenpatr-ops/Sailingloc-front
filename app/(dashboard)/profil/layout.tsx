@@ -3,6 +3,7 @@
 import "./profil.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/shared/lib";
 import { Navbar } from "@/widgets/navbar";
 import { Footer } from "@/widgets/footer";
@@ -31,7 +32,13 @@ function avatarBg(seed: string) {
 export default function ProfilLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user, logout, switchRole } = useAuth();
+  const { user, checking, logout, switchRole } = useAuth();
+
+  useEffect(() => {
+    if (!checking && !user) router.replace("/connexion");
+  }, [checking, user, router]);
+
+  if (checking || !user) return null;
 
   const initials = user?.initials ?? "?";
   const name     = user?.name    ?? "Mon compte";
