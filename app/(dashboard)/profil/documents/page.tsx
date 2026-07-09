@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-type DocStatus = "verified" | "pending" | "missing";
+type DocStatus = "verified" | "pending" | "missing" | "optional";
 
 interface Doc {
   id: string;
@@ -18,8 +18,10 @@ const STATUS_META = {
   verified: { label: "Vérifié", cls: "badge-status green", icon: "fa-circle-check" },
   pending:  { label: "En cours", cls: "badge-status orange", icon: "fa-clock" },
   missing:  { label: "Manquant", cls: "badge-status red", icon: "fa-circle-xmark" },
+  optional: { label: "Facultatif", cls: "badge-status grey", icon: "fa-circle-plus" },
 };
 
+/* Seuls documents exigés pour un compte locataire, par ordre de priorité. */
 const INITIAL_DOCS: Doc[] = [
   {
     id: "cni",
@@ -30,19 +32,19 @@ const INITIAL_DOCS: Doc[] = [
     date: "Vérifié le 12 mars 2024",
   },
   {
-    id: "carte-grise",
-    label: "Carte grise",
-    description: "Certificat d'immatriculation du véhicule",
-    icon: "fa-file-lines",
-    status: "missing",
-    date: "Non fourni",
-  },
-  {
     id: "permis-bateau",
     label: "Permis bateau",
     description: "Permis côtier ou hauturier",
     icon: "fa-anchor",
     status: "missing",
+    date: "Non fourni",
+  },
+  {
+    id: "autre",
+    label: "Autre document",
+    description: "Tout justificatif complémentaire utile à votre dossier",
+    icon: "fa-folder-plus",
+    status: "optional",
     date: "Non fourni",
   },
 ];
@@ -79,7 +81,7 @@ export default function DocumentsPage() {
         <i className="fa-solid fa-circle-info" />
         <div>
           <strong>Pourquoi vérifier vos documents ?</strong>
-          <p>Les propriétaires accordent leur confiance aux profils vérifiés. Un profil complet augmente vos chances d'acceptation de 3×.</p>
+          <p>Les propriétaires accordent leur confiance aux profils vérifiés et un dossier complet augmente vos chances d'acceptation. À l'inverse, tout document manquant ou non vérifié peut entraîner le rejet de votre demande de réservation.</p>
         </div>
       </div>
 
@@ -92,8 +94,8 @@ export default function DocumentsPage() {
 
             <div className="doc-info">
               <strong>{doc.label}</strong>
-              <span>{doc.fileName ? `Fichier : ${doc.fileName}` : doc.date}</span>
               <span style={{ fontSize: ".75rem", color: "var(--text-3)" }}>{doc.description}</span>
+              <span>{doc.fileName ? `Fichier : ${doc.fileName}` : doc.date}</span>
             </div>
 
             <span className={STATUS_META[doc.status].cls}>
@@ -121,34 +123,12 @@ export default function DocumentsPage() {
               ) : (
                 <button className="btn btn-outline btn-sm" onClick={() => triggerUpload(doc.id)}>
                   <i className="fa-solid fa-upload" />
-                  {doc.status === "missing" ? "Ajouter" : "Remplacer"}
+                  {doc.fileName ? "Remplacer" : "Ajouter"}
                 </button>
               )}
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="dash-card" style={{ marginTop: "8px" }}>
-        <div className="dash-card-hd"><h3>Ajouter un document</h3></div>
-        <div
-          className="doc-upload-zone"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (!file) return;
-            const missing = docs.find((d) => d.status === "missing");
-            if (missing) handleFileChange(missing.id, file);
-          }}
-        >
-          <i className="fa-solid fa-cloud-arrow-up" />
-          <strong>Glissez-déposez vos fichiers ici</strong>
-          <span>PDF, JPG, PNG — Max 10 Mo par fichier</span>
-          <p style={{ fontSize: ".8125rem", color: "var(--text-3)", margin: "4px 0 0" }}>
-            Le fichier sera affecté au prochain document manquant
-          </p>
-        </div>
       </div>
     </div>
   );

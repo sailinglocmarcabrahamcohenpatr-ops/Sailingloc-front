@@ -2,8 +2,9 @@
 
 import "./DashboardTopbar.css";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useAuth, usePreferences } from "@/shared/lib";
 
 const PAGE_TITLES: Record<string, string> = {
   "/proprietaire/dashboard":          "Dashboard",
@@ -41,25 +42,46 @@ const MOCK_NOTIFS: Notif[] = [
 
 export default function DashboardTopbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const title = getPageTitle(pathname);
+  const { user, logout } = useAuth();
+  const { theme, setTheme } = usePreferences();
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs]       = useState<Notif[]>(MOCK_NOTIFS);
   const notifRef                  = useRef<HTMLDivElement>(null);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef                   = useRef<HTMLDivElement>(null);
 
   const unread = notifs.filter((n) => !n.read).length;
+  const isDark = theme === "dark" || (theme === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  const ROLE_LABELS: Record<string, string> = {
+    admin: "Administrateur",
+    proprietaire: "Propriétaire",
+    locataire: "Locataire",
+  };
+
+  function handleLogout() {
+    logout();
+    setAvatarOpen(false);
+    router.push("/connexion");
+  }
 
   /* Fermer en cliquant à l'extérieur */
   useEffect(() => {
-    if (!notifOpen) return;
+    if (!notifOpen && !avatarOpen) return;
     function handleClick(e: MouseEvent) {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      if (notifOpen && notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false);
+      }
+      if (avatarOpen && avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [notifOpen]);
+  }, [notifOpen, avatarOpen]);
 
   function markAllRead() {
     setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -148,6 +170,49 @@ export default function DashboardTopbar() {
             </Link>
           );
         })()}
+
+        {/* ── Profil ── */}
+        {user && (
+          <div className="navbar-user-menu" ref={avatarRef}>
+            <button
+              className="navbar-avatar-btn"
+              onClick={() => setAvatarOpen((v) => !v)}
+              aria-expanded={avatarOpen}
+              aria-haspopup="true"
+              aria-label="Menu du compte"
+            >
+              <span className="navbar-avatar">{user.initials}</span>
+              <i className={`fa-solid fa-chevron-${avatarOpen ? "up" : "down"} navbar-avatar-caret`} />
+            </button>
+
+            {avatarOpen && (
+              <div className="navbar-dropdown" role="menu">
+                <div className="navbar-dropdown-user">
+                  <span className="navbar-dropdown-name">{user.name}</span>
+                  <span className="navbar-dropdown-role">{ROLE_LABELS[user.role] ?? user.role}</span>
+                </div>
+                <div className="navbar-dropdown-sep" />
+                <button
+                  className="navbar-dropdown-item navbar-dropdown-item--nav"
+                  onClick={() => setTheme(isDark ? "light" : "dark")}
+                  role="menuitemcheckbox"
+                  aria-checked={isDark}
+                >
+                  <span className="navbar-dropdown-item-label">
+                    <i className={`fa-solid ${isDark ? "fa-moon" : "fa-sun"}`} /> Mode sombre
+                  </span>
+                  <span className={`toggle-switch${isDark ? " active" : ""}`}>
+                    <span />
+                  </span>
+                </button>
+                <div className="navbar-dropdown-sep" />
+                <button className="navbar-dropdown-item navbar-dropdown-item--danger" onClick={handleLogout} role="menuitem">
+                  <i className="fa-solid fa-right-from-bracket" /> Déconnexion
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </header>

@@ -63,13 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("sailingloc_token") : null;
     if (!token) {
-      // TEMP DEV: simule une connexion en tant que propriétaire (a retirer une fois l'auth reelle testee)
-      document.cookie = "sailingloc_auth=1; path=/; max-age=86400; SameSite=Lax";
-      setRoleCookie("proprietaire");
-      setUser(buildUser({ email: "dev-owner@sailingloc.test", name: "Alex Dupont", role: "proprietaire", userId: 1 }));
-      // Pour tester l'admin, remplacer la ligne ci-dessus par :
-      // setRoleCookie("admin");
-      // setUser(buildUser({ email: "dev-admin@sailingloc.test", name: "Admin SailingLoc", role: "admin", userId: 0 }));
       return;
     }
 

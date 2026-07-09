@@ -10,7 +10,7 @@ const THEME_INIT_SCRIPT = `
   try {
     var raw = localStorage.getItem("sailingloc_prefs");
     var prefs = raw ? JSON.parse(raw) : {};
-    var theme = prefs.theme || "system";
+    var theme = prefs.theme || "light";
     var resolved = theme === "system"
       ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : theme;

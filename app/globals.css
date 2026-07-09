@@ -1616,18 +1616,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .doc-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
 .doc-item:last-child { border-bottom: none; }
 .doc-icon { width: 44px; height: 44px; border-radius: var(--radius-lg); background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.125rem; flex-shrink: 0; }
-.doc-info { flex: 1; }
-.doc-info strong { display: block; font-size: .9rem; }
-.doc-info span { font-size: .8125rem; color: var(--text-2); }
+.doc-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.doc-info strong { font-size: .9rem; }
+.doc-info span { display: block; font-size: .8125rem; color: var(--text-2); }
 .doc-actions { flex-shrink: 0; }
-.doc-upload-zone {
-  border: 2px dashed var(--border); border-radius: var(--radius-xl);
-  padding: 40px 24px; text-align: center; background: var(--bg);
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-}
-.doc-upload-zone i { font-size: 2.5rem; color: var(--text-3); margin-bottom: 4px; }
-.doc-upload-zone strong { font-size: 1rem; font-weight: 600; }
-.doc-upload-zone span { font-size: .8125rem; color: var(--text-3); }
 
 /* Settings / Paramètres */
 .settings-list { display: flex; flex-direction: column; }
