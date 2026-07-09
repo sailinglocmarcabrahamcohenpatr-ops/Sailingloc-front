@@ -1,17 +1,16 @@
-import Image from "next/image";
 import { SearchBar } from "@/features/search-boats";
 
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Bannière principale">
       <div className="hero-bg">
-        <Image
-          src="https://picsum.photos/seed/sailing-mediterranean-blue/1920/1000"
-          alt="Voilier naviguant en Méditerranée"
-          fill
-          priority
-          sizes="100vw"
-          style={{ objectFit: "cover", objectPosition: "center 35%" }}
+        <video
+          className="hero-video"
+          src="/videos/hero-background.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
         />
         <div className="hero-overlay" aria-hidden="true" />
       </div>
