@@ -1,10 +1,10 @@
 import { useEffect, useRef, useCallback } from "react";
-import type { Motorisation, DisponibiliteSlot } from "../model/types";
+import type { Motorisation } from "../model/types";
 
-const DRAFT_KEY = "sailingloc_list_boat_draft";
+const DRAFT_KEY = "sailingloc_list_boat_draft_v2";
 const DEBOUNCE_MS = 800;
 
-/** Champs du formulaire persistables (pas les File/photos) */
+/** Champs du formulaire persistables (pas les File/photos/documents) */
 export interface FormDraft {
   typeId:          number | null;
   motorisation:    Motorisation;
@@ -13,14 +13,14 @@ export interface FormDraft {
   length:          string;
   capacity:        string;
   cabins:          string;
-  year:            string;
   permisRequis:    boolean;
   carburantInclus: boolean;
   skipper:         boolean;
   description:     string;
   pricePerDay:     string;
+  prixHeure:       string;
   caution:         string;
-  disponibilites:  DisponibiliteSlot[];
+  step:            number;
   savedAt:         string; // ISO
 }
 

@@ -37,7 +37,8 @@ export interface AssuranceAPI {
 
 export interface TypeDocumentAPI {
   id: number;
-  libelle: string;
+  labelTypeDocument?: string; // label_type_document → camelCase API
+  libelle?: string;            // fallback selon mapping backend
 }
 
 export interface UtilisateurAPI {

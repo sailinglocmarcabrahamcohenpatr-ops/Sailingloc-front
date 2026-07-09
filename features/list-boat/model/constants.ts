@@ -1,10 +1,9 @@
 import type { Motorisation } from "./types";
 
 export const STEPS = [
-  "Type & infos",
-  "Photos & description",
-  "Tarifs",
-  "Disponibilités",
+  "Informations",
+  "Photos",
+  "Documents",
   "Récapitulatif",
 ] as const;
 

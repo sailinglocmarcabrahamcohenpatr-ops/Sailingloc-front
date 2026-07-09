@@ -4,13 +4,13 @@ export interface PhotoEntry {
   preview: string; // base64 JPEG généré par compressImage
 }
 
-/** Créneau de disponibilité — correspond à un POST /api/disponibilites */
-export interface DisponibiliteSlot {
-  date_debut: string; // YYYY-MM-DD
-  date_fin: string;   // YYYY-MM-DD | "" = sans fin définie
+/** Document conservé côté client avant upload */
+export interface DocumentEntry {
+  file: File;
+  idTypeDocument: number;
 }
 
 export type Motorisation = "voile" | "moteur" | "hybride";
 
-/** États de progression lors de la soumission en 3 étapes */
-export type SubmitStep = "idle" | "boat" | "photos" | "disponibilites";
+/** États de progression lors de la soumission */
+export type SubmitStep = "idle" | "boat" | "photos" | "documents";

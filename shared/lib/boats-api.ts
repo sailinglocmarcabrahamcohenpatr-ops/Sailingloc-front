@@ -63,6 +63,7 @@ export interface CreateBoatPayload {
   permis_requis?:   boolean;
   nombre_cabines?:  number;
   carburant_inclus?: boolean;
+  prix_heure?:      number;
 }
 
 type BoatListResponse =
