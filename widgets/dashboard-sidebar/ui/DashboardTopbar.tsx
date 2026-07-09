@@ -19,6 +19,14 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/utilisateurs":              "Utilisateurs",
   "/admin/bateaux":                   "Ajouter un bateau",
   "/admin/demandes-proprio":          "Demandes propriétaire",
+  "/profil":                          "Aperçu",
+  "/profil/reservations":             "Réservations",
+  "/profil/messages":                 "Messages",
+  "/profil/favoris":                  "Favoris",
+  "/profil/documents":                "Documents",
+  "/profil/paiements":                "Paiements",
+  "/profil/parametres":               "Paramètres",
+  "/profil/affichage":                "Affichage et accessibilité",
 };
 
 function getPageTitle(pathname: string): string {
@@ -156,8 +164,11 @@ export default function DashboardTopbar() {
 
         {/* ── Messages ── */}
         {(() => {
-          const isAdmin = pathname.startsWith("/admin");
-          const messagesHref = isAdmin ? "/admin/messages" : "/proprietaire/messages";
+          const messagesHref = pathname.startsWith("/admin")
+            ? "/admin/messages"
+            : pathname.startsWith("/proprietaire")
+            ? "/proprietaire/messages"
+            : "/profil/messages";
           const isActive = pathname.startsWith(messagesHref);
           return (
             <Link

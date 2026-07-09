@@ -24,7 +24,7 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
@@ -113,7 +113,7 @@ export default function Navbar() {
                         </Link>
                       ) : !isOwnerSection ? (
                         <>
-                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
                             <i className="fa-solid fa-sailboat" /> Espace propriétaire
                           </Link>
                           <div className="navbar-dropdown-sep" />
@@ -129,7 +129,7 @@ export default function Navbar() {
                         </>
                       ) : (
                         <>
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
                             <i className="fa-solid fa-user" /> Espace locataire
                           </Link>
                           <div className="navbar-dropdown-sep" />

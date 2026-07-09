@@ -141,11 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const switchRole = useCallback(() => {
     setUser((prev) => {
       if (!prev || prev.role === "admin") return prev;
-      const next: AuthUser = {
-        ...prev,
-        role: prev.role === "locataire" ? "proprietaire" : "locataire",
-      };
-      return next;
+      const nextRole = prev.role === "locataire" ? "proprietaire" : "locataire";
+      // Le middleware lit le cookie de rôle côté serveur : sans cette mise à
+      // jour, la redirection vers /proprietaire ou /profil est refusée.
+      setRoleCookie(nextRole);
+      return { ...prev, role: nextRole };
     });
   }, []);
 
