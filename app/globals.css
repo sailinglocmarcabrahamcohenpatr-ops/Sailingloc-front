@@ -1621,6 +1621,53 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .doc-info span { display: block; font-size: .8125rem; color: var(--text-2); }
 .doc-actions { flex-shrink: 0; }
 
+/* Modale "Ajouter un document" — même recette visuelle que .users-modal */
+.doc-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+  animation: doc-modal-fade-in .18s ease;
+}
+@keyframes doc-modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.doc-modal {
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 480px; animation: doc-modal-slide-in .2s ease; overflow: hidden;
+}
+@keyframes doc-modal-slide-in {
+  from { opacity: 0; transform: translateY(-16px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.doc-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+}
+.doc-modal-header h2 { font-size: 1rem; font-weight: 700; }
+.doc-modal-close {
+  width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border);
+  background: var(--card-bg); color: var(--text-2); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: .8125rem; transition: var(--transition); flex-shrink: 0;
+}
+.doc-modal-close:hover { border-color: var(--text); color: var(--text); }
+.doc-modal-body { padding: 12px; display: flex; flex-direction: column; gap: 4px; max-height: 60vh; overflow-y: auto; }
+
+.doc-type-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px;
+  background: none; border: none; border-radius: var(--radius-lg); cursor: pointer;
+  text-align: left; transition: background .15s ease;
+}
+.doc-type-card:hover { background: var(--bg); }
+.doc-type-icon {
+  width: 40px; height: 40px; border-radius: var(--radius-lg); background: var(--primary-light);
+  color: var(--primary); display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.doc-type-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.doc-type-info strong { font-size: .875rem; color: var(--text); }
+.doc-type-info span { font-size: .75rem; color: var(--text-2); }
+.doc-type-arrow { color: var(--text-3); font-size: .75rem; flex-shrink: 0; }
+
 /* Settings / Paramètres */
 .settings-list { display: flex; flex-direction: column; }
 .setting-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
