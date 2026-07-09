@@ -15,7 +15,7 @@ interface PreferencesContextType {
 }
 
 const PreferencesContext = createContext<PreferencesContextType>({
-  theme: "system",
+  theme: "light",
   textSize: "normal",
   reduceMotion: false,
   setTheme: () => {},
@@ -34,9 +34,9 @@ interface StoredPrefs {
 function readStoredPrefs(): StoredPrefs {
   try {
     const raw = localStorage.getItem(PREFS_KEY);
-    if (raw) return { theme: "system", textSize: "normal", reduceMotion: false, ...JSON.parse(raw) };
+    if (raw) return { theme: "light", textSize: "normal", reduceMotion: false, ...JSON.parse(raw) };
   } catch {}
-  return { theme: "system", textSize: "normal", reduceMotion: false };
+  return { theme: "light", textSize: "normal", reduceMotion: false };
 }
 
 function applyToDocument(prefs: StoredPrefs) {
@@ -52,7 +52,7 @@ function applyToDocument(prefs: StoredPrefs) {
 }
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [textSize, setTextSizeState] = useState<TextSize>("normal");
   const [reduceMotion, setReduceMotionState] = useState(false);
 

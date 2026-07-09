@@ -25,6 +25,7 @@ interface LoginParams {
 
 interface AuthContextType {
   user: AuthUser | null;
+  checking: boolean;
   login: (params: LoginParams) => void;
   logout: () => void;
   switchRole: () => void;
@@ -32,6 +33,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  checking: true,
   login: () => {},
   logout: () => {},
   switchRole: () => {},
@@ -58,14 +60,25 @@ function getJwtPayload(token: string): { id?: number; sub?: string; email?: stri
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [checking, setChecking] = useState(true);
 
   // Rehydrate from DB on mount using stored JWT — no user data in localStorage
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("sailingloc_token") : null;
-    if (!token) return;
+    if (!token) {
+      // Pas de token : s'assurer qu'aucun cookie d'auth périmé ne traîne,
+      // sinon le middleware pourrait laisser passer une session fantôme.
+      removeToken();
+      setChecking(false);
+      return;
+    }
 
     const jwt = getJwtPayload(token);
-    if (!jwt) return;
+    if (!jwt) {
+      removeToken();
+      setChecking(false);
+      return;
+    }
 
     const userId = jwt.id;
     const email = jwt.sub ?? jwt.email ?? jwt.username ?? "";
@@ -90,13 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRoleCookie(role);
         })
         .catch(() => {
-          // Token invalide ou expiré
-          localStorage.removeItem("sailingloc_token");
-        });
+          // Token invalide ou expiré : on efface aussi le cookie d'auth pour
+          // que le middleware ne laisse plus passer cette session fantôme.
+          removeToken();
+        })
+        .finally(() => setChecking(false));
     } else {
       const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       setUser(buildUser({ email, name, role }));
       setRoleCookie(role);
+      setChecking(false);
     }
   }, []);
 
@@ -125,16 +141,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const switchRole = useCallback(() => {
     setUser((prev) => {
       if (!prev || prev.role === "admin") return prev;
-      const next: AuthUser = {
-        ...prev,
-        role: prev.role === "locataire" ? "proprietaire" : "locataire",
-      };
-      return next;
+      const nextRole = prev.role === "locataire" ? "proprietaire" : "locataire";
+      // Le middleware lit le cookie de rôle côté serveur : sans cette mise à
+      // jour, la redirection vers /proprietaire ou /profil est refusée.
+      setRoleCookie(nextRole);
+      return { ...prev, role: nextRole };
     });
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ user, checking, login, logout, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,11 +3,23 @@ import type { NextRequest } from "next/server";
 
 /* ── Routes protégées ───────────────────────────── */
 const PROTECTED: Array<{ pattern: RegExp; requiredRole?: string }> = [
+  { pattern: /^\/admin(\/|$)/, requiredRole: "admin" },
   { pattern: /^\/profil(\/|$)/ },
   { pattern: /^\/proprietaire(\/|$)/, requiredRole: "proprietaire" },
 ];
 
 const AUTH_ROUTES = ["/connexion", "/inscription"];
+
+/* Un administrateur n'a pas de site public : tout ce qui n'est pas /admin
+   (ni les appels /api du proxy backend) le renvoie vers son dashboard. */
+const ADMIN_ALLOWED_PREFIXES = ["/admin", "/api"];
+
+/* Page d'accueil de l'espace connecté selon le rôle du compte. */
+function dashboardHomeFor(role: string): string {
+  if (role === "admin") return "/admin/dashboard";
+  if (role === "proprietaire") return "/proprietaire/dashboard";
+  return "/profil";
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,10 +27,20 @@ export function proxy(request: NextRequest) {
   const isAuth = request.cookies.get("sailingloc_auth")?.value === "1";
   const role   = request.cookies.get("sailingloc_role")?.value ?? "";
 
+  /* Admin connecté hors de /admin (site vitrine, /profil, /proprietaire...)
+     → toujours renvoyé vers le dashboard admin. */
+  if (
+    isAuth &&
+    role === "admin" &&
+    !ADMIN_ALLOWED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+
   /* Déjà connecté sur /connexion ou /inscription → redirige vers l'espace
-     locataire par défaut, quel que soit le rôle du compte. */
+     propre au rôle du compte (admin, propriétaire ou locataire). */
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r)) && isAuth) {
-    return NextResponse.redirect(new URL("/profil", request.url));
+    return NextResponse.redirect(new URL(dashboardHomeFor(role), request.url));
   }
 
   /* Routes privées */
@@ -33,7 +55,7 @@ export function proxy(request: NextRequest) {
     }
 
     if (rule.requiredRole && role !== rule.requiredRole) {
-      return NextResponse.redirect(new URL("/profil", request.url));
+      return NextResponse.redirect(new URL(dashboardHomeFor(role), request.url));
     }
 
     break;
@@ -50,6 +72,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.\\w+$).*)"],
 };
 

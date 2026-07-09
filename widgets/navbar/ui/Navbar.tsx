@@ -24,13 +24,16 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
   // sur le compte — pour qu'on ne se retrouve jamais renvoyé vers l'espace
   // propriétaire alors qu'on navigue dans l'espace locataire (ou l'inverse).
   const isOwnerSection = pathname.startsWith("/proprietaire");
+  // Un administrateur n'a pas d'espace locataire/propriétaire : il n'a accès
+  // qu'au dashboard admin, donc le menu ne doit proposer que ça.
+  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -72,14 +75,16 @@ export default function Navbar() {
           <div className="navbar-actions">
             {user ? (
               <>
-                <Link
-                  href={isOwnerSection ? "/proprietaire/messages" : "/profil/messages"}
-                  className="navbar-icon-btn"
-                  aria-label="Messages"
-                >
-                  <i className="fa-solid fa-envelope" />
-                  <span className="navbar-badge">1</span>
-                </Link>
+                {!isAdmin && (
+                  <Link
+                    href={isOwnerSection ? "/proprietaire/messages" : "/profil/messages"}
+                    className="navbar-icon-btn"
+                    aria-label="Messages"
+                  >
+                    <i className="fa-solid fa-envelope" />
+                    <span className="navbar-badge">1</span>
+                  </Link>
+                )}
 
                 <div className="navbar-user-menu" ref={userMenuRef}>
                   <button
@@ -98,13 +103,17 @@ export default function Navbar() {
                       <div className="navbar-dropdown-user">
                         <span className="navbar-dropdown-name">{user.name}</span>
                         <span className="navbar-dropdown-role">
-                          {isOwnerSection ? "Propriétaire" : "Locataire"}
+                          {isAdmin ? "Administrateur" : isOwnerSection ? "Propriétaire" : "Locataire"}
                         </span>
                       </div>
                       <div className="navbar-dropdown-sep" />
-                      {!isOwnerSection ? (
+                      {isAdmin ? (
+                        <Link href="/admin/dashboard" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <i className="fa-solid fa-gauge" /> Tableau de bord admin
+                        </Link>
+                      ) : !isOwnerSection ? (
                         <>
-                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
                             <i className="fa-solid fa-sailboat" /> Espace propriétaire
                           </Link>
                           <div className="navbar-dropdown-sep" />
@@ -120,7 +129,7 @@ export default function Navbar() {
                         </>
                       ) : (
                         <>
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
                             <i className="fa-solid fa-user" /> Espace locataire
                           </Link>
                           <div className="navbar-dropdown-sep" />
@@ -136,18 +145,22 @@ export default function Navbar() {
                         </>
                       )}
                       <div className="navbar-dropdown-sep" />
-                      <Link href="/profil/parametres" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                        <span className="navbar-dropdown-item-label"><i className="fa-solid fa-gear" /> Paramètres et confidentialité</span>
-                      </Link>
-                      <Link href="/contact" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                        <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> Aide et assistance</span>
-                        <i className="fa-solid fa-chevron-right" />
-                      </Link>
-                      <Link href="/profil/affichage" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                        <span className="navbar-dropdown-item-label"><i className="fa-solid fa-moon" /> Affichage et accessibilité</span>
-                        <i className="fa-solid fa-chevron-right" />
-                      </Link>
-                      <div className="navbar-dropdown-sep" />
+                      {!isAdmin && (
+                        <>
+                          <Link href="/profil/parametres" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-gear" /> Paramètres et confidentialité</span>
+                          </Link>
+                          <Link href="/contact" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> Aide et assistance</span>
+                            <i className="fa-solid fa-chevron-right" />
+                          </Link>
+                          <Link href="/profil/affichage" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-moon" /> Affichage et accessibilité</span>
+                            <i className="fa-solid fa-chevron-right" />
+                          </Link>
+                          <div className="navbar-dropdown-sep" />
+                        </>
+                      )}
                       <button className="navbar-dropdown-item navbar-dropdown-item--danger" onClick={handleLogout} role="menuitem">
                         <i className="fa-solid fa-right-from-bracket" /> Déconnexion
                       </button>
@@ -181,7 +194,7 @@ export default function Navbar() {
         ))}
         {user ? (
           <>
-            <Link href={isOwnerSection ? "/proprietaire/bateaux" : "/profil"} onClick={() => setMobileOpen(false)}>
+            <Link href={isAdmin ? "/admin/dashboard" : isOwnerSection ? "/proprietaire/bateaux" : "/profil"} onClick={() => setMobileOpen(false)}>
               Mon espace
             </Link>
             <button className="btn btn-outline mobile-cta" onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}>

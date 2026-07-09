@@ -71,9 +71,14 @@
 }
 
 
-/* Adjust main padding when topbar is present */
+/* Adjust main padding when topbar is present.
+   Largeur plafonnée à 1200px comme l'espace locataire (.profil-shell-inner)
+   pour que le contenu ait la même largeur dans les deux espaces. */
 .dashboard-main-wrapper .dashboard-main {
   padding: 32px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 @media (max-width: 1024px) {

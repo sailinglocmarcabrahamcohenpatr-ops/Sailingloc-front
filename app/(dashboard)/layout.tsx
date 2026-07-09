@@ -1,26 +1,27 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuth } from "@/shared/lib";
 import { DashboardSidebar, DashboardTopbar } from "@/widgets/dashboard-sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isOwner = pathname.startsWith("/proprietaire");
-  const isAdmin = pathname.startsWith("/admin");
+  const router = useRouter();
+  const { user, checking } = useAuth();
 
-  if (isOwner || isAdmin) {
-    return (
-      <div className="dashboard-layout">
-        <DashboardSidebar />
-        <div className="dashboard-main-wrapper">
-          <DashboardTopbar />
-          <main className="dashboard-main">{children}</main>
-        </div>
+  useEffect(() => {
+    if (!checking && !user) router.replace("/connexion");
+  }, [checking, user, router]);
+
+  if (checking || !user) return null;
+
+  return (
+    <div className="dashboard-layout">
+      <DashboardSidebar />
+      <div className="dashboard-main-wrapper">
+        <DashboardTopbar />
+        <main className="dashboard-main">{children}</main>
       </div>
-    );
-  }
-
-  // Locataire — pas de sidebar, layout géré par profil/layout.tsx
-  return <>{children}</>;
+    </div>
+  );
 }
-
