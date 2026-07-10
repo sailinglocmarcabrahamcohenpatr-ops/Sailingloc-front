@@ -1,22 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/shared/lib";
+import type { DateRange } from "react-day-picker";
+import { useAuth, boatsApi } from "@/shared/lib";
 import GuestCounter from "./GuestCounter";
+import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
 import { BOOKING_GUARANTEES } from "../model/constants";
 import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
 
-function getDefaultDates() {
-  const start = new Date();
-  start.setDate(start.getDate() + 7);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 7);
-  return {
-    startDate: start.toISOString().split("T")[0],
-    endDate: end.toISOString().split("T")[0],
-  };
+function isCancelled(libelle?: string): boolean {
+  return (libelle ?? "").toLowerCase().includes("annul");
 }
 
 function daysBetween(start: string, end: string): number {
@@ -25,6 +20,10 @@ function daysBetween(start: string, end: string): number {
       (1000 * 60 * 60 * 24)
   );
   return Math.max(1, diff);
+}
+
+function toIsoDay(d: Date): string {
+  return d.toISOString().split("T")[0];
 }
 
 interface BookingCardProps {
@@ -46,17 +45,45 @@ export default function BookingCard({
 }: BookingCardProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const defaults = getDefaultDates();
-  const [startDate, setStartDate] = useState(defaults.startDate);
-  const [endDate, setEndDate] = useState(defaults.endDate);
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
-  const days = daysBetween(startDate, endDate);
-  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days);
+  const [openRanges, setOpenRanges] = useState<DateSpan[]>([]);
+  const [bookedRanges, setBookedRanges] = useState<DateSpan[]>([]);
+  const [calLoading, setCalLoading] = useState(true);
 
-  const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    // Le sous-endpoint /disponibilites renvoie une sérialisation incomplète
+    // côté backend (pas de dateFin) — on lit plutôt le tableau `disponibilites`
+    // embarqué dans la fiche bateau, qui est complet.
+    Promise.all([boatsApi.getOne(boatId), boatsApi.getReservations(boatId)])
+      .then(([boat, reservations]) => {
+        setOpenRanges(
+          (boat.disponibilites ?? []).map((d) => ({
+            from: new Date(d.dateDebut),
+            to: new Date(d.dateFin ?? d.dateDebut),
+          }))
+        );
+        setBookedRanges(
+          reservations
+            .filter((r) => !isCancelled(r.statutReservation?.libelle))
+            .map((r) => ({ from: new Date(r.dateDebut), to: new Date(r.dateFin) }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setCalLoading(false));
+  }, [boatId]);
+
+  const startDate = range?.from ? toIsoDay(range.from) : "";
+  const endDate = range?.to ? toIsoDay(range.to) : "";
+  const hasAvailability = !calLoading && openRanges.length > 0;
+  const canBook = Boolean(startDate && endDate);
+
+  const days = canBook ? daysBetween(startDate, endDate) : 0;
+  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
 
   const handleBook = () => {
+    if (!canBook) return;
     const destination = `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`;
     if (!user) {
       router.push(`/connexion?redirect=${encodeURIComponent(destination)}`);
@@ -80,34 +107,15 @@ export default function BookingCard({
           </div>
         </div>
         <div className="booking-body">
-          <div className="booking-dates">
-            <div className="booking-date-field">
-              <label htmlFor="book-arrival">Arrivée</label>
-              <input
-                type="date"
-                id="book-arrival"
-                value={startDate}
-                min={today}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  if (e.target.value >= endDate) {
-                    const next = new Date(e.target.value + "T00:00:00");
-                    next.setDate(next.getDate() + 7);
-                    setEndDate(next.toISOString().split("T")[0]);
-                  }
-                }}
-              />
-            </div>
-            <div className="booking-date-field">
-              <label htmlFor="book-departure">Départ</label>
-              <input
-                type="date"
-                id="book-departure"
-                value={endDate}
-                min={startDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
+          <div className="booking-dates booking-dates-cal">
+            <label>Dates de location</label>
+            <AvailabilityCalendar
+              value={range}
+              onChange={setRange}
+              openRanges={openRanges}
+              bookedRanges={bookedRanges}
+              loading={calLoading}
+            />
           </div>
 
           <GuestCounter
@@ -117,9 +125,13 @@ export default function BookingCard({
           />
 
           <div className="booking-info">
-            <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
             <span>
-              Ce bateau est très demandé. Il ne reste que 2 disponibilités ce mois-ci.
+              {calLoading
+                ? "Vérification des disponibilités…"
+                : hasAvailability
+                ? "Cliquez sur le calendrier pour choisir vos dates parmi les périodes disponibles (en vert)."
+                : "Le propriétaire n'a pas encore ouvert de créneau de location pour ce bateau."}
             </span>
           </div>
 
@@ -145,9 +157,15 @@ export default function BookingCard({
             </div>
           </div>
 
-          <button className="btn btn-primary booking-cta" type="button" onClick={handleBook}>
+          <button
+            className="btn btn-primary booking-cta"
+            type="button"
+            onClick={handleBook}
+            disabled={!canBook}
+            title={!canBook ? "Choisissez vos dates sur le calendrier" : undefined}
+          >
             <i className="fa-solid fa-calendar-check" aria-hidden="true" />
-            {user ? "Réserver maintenant" : "Se connecter pour réserver"}
+            {!canBook ? "Choisir des dates" : user ? "Réserver maintenant" : "Se connecter pour réserver"}
           </button>
           <p className="booking-note">
             Vous ne serez débité qu&apos;après confirmation du propriétaire

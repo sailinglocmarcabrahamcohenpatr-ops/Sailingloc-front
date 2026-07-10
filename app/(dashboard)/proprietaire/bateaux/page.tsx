@@ -6,13 +6,17 @@ import Link from "next/link";
 import { boatsApi, resolvePhotoUrl } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
 
-type ApiStatut = "disponible" | "indisponible" | "en_attente";
 type UiStatus = "active" | "inactive" | "pending";
 
-const STATUT_MAP: Record<ApiStatut, UiStatus> = {
+// `statut` est un champ libre côté API (ex: "disponible", "en attente de validation",
+// "loué", "maintenance", "suspendu") — on ne mappe que les valeurs connues.
+const STATUT_MAP: Record<string, UiStatus> = {
   disponible: "active",
   indisponible: "inactive",
+  suspendu: "inactive",
+  maintenance: "inactive",
   en_attente: "pending",
+  "en attente de validation": "pending",
 };
 
 const STATUS_MAP: Record<UiStatus, { label: string; cls: string }> = {
@@ -39,7 +43,8 @@ export default function OwnerBoatsPage() {
   const [boats, setBoats] = useState<BoatAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  console.log("OwnerBoatsPage render", { boats, loading, error });
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [toggleError, setToggleError] = useState("");
 
   useEffect(() => {
     boatsApi
@@ -48,6 +53,20 @@ export default function OwnerBoatsPage() {
       .catch(() => setError("Impossible de charger les bateaux."))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleToggleStatus = async (boat: BoatAPI, nextActive: boolean) => {
+    setTogglingId(boat.id);
+    setToggleError("");
+    const nextStatut = nextActive ? "disponible" : "suspendu";
+    try {
+      await boatsApi.updateStatut(boat.id, nextStatut);
+      setBoats((prev) => prev.map((b) => (b.id === boat.id ? { ...b, statut: nextStatut } : b)));
+    } catch {
+      setToggleError("Impossible de modifier le statut de ce bateau. Réessayez.");
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   if (loading)
     return (
@@ -75,6 +94,12 @@ export default function OwnerBoatsPage() {
           <i className="fa-solid fa-plus" /> Ajouter un bateau
         </Link>
       </div>
+
+      {toggleError && (
+        <p style={{ color: "var(--red)", fontSize: ".875rem" }}>
+          <i className="fa-solid fa-triangle-exclamation" /> {toggleError}
+        </p>
+      )}
 
       <div className="owner-boats-list">
         {boats.map((boat, i) => {
@@ -138,16 +163,37 @@ export default function OwnerBoatsPage() {
                 >
                   <i className="fa-solid fa-eye" /> Voir
                 </Link>
-                <button className="btn btn-outline btn-sm">
+                <Link href={`/proprietaire/bateaux/${boat.id}/calendrier`} className="btn btn-outline btn-sm">
+                  <i className="fa-solid fa-calendar-days" /> Calendrier
+                </Link>
+                <Link href={`/proprietaire/bateaux/${boat.id}/modifier`} className="btn btn-outline btn-sm">
                   <i className="fa-solid fa-pen-to-square" /> Modifier
-                </button>
+                </Link>
                 {uiStatus === "active" ? (
-                  <button className="btn btn-ghost btn-sm">
-                    <i className="fa-solid fa-pause" /> Désactiver
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleToggleStatus(boat, false)}
+                    disabled={togglingId === boat.id}
+                  >
+                    {togglingId === boat.id ? (
+                      <i className="fa-solid fa-circle-notch fa-spin" />
+                    ) : (
+                      <i className="fa-solid fa-pause" />
+                    )}{" "}
+                    Désactiver
                   </button>
                 ) : uiStatus === "inactive" ? (
-                  <button className="btn btn-ghost btn-sm">
-                    <i className="fa-solid fa-play" /> Activer
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleToggleStatus(boat, true)}
+                    disabled={togglingId === boat.id}
+                  >
+                    {togglingId === boat.id ? (
+                      <i className="fa-solid fa-circle-notch fa-spin" />
+                    ) : (
+                      <i className="fa-solid fa-play" />
+                    )}{" "}
+                    Activer
                   </button>
                 ) : null}
               </div>

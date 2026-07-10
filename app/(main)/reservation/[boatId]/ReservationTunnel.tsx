@@ -4,7 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/shared/lib";
+import { useAuth, reservationsApi, referentielsApi } from "@/shared/lib";
 import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
 import type { Boat } from "@/entities/boat";
 import { getBoatImageUrl } from "@/entities/boat";
@@ -56,6 +56,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const [cardName, setCardName] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -78,8 +79,35 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const imgSrc = getBoatImageUrl(boat, 800, 500, "main");
 
   const handlePay = async () => {
+    if (!user?.id) {
+      setPayError("Impossible d'identifier votre compte. Reconnectez-vous et réessayez.");
+      return;
+    }
     setPaying(true);
+    setPayError("");
     const ref = "SL-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    try {
+      // Enregistre réellement la réservation côté API pour qu'elle apparaisse
+      // dans les calendriers et tableaux de bord propriétaire/locataire.
+      const statuts = await referentielsApi.getStatutsReservations();
+      const pendingStatus =
+        statuts.find((s) => s.libelle.toLowerCase().includes("attente")) ?? statuts[0];
+      if (!pendingStatus) throw new Error("Statut de réservation indisponible");
+
+      await reservationsApi.create({
+        date_debut: initialStartDate,
+        date_fin: initialEndDate,
+        montant_total: total,
+        id_bateau: Number(boat.id),
+        id_utilisateur: user.id,
+        id_statut_reservation: pendingStatus.id,
+      });
+    } catch {
+      setPaying(false);
+      setPayError("La réservation n'a pas pu être enregistrée. Réessayez dans un instant.");
+      return;
+    }
 
     // Envoi email de confirmation (fire-and-forget — ne bloque pas la redirection)
     fetch("/api/reservation/confirm", {
@@ -104,7 +132,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
       }),
     }).catch(() => {});
 
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1200));
     router.push(
       `/reservation/${boat.id}/confirmation?ref=${ref}&total=${total}&startDate=${initialStartDate}&endDate=${initialEndDate}&guests=${initialGuests}&boat=${encodeURIComponent(boat.name)}`
     );
@@ -463,6 +491,13 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
                   <div style={{ marginTop: "12px", padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", fontSize: ".8125rem", color: "#DC2626" }}>
                     <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "7px" }} aria-hidden="true" />
                     Champ{payBlockers.length > 1 ? "s" : ""} manquant{payBlockers.length > 1 ? "s" : ""} : {payBlockers.join(", ")}
+                  </div>
+                )}
+
+                {payError && (
+                  <div style={{ marginTop: "12px", padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", fontSize: ".8125rem", color: "#DC2626" }}>
+                    <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "7px" }} aria-hidden="true" />
+                    {payError}
                   </div>
                 )}
 

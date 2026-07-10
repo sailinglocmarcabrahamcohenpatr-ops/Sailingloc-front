@@ -109,7 +109,9 @@ export default async function BoatsPage({ searchParams }: PageProps) {
           )}
         </div>
 
-        <BoatsSidebar />
+        <Suspense fallback={null}>
+          <BoatsSidebar />
+        </Suspense>
       </div>
     </div>
   );

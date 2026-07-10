@@ -28,7 +28,7 @@ function libelleToKey(libelle?: string): BadgeKey {
 
 function renterName(r: ReservationAPI): string {
   const u = r.utilisateur;
-  if (!u) return `Locataire #${r.id_utilisateur}`;
+  if (!u) return `Locataire #${r.idUtilisateur}`;
   return `${u.prenom} ${u.nom}`.trim();
 }
 
@@ -65,16 +65,16 @@ export default function OwnerRevenuePage() {
   const boatNameById = useMemo(() => new Map(boats.map((b) => [b.id, b.nomBateau])), [boats]);
 
   const myReservations = useMemo(
-    () => reservations.filter((r) => ownedBoatIds.has(r.id_bateau)),
+    () => reservations.filter((r) => ownedBoatIds.has(r.idBateau)),
     [reservations, ownedBoatIds]
   );
 
   const revenueReservations = useMemo(
-    () => myReservations.filter((r) => libelleToKey(r.statut_reservation?.libelle) !== "cancelled"),
+    () => myReservations.filter((r) => libelleToKey(r.statutReservation?.libelle) !== "cancelled"),
     [myReservations]
   );
 
-  const totalGross = revenueReservations.reduce((a, r) => a + r.montant_total, 0);
+  const totalGross = revenueReservations.reduce((a, r) => a + r.montantTotal, 0);
   const totalCommission = Math.round(totalGross * COMMISSION_RATE);
   const totalNet = totalGross - totalCommission;
   const netPct = totalGross > 0 ? Math.round((totalNet / totalGross) * 100) : 0;
@@ -94,10 +94,10 @@ export default function OwnerRevenuePage() {
     }
     const byKey = new Map(buckets.map((b) => [b.key, b]));
     for (const r of revenueReservations) {
-      const d = new Date(r.date_debut);
+      const d = new Date(r.dateDebut);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const bucket = byKey.get(key);
-      if (bucket) bucket.amount += Math.round(r.montant_total * (1 - COMMISSION_RATE));
+      if (bucket) bucket.amount += Math.round(r.montantTotal * (1 - COMMISSION_RATE));
     }
     return buckets;
   }, [revenueReservations]);
@@ -118,7 +118,7 @@ export default function OwnerRevenuePage() {
     () =>
       revenueReservations
         .slice()
-        .sort((a, b) => new Date(b.date_debut).getTime() - new Date(a.date_debut).getTime())
+        .sort((a, b) => new Date(b.dateDebut).getTime() - new Date(a.dateDebut).getTime())
         .slice(0, 5),
     [revenueReservations]
   );
@@ -231,16 +231,16 @@ export default function OwnerRevenuePage() {
           ) : (
             <div>
               {recentTransactions.map((r) => {
-                const key = libelleToKey(r.statut_reservation?.libelle);
+                const key = libelleToKey(r.statutReservation?.libelle);
                 const st = STATUS_LABEL[key];
-                const net = Math.round(r.montant_total * (1 - COMMISSION_RATE));
-                const boatName = r.bateau?.nom_bateau ?? boatNameById.get(r.id_bateau) ?? `Bateau #${r.id_bateau}`;
+                const net = Math.round(r.montantTotal * (1 - COMMISSION_RATE));
+                const boatName = r.bateau?.nomBateau ?? boatNameById.get(r.idBateau) ?? `Bateau #${r.idBateau}`;
                 return (
                   <div key={r.id} className="rv-tx-row">
                     <div className="rv-tx-avatar">{initials(r)}</div>
                     <div className="rv-tx-info">
                       <strong>{renterName(r)}</strong>
-                      <span>{boatName} · {fmtDate(r.date_debut)} – {fmtDate(r.date_fin)}</span>
+                      <span>{boatName} · {fmtDate(r.dateDebut)} – {fmtDate(r.dateFin)}</span>
                     </div>
                     <span className={`badge-status ${st.cls}`}>{st.label}</span>
                     <div className="rv-tx-amount">

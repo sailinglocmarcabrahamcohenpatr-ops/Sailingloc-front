@@ -29,10 +29,10 @@ const fmt = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
 const BookingCard = ({ r }: { r: ReservationAPI }) => {
-  const key = libelleToKey(r.statut_reservation?.libelle);
+  const key = libelleToKey(r.statutReservation?.libelle);
   const st = STATUS[key];
-  const boatName = r.bateau?.nom_bateau ?? `Bateau #${r.id_bateau}`;
-  const imgSrc = `https://picsum.photos/seed/boat-${r.id_bateau}/400/300`;
+  const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
+  const imgSrc = `https://picsum.photos/seed/boat-${r.idBateau}/400/300`;
 
   return (
     <div className="booking-card">
@@ -46,16 +46,16 @@ const BookingCard = ({ r }: { r: ReservationAPI }) => {
               <i className={`fa-solid ${st.icon}`} /> {st.label}
             </span>
             <h3>{boatName}</h3>
-            <p><i className="fa-solid fa-location-dot" /> {r.statut_reservation?.libelle ?? "—"}</p>
+            <p><i className="fa-solid fa-location-dot" /> {r.statutReservation?.libelle ?? "—"}</p>
           </div>
-          <strong className="booking-price">{r.montant_total.toLocaleString("fr-FR")} €</strong>
+          <strong className="booking-price">{r.montantTotal.toLocaleString("fr-FR")} €</strong>
         </div>
         <div className="booking-card-dates">
           <i className="fa-regular fa-calendar" />
-          {fmt(r.date_debut)} → {fmt(r.date_fin)}
+          {fmt(r.dateDebut)} → {fmt(r.dateFin)}
         </div>
         <div className="booking-card-actions">
-          <Link href={`/bateaux/${r.id_bateau}`} className="btn btn-ghost btn-sm">
+          <Link href={`/bateaux/${r.idBateau}`} className="btn btn-ghost btn-sm">
             <i className="fa-solid fa-eye" /> Voir le bateau
           </Link>
           {key === "completed" && (
@@ -106,8 +106,8 @@ export default function UserReservationsPage() {
     );
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = reservations.filter((r) => r.date_fin >= today);
-  const past = reservations.filter((r) => r.date_fin < today);
+  const upcoming = reservations.filter((r) => r.dateFin >= today);
+  const past = reservations.filter((r) => r.dateFin < today);
 
   return (
     <div className="dash-page">

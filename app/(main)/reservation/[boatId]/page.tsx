@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ALL_BOATS } from "@/entities/boat";
+import { boatsApi, resolvePhotoUrl } from "@/shared/lib";
+import type { BoatAPI } from "@/shared/lib";
+import type { Boat } from "@/entities/boat";
 import ReservationTunnel from "./ReservationTunnel";
 
 interface PageProps {
@@ -8,11 +10,36 @@ interface PageProps {
   searchParams: Promise<{ startDate?: string; endDate?: string; guests?: string }>;
 }
 
+function adaptBoat(b: BoatAPI): Boat {
+  const sortedPhotos = (b.photos ?? [])
+    .slice()
+    .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99))
+    .map((p) => resolvePhotoUrl(p.url));
+
+  return {
+    id: String(b.id),
+    name: b.nomBateau,
+    location: b.port ? `${b.port.nom}, ${b.port.ville}` : "France",
+    type: "voilier",
+    rating: 0,
+    reviewCount: 0,
+    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    imageUrl: sortedPhotos[0] ?? "",
+    imageSeed: String(b.id),
+    photos: sortedPhotos,
+    capacity: b.capacite ?? undefined,
+    owner: { name: "Propriétaire", avatarSeed: String(b.id_utilisateur ?? b.id) },
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { boatId } = await params;
-  const boat = ALL_BOATS.find((b) => b.id === boatId);
-  if (!boat) return { title: "Réservation — SailingLoc" };
-  return { title: `Réserver ${boat.name} — SailingLoc` };
+  try {
+    const b = await boatsApi.getOne(boatId);
+    return { title: `Réserver ${b.nomBateau} — SailingLoc` };
+  } catch {
+    return { title: "Réservation — SailingLoc" };
+  }
 }
 
 function getDefaultStartDate() {
@@ -31,8 +58,13 @@ export default async function ReservationPage({ params, searchParams }: PageProp
   const { boatId } = await params;
   const { startDate: sd, endDate: ed, guests: g } = await searchParams;
 
-  const boat = ALL_BOATS.find((b) => b.id === boatId);
-  if (!boat) notFound();
+  let boat: Boat;
+  try {
+    const data = await boatsApi.getOne(boatId);
+    boat = adaptBoat(data);
+  } catch {
+    notFound();
+  }
 
   const startDate = sd ?? getDefaultStartDate();
   const endDate = ed ?? getDefaultEndDate(startDate);

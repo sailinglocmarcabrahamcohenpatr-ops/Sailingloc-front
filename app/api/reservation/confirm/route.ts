@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface ConfirmPayload {
   email: string;
   firstName: string;
@@ -216,6 +214,7 @@ export async function POST(request: Request) {
     }
 
     const payload = body as ConfirmPayload;
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     const { error } = await resend.emails.send({
       from: process.env.RESEND_FROM ?? "SailingLoc <onboarding@resend.dev>",

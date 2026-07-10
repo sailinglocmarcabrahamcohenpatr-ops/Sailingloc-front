@@ -10,13 +10,15 @@ import type { TypeBateauAPI, PortAPI, TypeDocumentAPI } from "@/shared/lib/refer
 import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { uploadPhoto } from "../api/photos";
 import { uploadDocument } from "../api/documents";
+import { createDisponibilite } from "../api/disponibilites";
 import { compressImage } from "../lib/compressImage";
 import { STEPS, MIN_PHOTOS, MAX_PHOTOS, MOTORISATION_OPTIONS } from "../model/constants";
-import type { PhotoEntry, DocumentEntry, Motorisation, SubmitStep } from "../model/types";
+import type { PhotoEntry, DocumentEntry, Motorisation, SubmitStep, DisponibiliteSlot } from "../model/types";
 import { loadDraft, clearDraft, useFormDraft } from "../lib/useFormDraft";
 import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/filesDraft";
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
+import DispoDateRangePicker from "./DispoDateRangePicker";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
 
@@ -85,6 +87,8 @@ export default function ListBoatForm() {
   const [pricePerDay,     setPricePerDay]     = useState("");
   const [prixHeure,       setPrixHeure]       = useState("");
   const [caution,         setCaution]         = useState("");
+
+  const [dispoSlots, setDispoSlots] = useState<DisponibiliteSlot[]>([{ date_debut: "", date_fin: "" }]);
 
   const [photos,     setPhotos]     = useState<PhotoEntry[]>([]);
   const [photoError, setPhotoError] = useState("");
@@ -213,6 +217,13 @@ export default function ListBoatForm() {
     });
   };
 
+  /* ── Disponibilités helpers ── */
+  const handleDispoChange = (i: number, field: keyof DisponibiliteSlot, value: string) => {
+    setDispoSlots((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)));
+  };
+  const addDispoSlot = () => setDispoSlots((prev) => [...prev, { date_debut: "", date_fin: "" }]);
+  const removeDispoSlot = (i: number) => setDispoSlots((prev) => prev.filter((_, idx) => idx !== i));
+
   const handleLocatePort = async (id: number) => {
     const port = ports.find((p) => p.id === id);
     if (!port?.ville) return;
@@ -296,9 +307,18 @@ export default function ListBoatForm() {
         }
       }
 
+      // Étape 4 — Créer les disponibilités déclarées
+      const validDispoSlots = dispoSlots.filter((s) => s.date_debut && s.date_fin);
+      if (validDispoSlots.length > 0) {
+        setSubmitStep("disponibilites");
+        for (const slot of validDispoSlots) {
+          await createDisponibilite(boat.id, slot);
+        }
+      }
+
       clearDraft();
       clearFilesDraft();
-      router.push("/proprietaire/bateaux");
+      router.push(`/proprietaire/bateaux/${boat.id}/calendrier?bienvenue=1`);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Erreur lors de la soumission.");
       setSubmitStep("idle");
@@ -318,6 +338,7 @@ export default function ListBoatForm() {
       case "boat":      return <><i className="fa-solid fa-circle-notch fa-spin" /> Création du bateau…</>;
       case "photos":    return <><i className="fa-solid fa-circle-notch fa-spin" /> Photos ({uploadedPhotos}/{photos.length})…</>;
       case "documents": return <><i className="fa-solid fa-circle-notch fa-spin" /> Documents ({uploadedDocs}/{[docCarteGrise, docAssurance, docCertificat].filter(Boolean).length})…</>;
+      case "disponibilites": return <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement des disponibilités…</>;
       default:          return <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>;
     }
   }
@@ -724,8 +745,46 @@ export default function ListBoatForm() {
           </div>
         )}
 
-        {/* ── ÉTAPE 3 — RÉCAPITULATIF ── */}
+        {/* ── ÉTAPE 3 — DISPONIBILITÉS ── */}
         {step === 3 && (
+          <div className="form-section">
+            <h3>Quand souhaitez-vous louer votre bateau ?</h3>
+            <div className="form-section-desc-box">
+              <i className="fa-solid fa-circle-info" />
+              <p>
+                Déclarez les périodes pendant lesquelles votre bateau est ouvert à la location.
+                En dehors de ces créneaux, il n&apos;apparaîtra pas comme disponible auprès des locataires.
+                Vous pourrez ajouter, modifier ou retirer des créneaux à tout moment depuis le calendrier du bateau.
+              </p>
+            </div>
+
+            {dispoSlots.map((slot, i) => (
+              <DispoDateRangePicker
+                key={i}
+                slot={slot}
+                index={i}
+                onChange={handleDispoChange}
+                onRemove={removeDispoSlot}
+                canRemove={dispoSlots.length > 1}
+              />
+            ))}
+
+            <button type="button" className="btn btn-outline btn-sm" onClick={addDispoSlot} style={{ marginTop: "8px" }}>
+              <i className="fa-solid fa-plus" /> Ajouter une période
+            </button>
+
+            <div className="form-section-desc-box" style={{ marginTop: "20px" }}>
+              <i className="fa-solid fa-circle-exclamation" />
+              <p>
+                Cette étape est facultative — vous pouvez publier votre annonce sans définir de créneau
+                et ouvrir votre calendrier plus tard.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 4 — RÉCAPITULATIF ── */}
+        {step === 4 && (
           <div className="form-section">
             <h3>Récapitulatif de votre annonce</h3>
             <div className="list-boat-recap">
@@ -770,6 +829,17 @@ export default function ListBoatForm() {
                 <strong>
                   {[docCarteGrise && "Carte grise", docAssurance && "Assurance", docCertificat && "Certificat"]
                     .filter(Boolean).join(", ") || <span style={{ color: "var(--orange, #f59e0b)" }}>Aucun — validation admin retardée</span>}
+                </strong>
+              </div>
+              <div className="recap-row">
+                <span><i className="fa-solid fa-calendar-check" /> Disponibilités</span>
+                <strong>
+                  {(() => {
+                    const n = dispoSlots.filter((s) => s.date_debut && s.date_fin).length;
+                    return n > 0
+                      ? `${n} période${n > 1 ? "s" : ""} déclarée${n > 1 ? "s" : ""}`
+                      : <span style={{ color: "var(--orange, #f59e0b)" }}>Aucune — à définir plus tard</span>;
+                  })()}
                 </strong>
               </div>
               <div className="recap-row">

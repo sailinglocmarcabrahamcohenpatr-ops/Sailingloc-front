@@ -2,15 +2,15 @@ import { api } from "./api-client";
 
 export interface ReservationAPI {
   id: number;
-  date_debut: string;
-  date_fin: string;
-  montant_total: number;
-  id_bateau: number;
-  id_utilisateur: number;
-  id_contrat?: number;
-  id_statut_reservation: number;
-  statut_reservation?: { id: number; libelle: string };
-  bateau?: { id: number; nom_bateau: string; prix_jour: number };
+  dateDebut: string;
+  dateFin: string;
+  montantTotal: number;
+  idBateau: number;
+  idUtilisateur: number;
+  idContrat?: number;
+  idStatutReservation: number;
+  statutReservation?: { id: number; libelle: string };
+  bateau?: { id: number; nomBateau: string; prixJour: number | string };
   utilisateur?: { id: number; prenom: string; nom: string; email: string };
   paiements?: unknown[];
   avis?: unknown[];

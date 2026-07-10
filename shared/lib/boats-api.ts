@@ -1,4 +1,5 @@
 import { api } from "./api-client";
+import type { ReservationAPI } from "./reservations-api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -18,9 +19,10 @@ export interface PhotoAPI {
 
 export interface DisponibiliteAPI {
   id: number;
-  date_debut: string;
-  date_fin: string;
-  id_bateau: number;
+  dateDebut: string;
+  dateFin?: string | null;
+  idBateau?: number;
+  statut?: string;
 }
 
 /** Statuts de bateau utilisés dans le module Publication */
@@ -122,10 +124,16 @@ export const boatsApi = {
     api.delete<void>(`/api/bateaux/${id}`),
   getPhotos: (id: number | string) =>
     api.get<PhotoAPI[]>(`/api/bateaux/${id}/photos`),
+  /**
+   * ⚠️ Ce sous-endpoint renvoie une sérialisation incomplète côté backend
+   * (seuls `id`/`dateDebut` sont exposés — `dateFin` et `statut` manquent).
+   * Pour lire les disponibilités d'un bateau, préférer le champ
+   * `disponibilites` embarqué dans `getOne()` / `getAll()`, qui est complet.
+   */
   getDisponibilites: (id: number | string) =>
     api.get<DisponibiliteAPI[]>(`/api/bateaux/${id}/disponibilites`),
   getReservations: (id: number | string) =>
-    api.get<unknown[]>(`/api/bateaux/${id}/reservations`),
+    api.get<ReservationAPI[]>(`/api/bateaux/${id}/reservations`),
   getDocuments: (id: number | string) =>
     api.get<DocumentAPI[]>(`/api/bateaux/${id}/documents`),
   updateStatut: (id: number | string, statut: string) =>

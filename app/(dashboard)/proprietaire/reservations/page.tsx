@@ -40,7 +40,7 @@ function initials(r: ReservationAPI): string {
 
 function renterName(r: ReservationAPI): string {
   const u = r.utilisateur;
-  if (!u) return `Locataire #${r.id_utilisateur}`;
+  if (!u) return `Locataire #${r.idUtilisateur}`;
   return `${u.prenom} ${u.nom}`.trim();
 }
 
@@ -58,10 +58,10 @@ const Section = ({
       </h3>
       <div className="reservations-list">
         {items.map((r) => {
-          const key = libelleToKey(r.statut_reservation?.libelle);
+          const key = libelleToKey(r.statutReservation?.libelle);
           const st = STATUS[key];
-          const days = daysBetween(r.date_debut, r.date_fin);
-          const boatName = r.bateau?.nom_bateau ?? `Bateau #${r.id_bateau}`;
+          const days = daysBetween(r.dateDebut, r.dateFin);
+          const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
 
           return (
             <div key={r.id} className="reservation-row">
@@ -74,10 +74,10 @@ const Section = ({
               </div>
               <div className="reservation-dates">
                 <i className="fa-regular fa-calendar" />
-                {fmt(r.date_debut)} → {fmt(r.date_fin)} · {days} jour{days !== 1 ? "s" : ""}
+                {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
               </div>
               <div className="reservation-amount">
-                <strong>{r.montant_total.toLocaleString("fr-FR")} €</strong>
+                <strong>{r.montantTotal.toLocaleString("fr-FR")} €</strong>
                 <span className={st.cls}>{st.label}</span>
               </div>
               <div className="reservation-actions">
@@ -131,13 +131,13 @@ export default function OwnerReservationsPage() {
     );
 
   const pending = reservations.filter(
-    (r) => libelleToKey(r.statut_reservation?.libelle) === "pending"
+    (r) => libelleToKey(r.statutReservation?.libelle) === "pending"
   );
   const active = reservations.filter(
-    (r) => libelleToKey(r.statut_reservation?.libelle) === "confirmed"
+    (r) => libelleToKey(r.statutReservation?.libelle) === "confirmed"
   );
   const past = reservations.filter((r) => {
-    const k = libelleToKey(r.statut_reservation?.libelle);
+    const k = libelleToKey(r.statutReservation?.libelle);
     return k === "completed" || k === "cancelled";
   });
 

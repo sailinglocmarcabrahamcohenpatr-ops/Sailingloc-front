@@ -4,6 +4,7 @@ export const STEPS = [
   "Informations",
   "Photos",
   "Documents",
+  "Disponibilités",
   "Récapitulatif",
 ] as const;
 

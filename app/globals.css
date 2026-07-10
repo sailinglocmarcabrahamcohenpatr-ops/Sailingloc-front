@@ -951,9 +951,65 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .booking-note { text-align: center; font-size: .8125rem; color: var(--text-3); margin-top: -8px; }
 .booking-info { display: flex; align-items: flex-start; gap: 8px; font-size: .8125rem; color: var(--text-2); padding: 12px 16px; background: #FFFBEB; border-radius: var(--radius); border: 1px solid #FCD34D; }
 .booking-info i { color: #F59E0B; margin-top: 2px; flex-shrink: 0; }
+.booking-info:has(.fa-circle-info) { background: var(--primary-light, #EFF6FF); border-color: var(--border); }
+.booking-info:has(.fa-circle-info) i { color: var(--primary); }
 .booking-contact { display: flex; justify-content: center; gap: 20px; padding-top: 8px; }
 .booking-contact a { font-size: .8125rem; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
 .booking-contact a:hover { color: var(--primary); }
+.booking-cta:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Calendrier de disponibilité (locataire) */
+.booking-dates-cal { display: flex; flex-direction: column; gap: 6px; }
+.booking-dates-cal > label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
+.avail-cal-trigger {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--card-bg); cursor: pointer; text-align: left; transition: var(--transition);
+}
+.avail-cal-trigger:hover { border-color: var(--primary); background: var(--primary-light); }
+.avail-cal-trigger > i { color: var(--primary); font-size: .9rem; flex-shrink: 0; }
+.avail-cal-placeholder { color: var(--text-3); flex: 1; font-size: .9375rem; }
+.avail-cal-value { color: var(--text); font-weight: 600; flex: 1; font-size: .9375rem; }
+.avail-cal-loading, .avail-cal-empty { padding: 20px; text-align: center; font-size: .8125rem; color: var(--text-2); max-width: 280px; }
+
+/* Légende + jours colorés — partagée entre calendrier propriétaire et locataire */
+.cal-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; font-size: .8125rem; color: var(--text-2); }
+.cal-legend span { display: flex; align-items: center; gap: 6px; }
+.cal-legend-sm { margin-bottom: 8px; font-size: .75rem; justify-content: center; }
+.cal-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.cal-dot-open { background: #22C55E; }
+.cal-dot-booked { background: #EF4444; }
+.cal-dot-closed { background: var(--border); }
+
+.rdp-day-open button:not([data-selected-single="true"]):not([data-range-start="true"]):not([data-range-end="true"]):not([data-range-middle="true"]) {
+  background: rgba(34, 197, 94, .16); color: #15803D; font-weight: 600;
+}
+.rdp-day-booked button {
+  background: rgba(239, 68, 68, .14) !important; color: #B91C1C !important;
+  text-decoration: line-through; opacity: .85 !important; cursor: not-allowed;
+}
+
+/* Sélection de plage (react-day-picker) — le thème shadcn par défaut utilise
+   `bg-muted` pour les jours intermédiaires, quasi invisible sur ce fond clair.
+   On force un rendu franc en s'appuyant sur les classes stables `.rdp-range_*`
+   (posées par la librairie elle-même, indépendamment de Tailwind). */
+.rdp-range_start button,
+.rdp-range_end button,
+.rdp-selected:not(.rdp-range_middle) button {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+.rdp-range_middle {
+  background: var(--primary-light) !important;
+}
+.rdp-range_middle button {
+  background: transparent !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+.rdp-range_start { border-top-left-radius: var(--radius); border-bottom-left-radius: var(--radius); }
+.rdp-range_end { border-top-right-radius: var(--radius); border-bottom-right-radius: var(--radius); }
 
 /* Responsive produit */
 @media (max-width: 1024px) {
@@ -2255,6 +2311,43 @@ textarea.form-input { resize: vertical; min-height: 130px; }
     border-left: none; border-top: 1px solid var(--border);
     padding: 12px 16px;
   }
+}
+
+/* Calendrier de disponibilité (propriétaire) */
+.cal-back-link { display: inline-flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--text-2); margin-bottom: 8px; }
+.cal-back-link:hover { color: var(--primary); }
+.cal-welcome-banner {
+  display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+  background: var(--primary-light, #EFF6FF); border: 1px solid var(--primary); border-radius: var(--radius-lg);
+  color: var(--text); font-size: .9375rem;
+}
+.cal-welcome-banner i { color: var(--primary); font-size: 1.1rem; flex-shrink: 0; }
+.owner-calendar-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+.owner-calendar-main {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-xl);
+  padding: 24px; box-shadow: var(--shadow-lg);
+}
+.owner-calendar-side { display: flex; flex-direction: column; gap: 16px; }
+.cal-side-block {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px;
+}
+.cal-side-block h3 { font-size: .9375rem; margin-bottom: 12px; }
+.cal-empty { font-size: .8125rem; color: var(--text-2); }
+.cal-period-list { display: flex; flex-direction: column; gap: 8px; }
+.cal-period-list li {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; background: var(--bg); border-radius: var(--radius); font-size: .8125rem; color: var(--text);
+}
+.cal-period-list li span { display: flex; align-items: center; gap: 8px; }
+.cal-period-list li i { color: var(--primary); }
+.cal-period-list li button {
+  border: none; background: transparent; color: var(--text-3); cursor: pointer; padding: 4px; border-radius: var(--radius);
+}
+.cal-period-list li button:hover { color: var(--red); background: #FEE2E2; }
+.cal-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.cal-action-error { color: var(--red); font-size: .8125rem; margin: 0; }
+@media (max-width: 900px) {
+  .owner-calendar-layout { grid-template-columns: 1fr; }
 }
 
 /* Reservations */

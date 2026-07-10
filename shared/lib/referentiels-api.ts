@@ -1,4 +1,5 @@
 import { api } from "./api-client";
+import type { DisponibiliteAPI } from "./boats-api";
 
 export interface TypeBateauAPI {
   id: number;
@@ -93,13 +94,14 @@ export const utilisateursApi = {
 
 export const disponibilitesApi = {
   getAll: () =>
-    api.get<{ id: number; date_debut: string; date_fin: string; id_bateau: number }[]>("/api/disponibilites"),
+    api.get<DisponibiliteAPI[]>("/api/disponibilites"),
   getOne: (id: number | string) =>
-    api.get<{ id: number; date_debut: string; date_fin: string; id_bateau: number }>(`/api/disponibilites/${id}`),
+    api.get<DisponibiliteAPI>(`/api/disponibilites/${id}`),
+  /** date_debut/date_fin/id_bateau en snake_case : convention des payloads POST de cette API */
   create: (data: { date_debut: string; date_fin: string; id_bateau: number }) =>
-    api.post("/api/disponibilites", data, true),
+    api.post<DisponibiliteAPI>("/api/disponibilites", data, true),
   update: (id: number | string, data: { date_debut: string; date_fin: string }) =>
-    api.put(`/api/disponibilites/${id}`, data),
+    api.put<DisponibiliteAPI>(`/api/disponibilites/${id}`, data),
   delete: (id: number | string) =>
     api.delete<void>(`/api/disponibilites/${id}`),
 };
