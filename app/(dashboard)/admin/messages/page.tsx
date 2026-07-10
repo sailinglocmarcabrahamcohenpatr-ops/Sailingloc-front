@@ -26,20 +26,25 @@ interface Conversation {
   lastMessage: MessageAPI;
 }
 
-function buildConversations(messages: MessageAPI[], myId: number): Conversation[] {
-  const map = new Map<number, MessageAPI[]>();
+function buildConversations(messages: MessageAPI[], myEmail: string): Conversation[] {
+  // Key = sorted pair of both user IDs → groups all messages between the same
+  // two people together regardless of who sent which message.
+  const map = new Map<string, MessageAPI[]>();
   for (const msg of messages) {
-    const otherId = msg.expediteur.id === myId ? msg.destinataire.id : msg.expediteur.id;
-    const arr = map.get(otherId) ?? [];
+    const a = msg.expediteur.id;
+    const b = msg.destinataire.id;
+    const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
+    const arr = map.get(key) ?? [];
     arr.push(msg);
-    map.set(otherId, arr);
+    map.set(key, arr);
   }
   return Array.from(map.values())
     .map((msgs) => {
       const sorted  = msgs.slice().sort((a, b) => new Date(a.dateEnvoi).getTime() - new Date(b.dateEnvoi).getTime());
       const last    = sorted[sorted.length - 1];
-      const partner = last.expediteur.id === myId ? last.destinataire : last.expediteur;
-      return { partner, messages: sorted, unreadCount: sorted.filter((m) => !m.lu && m.destinataire.id === myId).length, lastMessage: last };
+      // Use email (always defined) to reliably identify which side is "me"
+      const partner = last.expediteur.email === myEmail ? last.destinataire : last.expediteur;
+      return { partner, messages: sorted, unreadCount: sorted.filter((m) => !m.lu && m.destinataire.email === myEmail).length, lastMessage: last };
     })
     .sort((a, b) => new Date(b.lastMessage.dateEnvoi).getTime() - new Date(a.lastMessage.dateEnvoi).getTime());
 }
@@ -119,7 +124,8 @@ function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p:
 
 export default function AdminMessagesPage() {
   const { user } = useAuth();
-  const myId = user?.id ?? 0;
+  const myId    = user?.id ?? 0;
+  const myEmail = user?.email ?? "";
 
   const [messages, setMessages]         = useState<MessageAPI[]>([]);
   const [loading, setLoading]           = useState(true);
@@ -134,6 +140,7 @@ export default function AdminMessagesPage() {
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
   const messagesRef = useRef(messages);
+  const sendingRef  = useRef(false); // synchronous lock — prevents duplicate sends on rapid Enter/click
   messagesRef.current = messages;
 
   /* ── Fetch (initial + polling) ── */
@@ -155,7 +162,7 @@ export default function AdminMessagesPage() {
     return () => clearInterval(id);
   }, [fetchMessages]);
 
-  const conversations = useMemo(() => buildConversations(messages, myId), [messages, myId]);
+  const conversations = useMemo(() => buildConversations(messages, myEmail), [messages, myEmail]);
 
   const filteredConvs = useMemo(() => {
     if (!search.trim()) return conversations;
@@ -174,7 +181,7 @@ export default function AdminMessagesPage() {
     setDraftPartner(partner ?? null);
     setReply("");
     setTimeout(() => inputRef.current?.focus(), 60);
-    const unread = messagesRef.current.filter((m) => !m.lu && m.destinataire.id === myId && m.expediteur.id === partnerId);
+    const unread = messagesRef.current.filter((m) => !m.lu && m.destinataire.email === myEmail && m.expediteur.id === partnerId);
     if (!unread.length) return;
     Promise.allSettled(unread.map((m) => messagesApi.markAsRead(m.id))).then(() => {
       setMessages((prev) => prev.map((m) => (unread.some((u) => u.id === m.id) ? { ...m, lu: true } : m)));
@@ -188,14 +195,18 @@ export default function AdminMessagesPage() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!reply.trim() || !selectedId || sending) return;
+    if (!reply.trim() || !selectedId || sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true);
     try {
       const sent = await messagesApi.send({ contenu: reply.trim(), id_destinataire: selectedId });
       setMessages((prev) => [...prev, sent]);
       setDraftPartner(null);
       setReply("");
-    } catch { /* silent */ } finally { setSending(false); }
+    } catch { /* silent */ } finally {
+      sendingRef.current = false;
+      setSending(false);
+    }
   }
 
   return (
@@ -243,7 +254,7 @@ export default function AdminMessagesPage() {
                 {filteredConvs.map((conv) => {
                   const isSelected = conv.partner.id === selectedId;
                   const last = conv.lastMessage;
-                  const isLastMine = last.expediteur.id === myId;
+                  const isLastMine = last.expediteur.id !== conv.partner.id;
                   const initials = `${conv.partner.prenom[0] ?? ""}${conv.partner.nom[0] ?? ""}`.toUpperCase();
                   return (
                     <div key={conv.partner.id} className={`message-item${conv.unreadCount > 0 ? " unread" : ""}${isSelected ? " selected" : ""}`}
@@ -293,7 +304,8 @@ export default function AdminMessagesPage() {
                     </div>
                   </div>
                 ) : selected.messages.map((msg, i) => {
-                  const isMe = msg.expediteur.id === myId;
+                  // A message is "mine" when the sender is NOT the partner
+                  const isMe = msg.expediteur.id !== selected.partner.id;
                   const prev = selected.messages[i - 1];
                   const newDay = i === 0 || new Date(msg.dateEnvoi).toDateString() !== new Date(prev.dateEnvoi).toDateString();
                   return (

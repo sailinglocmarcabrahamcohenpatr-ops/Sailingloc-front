@@ -1,341 +1,360 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect, useRef } from "react";
-import EmojiPicker, { type EmojiClickData, Theme } from "emoji-picker-react";
-import { useAuth } from "@/shared/lib";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { messagesApi, utilisateursApi, useAuth } from "@/shared/lib";
+import type { MessageAPI, UtilisateurAPI } from "@/shared/lib";
 import "./messages.css";
 
-interface MockMsg {
-  id: number;
-  contenu: string;
-  isMe: boolean;
-  created_at: string;
-  lu: boolean;
-}
+const PALETTE = ["#1866F2", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
+const avatarColor = (id: number) => PALETTE[id % PALETTE.length];
 
-interface MockConv {
-  key: string;
-  otherName: string;
-  otherInitials: string;
-  otherRole: string;
-  boatName: string;
-  online: boolean;
-  messages: MockMsg[];
-}
-
-const MOCK_CONVS: MockConv[] = [
-  {
-    key: "conv-1",
-    otherName: "Claire Dupont",
-    otherInitials: "CD",
-    otherRole: "Locataire",
-    boatName: "Bénéteau Océanis 40",
-    online: true,
-    messages: [
-      { id: 1, contenu: "Bonjour ! Votre Océanis 40 est-il disponible du 15 au 22 juillet ?", isMe: false, created_at: "2026-06-25T09:10:00Z", lu: true },
-      { id: 2, contenu: "Bonjour Claire ! Oui, le bateau est bien disponible cette semaine 😊", isMe: true, created_at: "2026-06-25T09:32:00Z", lu: true },
-      { id: 3, contenu: "Super, je confirme ma réservation alors !", isMe: false, created_at: "2026-06-25T09:45:00Z", lu: true },
-      { id: 4, contenu: "Parfait, j'ai bien reçu votre demande. Le bateau sera prêt à 9h au port. N'hésitez pas si vous avez des questions avant le départ !", isMe: true, created_at: "2026-06-28T08:15:00Z", lu: true },
-      { id: 5, contenu: "Merci beaucoup ! On a hâte 😄", isMe: false, created_at: "2026-06-28T08:40:00Z", lu: false },
-    ],
-  },
-  {
-    key: "conv-2",
-    otherName: "Thomas Bernard",
-    otherInitials: "TB",
-    otherRole: "Locataire",
-    boatName: "Jeanneau Sun Odyssey 35",
-    online: false,
-    messages: [
-      { id: 6, contenu: "Bonjour, le Sun Odyssey 35 est-il disponible début août ?", isMe: false, created_at: "2026-06-20T14:00:00Z", lu: true },
-      { id: 7, contenu: "Bonjour Thomas ! Malheureusement il est réservé jusqu'au 12 août.", isMe: true, created_at: "2026-06-20T15:30:00Z", lu: true },
-      { id: 8, contenu: "D'accord, merci pour l'info !", isMe: false, created_at: "2026-06-20T15:45:00Z", lu: true },
-      { id: 9, contenu: "N'hésitez pas, j'ai aussi un Dufour 360 disponible si ça vous intéresse 🚤", isMe: true, created_at: "2026-06-20T16:00:00Z", lu: true },
-    ],
-  },
-  {
-    key: "conv-3",
-    otherName: "Léa Martin",
-    otherInitials: "LM",
-    otherRole: "Locataire",
-    boatName: "Catamaran Leopard 42",
-    online: false,
-    messages: [
-      { id: 10, contenu: "Bonjour, est-il possible de visiter le catamaran avant de réserver ?", isMe: false, created_at: "2026-06-15T10:00:00Z", lu: true },
-      { id: 11, contenu: "Bien sûr ! Je suis disponible ce weekend si vous voulez passer au port.", isMe: true, created_at: "2026-06-15T10:45:00Z", lu: true },
-    ],
-  },
-];
-
-function fmtDate(iso: string) {
-  if (!iso) return "";
+function fmtRelative(iso: string) {
   const d = new Date(iso);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  if (diff < 86400000) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  if (diff < 172800000) return "Hier";
+  const diff = Date.now() - d.getTime();
+  if (diff < 86_400_000) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  if (diff < 172_800_000) return "Hier";
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
+const fmtTime    = (iso: string) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const fmtFullDay = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
-function fmtFull(iso: string) {
-  return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+interface Partner { id: number; prenom: string; nom: string; email: string }
+interface Conversation {
+  partner: Partner;
+  messages: MessageAPI[];
+  unreadCount: number;
+  lastMessage: MessageAPI;
 }
 
-export default function OwnerMessagesPage() {
-  const { user } = useAuth();
-  const [convs, setConvs] = useState<MockConv[]>(MOCK_CONVS);
-  const [selectedKey, setSelectedKey] = useState<string | null>("conv-1");
-  const [reply, setReply] = useState("");
-  const [emojiOpen, setEmojiOpen] = useState(false);
-  const emojiRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const selected = convs.find((c) => c.key === selectedKey) ?? null;
-  const unreadTotal = convs.reduce((n, c) => n + c.messages.filter((m) => !m.lu && !m.isMe).length, 0);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedKey, convs]);
-
-  /* Fermer le picker en cliquant dehors */
-  useEffect(() => {
-    if (!emojiOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
-        setEmojiOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [emojiOpen]);
-
-  function onEmojiClick(data: EmojiClickData) {
-    setReply((r) => r + data.emoji);
-    inputRef.current?.focus();
+function buildConversations(messages: MessageAPI[], myEmail: string): Conversation[] {
+  // Key = sorted pair of both user IDs → groups all messages between the same
+  // two people together regardless of who sent which message.
+  const map = new Map<string, MessageAPI[]>();
+  for (const msg of messages) {
+    const a = msg.expediteur.id;
+    const b = msg.destinataire.id;
+    const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
+    const arr = map.get(key) ?? [];
+    arr.push(msg);
+    map.set(key, arr);
   }
+  return Array.from(map.values())
+    .map((msgs) => {
+      const sorted  = msgs.slice().sort((a, b) => new Date(a.dateEnvoi).getTime() - new Date(b.dateEnvoi).getTime());
+      const last    = sorted[sorted.length - 1];
+      // Use email (always defined) to reliably identify which side is "me"
+      const partner = last.expediteur.email === myEmail ? last.destinataire : last.expediteur;
+      return { partner, messages: sorted, unreadCount: sorted.filter((m) => !m.lu && m.destinataire.email === myEmail).length, lastMessage: last };
+    })
+    .sort((a, b) => new Date(b.lastMessage.dateEnvoi).getTime() - new Date(a.lastMessage.dateEnvoi).getTime());
+}
 
-  const handleSelect = (key: string) => {
-    setSelectedKey(key);
-    setConvs((prev) =>
-      prev.map((c) =>
-        c.key === key
-          ? { ...c, messages: c.messages.map((m) => ({ ...m, lu: true })) }
-          : c
-      )
-    );
-    setTimeout(() => inputRef.current?.focus(), 50);
-  };
+function Spinner({ size = 18 }: { size?: number }) {
+  return <div style={{ width: size, height: size, flexShrink: 0, border: "2px solid var(--border)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "pub-spin .7s linear infinite" }} />;
+}
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reply.trim() || !selectedKey) return;
-    const newMsg: MockMsg = {
-      id: Date.now(),
-      contenu: reply.trim(),
-      isMe: true,
-      created_at: new Date().toISOString(),
-      lu: true,
-    };
-    setConvs((prev) =>
-      prev.map((c) =>
-        c.key === selectedKey ? { ...c, messages: [...c.messages, newMsg] } : c
-      )
-    );
-    setReply("");
-  };
+function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p: Partner) => void; onClose: () => void }) {
+  const [users, setUsers]     = useState<UtilisateurAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ]             = useState("");
+  const searchRef             = useRef<HTMLInputElement>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) handleSend(e as unknown as React.FormEvent);
-  };
+  useEffect(() => {
+    utilisateursApi.getAll().then(setUsers).catch(() => {}).finally(() => setLoading(false));
+    setTimeout(() => searchRef.current?.focus(), 80);
+  }, []);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  const filtered = useMemo(() => {
+    const query = q.toLowerCase();
+    return users.filter((u) => u.id !== myId && (`${u.prenom} ${u.nom}`.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)));
+  }, [users, q, myId]);
 
   return (
-    <div className="messages-full-wrap">
-      <div className="messages-layout">
-        {/* ── Liste des conversations ── */}
-        <div className="messages-list">
-          <div style={{ padding: "12px 16px 8px", borderBottom: "1px solid var(--border)" }}>
-            <div style={{ position: "relative" }}>
-              <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: ".8rem" }} />
-              <input
-                type="text"
-                placeholder="Rechercher…"
-                style={{ width: "100%", padding: "8px 10px 8px 30px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".8125rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }}
-              />
-            </div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(10,18,34,.5)", backdropFilter: "blur(4px)", zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "var(--card-bg)", borderRadius: "var(--radius-xl)", boxShadow: "0 24px 64px rgba(0,0,0,.25)", width: "100%", maxWidth: 480, overflow: "hidden", animation: "pub-slide-in .2s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
+          <div>
+            <strong style={{ fontSize: ".9375rem" }}>Nouvelle discussion</strong>
+            <p style={{ fontSize: ".8125rem", color: "var(--text-2)", marginTop: 2 }}>Choisissez un destinataire</p>
           </div>
-
-          {convs.map((c) => {
-            const last = c.messages[c.messages.length - 1];
-            const unread = c.messages.filter((m) => !m.lu && !m.isMe).length;
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "1.5px solid var(--border)", background: "var(--card-bg)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-2)", fontSize: ".8125rem" }}>
+            <i className="fa-solid fa-xmark" />
+          </button>
+        </div>
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ position: "relative" }}>
+            <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: ".8rem", pointerEvents: "none" }} />
+            <input ref={searchRef} type="text" placeholder="Nom, email…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", padding: "9px 10px 9px 32px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".875rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }} />
+          </div>
+        </div>
+        <div style={{ maxHeight: 320, overflowY: "auto", padding: "8px 0" }}>
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> Chargement…</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--text-3)", fontSize: ".875rem" }}>{q ? "Aucun résultat" : "Aucun utilisateur disponible"}</div>
+          ) : filtered.map((u) => {
+            const initials = `${u.prenom[0] ?? ""}${u.nom[0] ?? ""}`.toUpperCase();
+            const role = u.roles?.includes("ROLE_ADMIN") ? "Admin" : u.roles?.includes("ROLE_PROPRIETAIRE") ? "Propriétaire" : "Locataire";
             return (
-              <div
-                key={c.key}
-                className={`message-item${unread > 0 ? " unread" : ""}${selectedKey === c.key ? " selected" : ""}`}
-                onClick={() => handleSelect(c.key)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && handleSelect(c.key)}
+              <button key={u.id} onClick={() => onSelect({ id: u.id, prenom: u.prenom, nom: u.nom, email: u.email })}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
               >
-                <div style={{ position: "relative", flexShrink: 0 }}>
-                  <div className="message-avatar">{c.otherInitials}</div>
-                  {c.online && (
-                    <span style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid var(--white)" }} />
-                  )}
+                <div style={{ width: 38, height: 38, borderRadius: "50%", background: avatarColor(u.id), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".8125rem", flexShrink: 0 }}>{initials}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: ".9rem", color: "var(--text)" }}>{u.prenom} {u.nom}</div>
+                  <div style={{ fontSize: ".75rem", color: "var(--text-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{role} · {u.email}</div>
                 </div>
-                <div className="message-content">
-                  <div className="message-hd">
-                    <strong>{c.otherName}</strong>
-                    <span className="message-date">{fmtDate(last?.created_at ?? "")}</span>
-                  </div>
-                  <p className="message-subject">{c.boatName}</p>
-                  <p className="message-preview">
-                    {last?.isMe ? `Vous : ${last.contenu}` : last?.contenu ?? ""}
-                  </p>
-                </div>
-                {unread > 0 && (
-                  <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--primary)", color: "#fff", fontSize: ".7rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {unread}
-                  </div>
-                )}
-              </div>
+                <i className="fa-solid fa-chevron-right" style={{ fontSize: ".7rem", color: "var(--text-3)", flexShrink: 0 }} />
+              </button>
             );
           })}
         </div>
-
-        {/* ── Fil de conversation ── */}
-        {selected ? (
-          <div className="messages-thread">
-            <div className="messages-thread-hd">
-              <div style={{ position: "relative", flexShrink: 0 }}>
-                <div className="message-avatar">{selected.otherInitials}</div>
-                {selected.online && (
-                  <span style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: "50%", background: "#22c55e", border: "2px solid var(--bg)" }} />
-                )}
-              </div>
-              <div style={{ flex: 1 }}>
-                <strong>{selected.otherName}</strong>
-                <p className="message-subject" style={{ margin: 0 }}>
-                  {selected.online ? "En ligne" : selected.otherRole} · {selected.boatName}
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-ghost btn-sm" title="Appel">
-                  <i className="fa-solid fa-phone" />
-                </button>
-                <button className="btn btn-ghost btn-sm" title="Infos">
-                  <i className="fa-solid fa-circle-info" />
-                </button>
-              </div>
-            </div>
-
-            <div className="messages-thread-body">
-              {selected.messages.map((m, i) => {
-                const prevMsg = selected.messages[i - 1];
-                const showDate =
-                  i === 0 ||
-                  new Date(m.created_at).toDateString() !== new Date(prevMsg?.created_at ?? "").toDateString();
-
-                return (
-                  <div key={m.id}>
-                    {showDate && (
-                      <div style={{ textAlign: "center", margin: "8px 0" }}>
-                        <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 12px", fontSize: ".75rem", color: "var(--text-3)" }}>
-                          {new Date(m.created_at).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-                        </span>
-                      </div>
-                    )}
-                    <div className={`thread-msg${m.isMe ? " thread-msg--me" : ""}`}>
-                      {!m.isMe && (
-                        <div style={{ fontSize: ".75rem", color: "var(--text-3)", marginBottom: 3, fontWeight: 600 }}>
-                          {selected.otherName.split(" ")[0]}
-                        </div>
-                      )}
-                      <div className="thread-msg-bubble">{m.contenu}</div>
-                      <span className="thread-msg-time" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        {fmtFull(m.created_at)}
-                        {m.isMe && (
-                          <i className={`fa-solid fa-check${m.lu ? "-double" : ""}`} style={{ fontSize: ".65rem", color: m.lu ? "var(--primary)" : "var(--text-3)" }} />
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-              <div ref={bottomRef} />
-            </div>
-
-            <form className="messages-reply-form" onSubmit={handleSend}>
-              <div className="messages-reply-input-wrap">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  className="messages-reply-input"
-                  placeholder="Écrire un message…"
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  autoComplete="off"
-                />
-                <div className="emoji-picker-wrap" ref={emojiRef}>
-                  <button
-                    type="button"
-                    className={`messages-reply-icon-btn${emojiOpen ? " active" : ""}`}
-                    title="Emoji"
-                    onClick={() => setEmojiOpen((o) => !o)}
-                  >
-                    <i className="fa-regular fa-face-smile" />
-                  </button>
-                  {emojiOpen && (
-                    <div className="emoji-picker-popover" style={{ position: "absolute", bottom: "calc(100% + 12px)", right: 0, zIndex: 300 }}>
-                      <EmojiPicker
-                        onEmojiClick={onEmojiClick}
-                        theme={Theme.LIGHT}
-                        lazyLoadEmojis
-                        searchPlaceholder="Rechercher…"
-                        width={320}
-                        height={400}
-                        style={{
-                          "--epr-bg-color": "#ffffff",
-                          "--epr-category-label-bg-color": "#ffffff",
-                          "--epr-search-input-bg-color": "#F8FAFC",
-                          "--epr-hover-bg-color": "#EEF3FE",
-                          "--epr-focus-bg-color": "#EEF3FE",
-                          "--epr-highlight-color": "#1866F2",
-                          "--epr-search-border-color": "#D6DCE3",
-                          "--epr-border-color": "#D6DCE3",
-                          "--epr-text-color": "#1A202C",
-                          "--epr-search-input-text-color": "#1A202C",
-                          "--epr-search-input-placeholder-color": "#9CA3AF",
-                          boxShadow: "0 20px 40px rgba(0,0,0,.12)",
-                          borderRadius: "16px",
-                          border: "1px solid #D6DCE3",
-                        } as React.CSSProperties}
-                      />
-                    </div>
-                  )}
-                </div>
-                <button type="button" className="messages-reply-icon-btn" title="Joindre un fichier">
-                  <i className="fa-solid fa-paperclip" />
-                </button>
-              </div>
-              <button
-                type="submit"
-                className="messages-reply-send"
-                disabled={!reply.trim()}
-                title="Envoyer"
-              >
-                <i className="fa-solid fa-paper-plane" />
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="messages-empty" style={{ minHeight: 400 }}>
-            <i className="fa-solid fa-comments" />
-            <p>Sélectionnez une conversation</p>
-          </div>
-        )}
       </div>
     </div>
   );
 }
+
+export default function OwnerMessagesPage() {
+  const { user } = useAuth();
+  const myId    = user?.id ?? 0;
+  const myEmail = user?.email ?? "";
+
+  const [messages, setMessages]         = useState<MessageAPI[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState("");
+  const [selectedId, setSelectedId]     = useState<number | null>(null);
+  const [draftPartner, setDraftPartner] = useState<Partner | null>(null);
+  const [reply, setReply]               = useState("");
+  const [sending, setSending]           = useState(false);
+  const [search, setSearch]             = useState("");
+  const [newConvOpen, setNewConvOpen]   = useState(false);
+
+  const bottomRef   = useRef<HTMLDivElement>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef(messages);
+  const sendingRef  = useRef(false); // synchronous lock — prevents duplicate sends on rapid Enter/click
+  messagesRef.current = messages;
+
+  /* ── Fetch (initial + polling) ── */
+  const fetchMessages = useCallback(() => {
+    messagesApi.getAll().then(setMessages).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // Initial load with spinner
+    messagesApi.getAll()
+      .then(setMessages)
+      .catch(() => setError("Impossible de charger les messages."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    // Poll every 5 s (skip while loading to avoid race)
+    const id = setInterval(fetchMessages, 5000);
+    return () => clearInterval(id);
+  }, [fetchMessages]);
+
+  const conversations = useMemo(() => buildConversations(messages, myEmail), [messages, myEmail]);
+
+  const filteredConvs = useMemo(() => {
+    if (!search.trim()) return conversations;
+    const q = search.toLowerCase();
+    return conversations.filter((c) => `${c.partner.prenom} ${c.partner.nom}`.toLowerCase().includes(q) || c.lastMessage.contenu.toLowerCase().includes(q));
+  }, [conversations, search]);
+
+  const selected      = conversations.find((c) => c.partner.id === selectedId) ?? null;
+  const activePartner = selected?.partner ?? (selectedId && draftPartner?.id === selectedId ? draftPartner : null);
+  const totalUnread   = conversations.reduce((n, c) => n + c.unreadCount, 0);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [selectedId, messages.length]);
+
+  function selectConversation(partnerId: number, partner?: Partner) {
+    setSelectedId(partnerId);
+    setDraftPartner(partner ?? null);
+    setReply("");
+    setTimeout(() => inputRef.current?.focus(), 60);
+    const unread = messagesRef.current.filter((m) => !m.lu && m.destinataire.email === myEmail && m.expediteur.id === partnerId);
+    if (!unread.length) return;
+    Promise.allSettled(unread.map((m) => messagesApi.markAsRead(m.id))).then(() => {
+      setMessages((prev) => prev.map((m) => (unread.some((u) => u.id === m.id) ? { ...m, lu: true } : m)));
+    });
+  }
+
+  function handleNewConvSelect(partner: Partner) {
+    setNewConvOpen(false);
+    selectConversation(partner.id, partner);
+  }
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reply.trim() || !selectedId || sendingRef.current) return;
+    sendingRef.current = true;
+    setSending(true);
+    try {
+      const sent = await messagesApi.send({ contenu: reply.trim(), id_destinataire: selectedId });
+      setMessages((prev) => [...prev, sent]);
+      setDraftPartner(null);
+      setReply("");
+    } catch { /* silent */ } finally {
+      sendingRef.current = false;
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {newConvOpen && <NewConvModal myId={myId} onSelect={handleNewConvSelect} onClose={() => setNewConvOpen(false)} />}
+      <div className="messages-full-wrap">
+        <div className="messages-layout">
+
+          {/* Left panel */}
+          <div className="messages-list">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 10px", borderBottom: "1px solid var(--border)", gap: 8 }}>
+              <div>
+                <strong style={{ fontSize: ".9375rem" }}>Messages</strong>
+                {!loading && (
+                  <span style={{ marginLeft: 8, fontSize: ".75rem", fontWeight: 700, background: totalUnread > 0 ? "var(--primary)" : "var(--bg)", color: totalUnread > 0 ? "#fff" : "var(--text-3)", padding: "2px 7px", borderRadius: 20 }}>
+                    {totalUnread > 0 ? `${totalUnread} non-lu${totalUnread > 1 ? "s" : ""}` : `${conversations.length} conv.`}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => setNewConvOpen(true)} title="Nouvelle discussion"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".875rem", flexShrink: 0 }}>
+                <i className="fa-solid fa-pen-to-square" />
+              </button>
+            </div>
+            <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ position: "relative" }}>
+                <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: ".75rem", pointerEvents: "none" }} />
+                <input type="text" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)}
+                  style={{ width: "100%", padding: "7px 10px 7px 28px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".8125rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--primary)")} onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
+              </div>
+            </div>
+            {loading ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> Chargement…</div>
+            ) : error ? (
+              <div style={{ flex: 1, padding: "20px 16px", color: "var(--red)", fontSize: ".875rem" }}><i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 8 }} />{error}</div>
+            ) : filteredConvs.length === 0 ? (
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "28px 20px", color: "var(--text-3)", gap: 10, textAlign: "center" }}>
+                <i className="fa-solid fa-comments" style={{ fontSize: "2rem", opacity: .3 }} />
+                <p style={{ fontSize: ".875rem" }}>{search ? "Aucun résultat" : "Aucune conversation"}</p>
+                {!search && <button onClick={() => setNewConvOpen(true)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: "var(--radius-lg)", border: "1.5px solid var(--border)", background: "var(--card-bg)", color: "var(--text)", fontSize: ".8125rem", fontWeight: 600, cursor: "pointer" }}><i className="fa-solid fa-plus" /> Démarrer une discussion</button>}
+              </div>
+            ) : (
+              <div className="messages-list-scroll">
+                {filteredConvs.map((conv) => {
+                  const isSelected = conv.partner.id === selectedId;
+                  const last = conv.lastMessage;
+                  const isLastMine = last.expediteur.id !== conv.partner.id;
+                  const initials = `${conv.partner.prenom[0] ?? ""}${conv.partner.nom[0] ?? ""}`.toUpperCase();
+                  return (
+                    <div key={conv.partner.id} className={`message-item${conv.unreadCount > 0 ? " unread" : ""}${isSelected ? " selected" : ""}`}
+                      onClick={() => selectConversation(conv.partner.id)} role="button" tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && selectConversation(conv.partner.id)}>
+                      <div className="message-avatar" style={{ background: avatarColor(conv.partner.id) }}>{initials}</div>
+                      <div className="message-content">
+                        <div className="message-hd">
+                          <strong>{conv.partner.prenom} {conv.partner.nom}</strong>
+                          <span className="message-date">{fmtRelative(last.dateEnvoi)}</span>
+                        </div>
+                        <p className="message-preview">{isLastMine ? `Vous : ${last.contenu}` : last.contenu}</p>
+                      </div>
+                      {conv.unreadCount > 0 && <div className="message-unread-badge">{conv.unreadCount}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Right panel */}
+          {activePartner ? (
+            <div className="messages-thread">
+              <div className="messages-thread-hd">
+                <div className="message-avatar" style={{ background: avatarColor(activePartner.id), width: 40, height: 40, fontSize: ".875rem", flexShrink: 0 }}>
+                  {`${activePartner.prenom[0] ?? ""}${activePartner.nom[0] ?? ""}`.toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{activePartner.prenom} {activePartner.nom}</strong>
+                  <p className="messages-thread-status" style={{ color: "var(--text-3)", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>{activePartner.email}</p>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
+                  {selected && <span style={{ fontSize: ".75rem", color: "var(--text-3)", background: "var(--bg)", borderRadius: 20, padding: "3px 10px", fontWeight: 600 }}>{selected.messages.length} message{selected.messages.length !== 1 ? "s" : ""}</span>}
+                  <a href={`mailto:${activePartner.email}`} className="messages-thread-icon-btn" title="Email externe"><i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: ".75rem" }} /></a>
+                </div>
+              </div>
+              <div className="messages-thread-body">
+                {!selected ? (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--text-3)", textAlign: "center", padding: "32px 24px" }}>
+                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: avatarColor(activePartner.id), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "1.125rem" }}>
+                      {`${activePartner.prenom[0] ?? ""}${activePartner.nom[0] ?? ""}`.toUpperCase()}
+                    </div>
+                    <div>
+                      <strong style={{ display: "block", fontSize: ".9375rem", color: "var(--text)", marginBottom: 4 }}>{activePartner.prenom} {activePartner.nom}</strong>
+                      <span style={{ fontSize: ".8125rem" }}>Démarrez la conversation en envoyant votre premier message.</span>
+                    </div>
+                  </div>
+                ) : selected.messages.map((msg, i) => {
+                  // A message is "mine" when the sender is NOT the partner
+                  const isMe = msg.expediteur.id !== selected.partner.id;
+                  const prev = selected.messages[i - 1];
+                  const newDay = i === 0 || new Date(msg.dateEnvoi).toDateString() !== new Date(prev.dateEnvoi).toDateString();
+                  return (
+                    <div key={msg.id}>
+                      {newDay && <div style={{ textAlign: "center", margin: "6px 0" }}><span style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 12px", fontSize: ".72rem", color: "var(--text-3)" }}>{fmtFullDay(msg.dateEnvoi)}</span></div>}
+                      <div className={`thread-msg${isMe ? " thread-msg--me" : ""}`}>
+                        {!isMe && <div style={{ fontSize: ".75rem", color: "var(--text-3)", marginBottom: 3, fontWeight: 600 }}>{msg.expediteur.prenom}</div>}
+                        <div className="thread-msg-bubble">{msg.contenu}</div>
+                        <span className="thread-msg-time" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          {fmtTime(msg.dateEnvoi)}
+                          {isMe && <i className={`fa-solid fa-check${msg.lu ? "-double" : ""}`} style={{ fontSize: ".6rem", color: msg.lu ? "var(--primary)" : "var(--text-3)" }} />}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={bottomRef} />
+              </div>
+              <form className="messages-reply-form" onSubmit={handleSend}>
+                <div className="messages-reply-input-wrap">
+                  <input ref={inputRef} type="text" className="messages-reply-input" placeholder={`Message à ${activePartner.prenom}…`}
+                    value={reply} onChange={(e) => setReply(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) handleSend(e as unknown as React.FormEvent); }}
+                    autoComplete="off" disabled={sending} />
+                </div>
+                <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title="Envoyer (Entrée)"
+                  style={{ border: "none", background: reply.trim() ? "var(--primary)" : "var(--border)", color: reply.trim() ? "#fff" : "var(--text-3)", cursor: !reply.trim() || sending ? "not-allowed" : "pointer", transition: "background .18s, color .18s" }}>
+                  {sending ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-paper-plane" />}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="messages-empty" style={{ flexDirection: "column", gap: 16 }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--primary-light)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>
+                <i className="fa-solid fa-comments" />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Vos messages</p>
+                <p style={{ fontSize: ".875rem", color: "var(--text-2)", maxWidth: 260 }}>Sélectionnez une conversation ou démarrez-en une nouvelle.</p>
+              </div>
+              <button onClick={() => setNewConvOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: "var(--radius-lg)", border: "none", background: "var(--primary)", color: "#fff", fontWeight: 600, fontSize: ".875rem", cursor: "pointer" }}>
+                <i className="fa-solid fa-pen-to-square" /> Nouvelle discussion
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </>
+  );
+}
+
