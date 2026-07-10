@@ -9,8 +9,8 @@ export { api, setToken, removeToken, setRoleCookie, ApiError } from "./api-clien
 export { apiLogin, apiRegister, apiLogout, apiForgotPassword } from "./auth-api";
 export type { LoginPayload, RegisterPayload } from "./auth-api";
 
-export { boatsApi, resolvePhotoUrl } from "./boats-api";
-export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload } from "./boats-api";
+export { boatsApi, resolvePhotoUrl, StatutBateau } from "./boats-api";
+export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload, DocumentAPI, StatutBateauValue } from "./boats-api";
 
 export { reservationsApi, avisApi } from "./reservations-api";
 export type { ReservationAPI, CreateReservationPayload, AvisAPI } from "./reservations-api";

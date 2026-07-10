@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { referentielsApi, portsApi } from "@/shared/lib/referentiels-api";
-import type { TypeBateauAPI, PortAPI } from "@/shared/lib/referentiels-api";
+import type { TypeBateauAPI, PortAPI, TypeDocumentAPI } from "@/shared/lib/referentiels-api";
 import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { uploadPhoto } from "../api/photos";
-import { createDisponibilite } from "../api/disponibilites";
+import { uploadDocument } from "../api/documents";
 import { compressImage } from "../lib/compressImage";
 import { STEPS, MIN_PHOTOS, MAX_PHOTOS, MOTORISATION_OPTIONS } from "../model/constants";
-import type { PhotoEntry, DisponibiliteSlot, Motorisation, SubmitStep } from "../model/types";
+import type { PhotoEntry, DocumentEntry, Motorisation, SubmitStep } from "../model/types";
 import { loadDraft, clearDraft, useFormDraft } from "../lib/useFormDraft";
+import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/filesDraft";
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
-import DispoDateRangePicker from "./DispoDateRangePicker";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
 
@@ -25,14 +25,17 @@ export default function ListBoatForm() {
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [submitStep, setSubmitStep] = useState<SubmitStep>("idle");
-  const [uploadedCount, setUploadedCount] = useState(0);
+  const [uploadedPhotos, setUploadedPhotos] = useState(0);
+  const [uploadedDocs, setUploadedDocs] = useState(0);
   const [submitError, setSubmitError] = useState("");
   const [draftRestored, setDraftRestored] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const submittingRef = useRef(false);
 
   /* ── Données API ── */
   const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
   const [ports,     setPorts]     = useState<PortAPI[]>([]);
+  const [docTypes,  setDocTypes]  = useState<TypeDocumentAPI[]>([]);
 
   useEffect(() => {
     referentielsApi.getTypesBateaux()
@@ -53,6 +56,16 @@ export default function ListBoatForm() {
         setPorts(arr);
       })
       .catch(() => {});
+    referentielsApi.getTypesDocuments()
+      .then((res) => {
+        const arr = Array.isArray(res) ? res
+          : (res as Record<string, unknown>)?.["hydra:member"] as TypeDocumentAPI[]
+          ?? (res as Record<string, unknown>)?.["data"]         as TypeDocumentAPI[]
+          ?? [];
+        console.log("document types: ", res)
+        setDocTypes(arr);
+      })
+      .catch(() => {});
   }, []);
 
   /* ── Form state ── */
@@ -65,51 +78,72 @@ export default function ListBoatForm() {
   const [length,          setLength]          = useState("");
   const [capacity,        setCapacity]        = useState("");
   const [cabins,          setCabins]          = useState("");
-  const [year,            setYear]            = useState("");
   const [permisRequis,    setPermisRequis]    = useState(false);
   const [carburantInclus, setCarburantInclus] = useState(false);
   const [skipper,         setSkipper]         = useState(false);
   const [description,     setDescription]     = useState("");
   const [pricePerDay,     setPricePerDay]     = useState("");
-  const [caution,         setCaution]         = useState("2000");
+  const [prixHeure,       setPrixHeure]       = useState("");
+  const [caution,         setCaution]         = useState("");
 
   const [photos,     setPhotos]     = useState<PhotoEntry[]>([]);
   const [photoError, setPhotoError] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [disponibilites, setDisponibilites] = useState<DisponibiliteSlot[]>([
-    { date_debut: "", date_fin: "" },
-  ]);
+  /* ── 3 slots de documents fixes ── */
+  const [docCarteGrise, setDocCarteGrise] = useState<File | null>(null);
+  const [docAssurance,  setDocAssurance]  = useState<File | null>(null);
+  const [docCertificat, setDocCertificat] = useState<File | null>(null);
+  const refCarteGrise = useRef<HTMLInputElement>(null);
+  const refAssurance  = useRef<HTMLInputElement>(null);
+  const refCertificat = useRef<HTMLInputElement>(null);
 
   /* ── Restauration du brouillon au montage ── */
   useEffect(() => {
     const draft = loadDraft();
     if (!draft) return;
-    setTypeId(draft.typeId);
-    setMotorisation(draft.motorisation);
-    setName(draft.name);
-    setPortId(draft.portId);
-    setLength(draft.length);
-    setCapacity(draft.capacity);
-    setCabins(draft.cabins);
-    setYear(draft.year);
-    setPermisRequis(draft.permisRequis);
-    setCarburantInclus(draft.carburantInclus);
-    setSkipper(draft.skipper);
-    setDescription(draft.description);
-    setPricePerDay(draft.pricePerDay);
-    setCaution(draft.caution);
-    if (draft.disponibilites?.length) setDisponibilites(draft.disponibilites);
-    setDraftRestored(true);
+    if (draft.typeId     !== undefined) setTypeId(draft.typeId);
+    if (draft.motorisation)             setMotorisation(draft.motorisation);
+    if (draft.name)                     setName(draft.name);
+    if (draft.portId     !== undefined) setPortId(draft.portId);
+    if (draft.length     !== undefined) setLength(draft.length);
+    if (draft.capacity   !== undefined) setCapacity(draft.capacity);
+    if (draft.cabins     !== undefined) setCabins(draft.cabins);
+    if (draft.permisRequis    !== undefined) setPermisRequis(draft.permisRequis);
+    if (draft.carburantInclus !== undefined) setCarburantInclus(draft.carburantInclus);
+    if (draft.skipper    !== undefined) setSkipper(draft.skipper);
+    if (draft.description !== undefined) setDescription(draft.description);
+    if (draft.pricePerDay !== undefined) setPricePerDay(draft.pricePerDay);
+    if (draft.prixHeure   !== undefined) setPrixHeure(draft.prixHeure);
+    if (draft.caution     !== undefined) setCaution(draft.caution);
+    if (draft.step        !== undefined) setStep(draft.step);
+    if (draft) setDraftRestored(true);
+
+    // Restauration des fichiers depuis IndexedDB (async)
+    loadFilesFromDraft().then(async (files) => {
+      if (!files) return;
+      if (files.photos.length > 0) {
+        const entries = await Promise.all(
+          files.photos.map(async (file) => ({ file, preview: await compressImage(file) })),
+        );
+        setPhotos(entries);
+      }
+      if (files.carteGrise) setDocCarteGrise(files.carteGrise);
+      if (files.assurance)  setDocAssurance(files.assurance);
+      if (files.certificat) setDocCertificat(files.certificat);
+      if (!draft && (files.photos.length > 0 || files.carteGrise || files.assurance || files.certificat)) {
+        setDraftRestored(true);
+      }
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ── Auto-sauvegarde brouillon ── */
   useFormDraft({
-    typeId, motorisation, name, portId, length, capacity, cabins, year,
-    permisRequis, carburantInclus, skipper, description, pricePerDay, caution,
-    disponibilites,
+    typeId, motorisation, name, portId, length, capacity, cabins,
+    permisRequis, carburantInclus, skipper, description, pricePerDay, prixHeure, caution,
+    step,
   });
 
   const [stepError, setStepError] = useState("");
@@ -118,9 +152,11 @@ export default function ListBoatForm() {
     setStepError("");
 
     if (step === 0) {
-      if (!typeId)   { setStepError("Veuillez sélectionner un type de bateau."); return; }
-      if (!name.trim()) { setStepError("Veuillez saisir le nom du bateau."); return; }
-      if (!portId)   { setStepError("Veuillez sélectionner un port d'attache."); return; }
+      if (!typeId)        { setStepError("Veuillez sélectionner un type de bateau."); return; }
+      if (!name.trim())   { setStepError("Veuillez saisir le nom du bateau."); return; }
+      if (!portId)        { setStepError("Veuillez sélectionner un port d'attache."); return; }
+      if (!length.trim()) { setStepError("Veuillez saisir la taille du bateau."); return; }
+      if (!pricePerDay)   { setStepError("Veuillez saisir le prix par jour."); return; }
     }
 
     if (step === 1 && photos.length < MIN_PHOTOS) {
@@ -128,10 +164,25 @@ export default function ListBoatForm() {
       return;
     }
 
+    if (step === 2) {
+      if (!docCarteGrise) { setStepError("Veuillez joindre la carte grise."); return; }
+      if (!docAssurance)  { setStepError("Veuillez joindre l'attestation d'assurance."); return; }
+      if (!docCertificat) { setStepError("Veuillez joindre le certificat."); return; }
+    }
+
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   };
+
   const prev = () => { setStepError(""); setStep((s) => Math.max(s - 1, 0)); };
 
+  /* ── Sauvegarder et reprendre plus tard ── */
+  const handleSaveAndExit = async () => {
+    await saveFilesToDraft({ photos, carteGrise: docCarteGrise, assurance: docAssurance, certificat: docCertificat });
+    setDraftSaved(true);
+    setTimeout(() => router.push("/proprietaire/bateaux"), 1800);
+  };
+
+  /* ── Photos helpers ── */
   const addFiles = async (files: FileList | File[]) => {
     const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
     if (imageFiles.length === 0) return;
@@ -162,8 +213,8 @@ export default function ListBoatForm() {
     });
   };
 
-  const handleLocatePort = async (portId: number) => {
-    const port = ports.find((p) => p.id === portId);
+  const handleLocatePort = async (id: number) => {
+    const port = ports.find((p) => p.id === id);
     if (!port?.ville) return;
     setGeocodeStatus("loading");
     try {
@@ -175,19 +226,17 @@ export default function ListBoatForm() {
     }
   };
 
-  /* ── Dispo helpers ── */
-  const addSlot = () =>
-    setDisponibilites((prev) => [...prev, { date_debut: "", date_fin: "" }]);
+  /* ── Recherche du type document par mots-clés ── */
+  const findDocTypeId = (keywords: string[]): number | null => {
+    if (!docTypes.length) return null;
+    const match = docTypes.find((dt) => {
+      const label = (dt.labelTypeDocument ?? dt.libelle ?? "").toLowerCase();
+      return keywords.some((kw) => label.includes(kw));
+    });
+    return match?.id ?? docTypes[0]?.id ?? null;
+  };
 
-  const removeSlot = (i: number) =>
-    setDisponibilites((prev) => prev.filter((_, idx) => idx !== i));
-
-  const updateSlot = (i: number, field: keyof DisponibiliteSlot, value: string) =>
-    setDisponibilites((prev) =>
-      prev.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)),
-    );
-
-  /* ── Submit : flux 3 étapes ── */
+  /* ── Submit ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submittingRef.current) return;
@@ -195,7 +244,7 @@ export default function ListBoatForm() {
     setSubmitError("");
 
     try {
-      if (!typeId || !portId || !name || !pricePerDay) {
+      if (!typeId || !portId || !name || !pricePerDay || !length) {
         setSubmitError("Veuillez remplir tous les champs obligatoires.");
         return;
       }
@@ -203,40 +252,52 @@ export default function ListBoatForm() {
       // Étape 1 — Créer le bateau
       setSubmitStep("boat");
       const boat = await boatsApi.create({
-        nom_bateau:      name,
+        nom_bateau:       name,
         motorisation,
-        taille:          length ? `${length}m` : "—",
-        prix_jour:       parseFloat(pricePerDay),
-        id_port:         portId,
-        id_utilisateur:  user?.id ?? 0,
-        id_type_bateau:  typeId,
-        capacite:        capacity ? parseInt(capacity, 10) : undefined,
-        avec_skipper:    skipper,
-        description:     description || undefined,
-        caution:         caution ? parseFloat(caution) : undefined,
-        permis_requis:   permisRequis,
-        nombre_cabines:  cabins ? parseInt(cabins, 10) : undefined,
+        taille:           length.trim().endsWith("m") ? length.trim() : `${length.trim()}m`,
+        prix_jour:        parseFloat(pricePerDay),
+        id_port:          portId,
+        id_utilisateur:   user?.id ?? 0,
+        id_type_bateau:   typeId,
+        capacite:         capacity ? parseInt(capacity, 10) : undefined,
+        avec_skipper:     skipper,
+        description:      description || undefined,
+        caution:          caution ? parseFloat(caution) : undefined,
+        permis_requis:    permisRequis,
+        nombre_cabines:   cabins ? parseInt(cabins, 10) : undefined,
         carburant_inclus: carburantInclus,
+        prix_heure:       prixHeure ? parseFloat(prixHeure) : undefined,
       });
 
       // Étape 2 — Uploader les photos
       setSubmitStep("photos");
-      setUploadedCount(0);
+      setUploadedPhotos(0);
       for (let i = 0; i < photos.length; i++) {
         await uploadPhoto(boat.id, photos[i].file, i + 1);
-        setUploadedCount(i + 1);
+        setUploadedPhotos(i + 1);
       }
 
-      // Étape 3 — Créer les disponibilités
-      const validSlots = disponibilites.filter((s) => s.date_debut);
-      if (validSlots.length > 0) {
-        setSubmitStep("disponibilites");
-        for (const slot of validSlots) {
-          await createDisponibilite(boat.id, slot);
+      // Étape 3 — Uploader les documents
+      const docSlots = [
+        { file: docCarteGrise, keywords: ["carte grise", "grise"] },          // id 10
+        { file: docAssurance,  keywords: ["assurance"] },                     // id 11
+        { file: docCertificat, keywords: ["certificat ce", "certificat"] },   // id 12
+      ].filter((s): s is { file: File; keywords: string[] } => s.file !== null);
+
+      if (docSlots.length > 0) {
+        setSubmitStep("documents");
+        setUploadedDocs(0);
+        for (let i = 0; i < docSlots.length; i++) {
+          const typeId = findDocTypeId(docSlots[i].keywords);
+          if (typeId) {
+            await uploadDocument(boat.id, docSlots[i].file, typeId);
+          }
+          setUploadedDocs(i + 1);
         }
       }
 
       clearDraft();
+      clearFilesDraft();
       router.push("/proprietaire/bateaux");
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Erreur lors de la soumission.");
@@ -254,11 +315,22 @@ export default function ListBoatForm() {
 
   function submitLabel() {
     switch (submitStep) {
-      case "boat":           return <><i className="fa-solid fa-circle-notch fa-spin" /> Création du bateau…</>;
-      case "photos":         return <><i className="fa-solid fa-circle-notch fa-spin" /> Photos ({uploadedCount}/{photos.length})…</>;
-      case "disponibilites": return <><i className="fa-solid fa-circle-notch fa-spin" /> Disponibilités…</>;
-      default:               return <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>;
+      case "boat":      return <><i className="fa-solid fa-circle-notch fa-spin" /> Création du bateau…</>;
+      case "photos":    return <><i className="fa-solid fa-circle-notch fa-spin" /> Photos ({uploadedPhotos}/{photos.length})…</>;
+      case "documents": return <><i className="fa-solid fa-circle-notch fa-spin" /> Documents ({uploadedDocs}/{[docCarteGrise, docAssurance, docCertificat].filter(Boolean).length})…</>;
+      default:          return <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>;
     }
+  }
+
+  if (draftSaved) {
+    return (
+      <div className="save-confirm">
+        <i className="fa-solid fa-circle-check" />
+        <h3>Brouillon sauvegardé !</h3>
+        <p>Vos informations ont été enregistrées. Vous pouvez reprendre à tout moment.</p>
+        <small>Redirection vers votre espace…</small>
+      </div>
+    );
   }
 
   return (
@@ -270,7 +342,16 @@ export default function ListBoatForm() {
           <button
             type="button"
             className="draft-banner-clear"
-            onClick={() => { clearDraft(); setDraftRestored(false); }}
+            onClick={() => {
+              clearDraft();
+              clearFilesDraft();
+              setDraftRestored(false);
+              setTypeId(null); setMotorisation("voile"); setName(""); setPortId(null);
+              setLength(""); setCapacity(""); setCabins(""); setPermisRequis(false);
+              setCarburantInclus(false); setSkipper(false); setDescription("");
+              setPricePerDay(""); setPrixHeure(""); setCaution(""); setStep(0);
+              setPhotos([]); setDocCarteGrise(null); setDocAssurance(null); setDocCertificat(null);
+            }}
             title="Effacer le brouillon"
           >
             <i className="fa-solid fa-xmark" /> Effacer
@@ -278,6 +359,7 @@ export default function ListBoatForm() {
         </div>
       )}
 
+      {/* ── Progress wizard ── */}
       <div className="form-wizard">
         <div className="form-wizard-steps">
           {STEPS.map((s, i) => (
@@ -293,28 +375,28 @@ export default function ListBoatForm() {
       </div>
 
       <div className="list-boat-body">
+
+        {/* ── ÉTAPE 0 — INFORMATIONS ── */}
         {step === 0 && (
           <div className="form-section">
-            <h3>Type de bateau</h3>
+            <h3>Type de bateau *</h3>
             {boatTypes.length === 0 ? (
               <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>
                 <i className="fa-solid fa-circle-notch fa-spin" /> Chargement des types…
               </p>
             ) : (
-              <>
-                <SearchableSelect
-                  id="lb-type"
-                  options={boatTypes.map((bt) => ({ value: bt.id, label: bt.labelTypeBateau }))}
-                  value={typeId}
-                  onChange={(v) => setTypeId(Number(v))}
-                  placeholder="Sélectionner un type de bateau…"
-                  searchPlaceholder="Rechercher un type…"
-                  required
-                />
-              </>
+              <SearchableSelect
+                id="lb-type"
+                options={boatTypes.map((bt) => ({ value: bt.id, label: bt.labelTypeBateau }))}
+                value={typeId}
+                onChange={(v) => { setTypeId(Number(v)); setStepError(""); }}
+                placeholder="Sélectionner un type de bateau…"
+                searchPlaceholder="Rechercher un type…"
+                required
+              />
             )}
 
-            <h3 style={{ marginTop: "24px" }}>Motorisation</h3>
+            <h3 style={{ marginTop: "24px" }}>Motorisation *</h3>
             <div className="radio-group">
               {MOTORISATION_OPTIONS.map((opt) => (
                 <label key={opt.value} className="radio-label">
@@ -330,7 +412,7 @@ export default function ListBoatForm() {
               ))}
             </div>
 
-            <h3 style={{ marginTop: "24px" }}>Informations techniques</h3>
+            <h3 style={{ marginTop: "24px" }}>Informations générales</h3>
             <div className="form-group">
               <label htmlFor="lb-name">Nom du bateau *</label>
               <input
@@ -369,8 +451,16 @@ export default function ListBoatForm() {
                 </div>
               </div>
               <div className="form-group">
-                <label htmlFor="lb-year">Année de construction</label>
-                <input id="lb-year" type="number" placeholder="2020" min="1970" max={new Date().getFullYear()} value={year} onChange={(e) => setYear(e.target.value)} />
+                <label htmlFor="lb-length">Taille *</label>
+                <input
+                  id="lb-length"
+                  type="text"
+                  placeholder="Ex: 12m"
+                  value={length}
+                  onChange={(e) => { setLength(e.target.value); setStepError(""); }}
+                  className={stepError && !length.trim() ? "input-error" : ""}
+                  required
+                />
               </div>
             </div>
 
@@ -379,47 +469,92 @@ export default function ListBoatForm() {
                 <LocationMap lat={geocodeResult.lat} lng={geocodeResult.lng} />
               </div>
             )}
+
             <div className="form-row-3">
               <div className="form-group">
-                <label htmlFor="lb-length">Longueur (m)</label>
-                <input id="lb-length" type="text" placeholder="10.5" value={length} onChange={(e) => setLength(e.target.value)} />
-              </div>
-              <div className="form-group">
                 <label htmlFor="lb-capacity">Capacité (pers.)</label>
-                <input id="lb-capacity" type="number" placeholder="6" min="1" max="30" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+                <input id="lb-capacity" type="number" placeholder="8" min="1" max="30" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
               </div>
               <div className="form-group">
                 <label htmlFor="lb-cabins">Cabines</label>
-                <input id="lb-cabins" type="number" placeholder="2" min="0" max="10" value={cabins} onChange={(e) => setCabins(e.target.value)} />
+                <input id="lb-cabins" type="number" placeholder="3" min="0" max="10" value={cabins} onChange={(e) => setCabins(e.target.value)} />
               </div>
             </div>
+
+            <h3 style={{ marginTop: "24px" }}>Options</h3>
+            <div className="checkbox-group">
+              <label className="checkbox-label">
+                <input type="checkbox" checked={skipper} onChange={(e) => setSkipper(e.target.checked)} />
+                Avec skipper disponible
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" checked={permisRequis} onChange={(e) => setPermisRequis(e.target.checked)} />
+                Permis requis
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" checked={carburantInclus} onChange={(e) => setCarburantInclus(e.target.checked)} />
+                Carburant inclus
+              </label>
+            </div>
+
+            <h3 style={{ marginTop: "24px" }}>Tarification</h3>
             <div className="form-row-2">
               <div className="form-group">
-                <label>Permis requis</label>
-                <div className="radio-group">
-                  <label className="radio-label">
-                    <input type="radio" name="permis" checked={permisRequis} onChange={() => setPermisRequis(true)} /> Requis
-                  </label>
-                  <label className="radio-label">
-                    <input type="radio" name="permis" checked={!permisRequis} onChange={() => setPermisRequis(false)} /> Non requis
-                  </label>
+                <label htmlFor="lb-price">Prix par jour (€) *</label>
+                <div className="input-prefix-wrap">
+                  <span className="input-prefix">€</span>
+                  <input
+                    id="lb-price"
+                    type="number"
+                    placeholder="250.00"
+                    min="10"
+                    step="0.01"
+                    value={pricePerDay}
+                    onChange={(e) => { setPricePerDay(e.target.value); setStepError(""); }}
+                    className={stepError && !pricePerDay ? "input-error" : ""}
+                    required
+                  />
                 </div>
               </div>
               <div className="form-group">
-                <label>Options</label>
-                <div className="checkbox-group">
-                  <label className="checkbox-label">
-                    <input type="checkbox" checked={skipper} onChange={(e) => setSkipper(e.target.checked)} /> Avec skipper disponible
-                  </label>
-                  <label className="checkbox-label">
-                    <input type="checkbox" checked={carburantInclus} onChange={(e) => setCarburantInclus(e.target.checked)} /> Carburant inclus
-                  </label>
+                <label htmlFor="lb-prix-heure">Prix par heure (€)</label>
+                <div className="input-prefix-wrap">
+                  <span className="input-prefix">€</span>
+                  <input
+                    id="lb-prix-heure"
+                    type="number"
+                    placeholder="50.00"
+                    min="0"
+                    step="0.01"
+                    value={prixHeure}
+                    onChange={(e) => setPrixHeure(e.target.value)}
+                  />
                 </div>
               </div>
+            </div>
+            <div className="form-group">
+              <label htmlFor="lb-caution">Caution (€)</label>
+              <div className="input-prefix-wrap">
+                <span className="input-prefix">€</span>
+                <input id="lb-caution" type="number" placeholder="500" min="0" step="0.01" value={caution} onChange={(e) => setCaution(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: "8px" }}>
+              <label htmlFor="lb-desc">Description</label>
+              <textarea
+                id="lb-desc"
+                rows={5}
+                placeholder="Décrivez votre bateau : ses atouts, son histoire, les zones de navigation idéales, le matériel inclus…"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <small className="form-hint">{description.length}/2000 caractères</small>
             </div>
           </div>
         )}
 
+        {/* ── ÉTAPE 1 — PHOTOS ── */}
         {step === 1 && (
           <div className="form-section">
             <h3>Photos de votre bateau</h3>
@@ -437,10 +572,7 @@ export default function ListBoatForm() {
             <div
               className={`photo-upload-zone${dragActive ? " drag-active" : ""}`}
               onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
+              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
               onDragLeave={() => setDragActive(false)}
               onDrop={handleDrop}
               role="button"
@@ -448,7 +580,7 @@ export default function ListBoatForm() {
             >
               <i className="fa-solid fa-cloud-arrow-up" />
               <p><strong>Glissez vos photos ici</strong> ou cliquez pour sélectionner</p>
-              <small>JPG, PNG — Minimum {MIN_PHOTOS} photos, {MAX_PHOTOS} maximum</small>
+              <small>JPG, PNG, WEBP — Minimum {MIN_PHOTOS} photos, {MAX_PHOTOS} maximum</small>
               <button type="button" className="btn btn-outline btn-sm" onClick={(e) => e.stopPropagation()}>
                 <i className="fa-solid fa-image" /> Choisir des photos
               </button>
@@ -459,9 +591,7 @@ export default function ListBoatForm() {
               {photos.length} / {MIN_PHOTOS} photos minimum
             </div>
             {photoError && (
-              <small className="form-hint" style={{ color: "var(--red)" }}>
-                {photoError}
-              </small>
+              <small className="form-hint" style={{ color: "var(--red)" }}>{photoError}</small>
             )}
 
             {photos.length > 0 && (
@@ -500,76 +630,102 @@ export default function ListBoatForm() {
                 <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> Cuisine et salle de bain</li>
               </ul>
             </div>
-            <div className="form-group" style={{ marginTop: "32px" }}>
-              <label htmlFor="lb-desc">Description *</label>
-              <textarea
-                id="lb-desc"
-                rows={6}
-                placeholder="Décrivez votre bateau : ses atouts, son histoire, les zones de navigation idéales, le matériel inclus…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-              <small className="form-hint">{description.length}/2000 caractères (minimum 100 recommandés)</small>
-            </div>
           </div>
         )}
 
+        {/* ── ÉTAPE 2 — DOCUMENTS ── */}
         {step === 2 && (
           <div className="form-section">
-            <h3>Tarification</h3>
-            <div className="form-group">
-              <label htmlFor="lb-price">Prix par jour (€) *</label>
-              <div className="input-prefix-wrap">
-                <span className="input-prefix">€</span>
-                <input id="lb-price" type="number" placeholder="350" min="10" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} required />
-              </div>
-              <small className="form-hint">Bateaux similaires sur SailingLoc : 200 € – 900 € / jour</small>
+            <h3>Documents justificatifs</h3>
+            <div className="form-section-desc-box">
+              <i className="fa-solid fa-circle-exclamation" />
+              <p>
+                Les 3 documents sont <strong>obligatoires</strong> pour soumettre votre annonce.
+                Ils permettent à l&apos;admin de vérifier votre identité de propriétaire avant publication.
+              </p>
             </div>
-            <div className="form-group">
-              <label htmlFor="lb-caution">Caution (€)</label>
-              <div className="input-prefix-wrap">
-                <span className="input-prefix">€</span>
-                <input id="lb-caution" type="number" placeholder="2000" min="0" value={caution} onChange={(e) => setCaution(e.target.value)} />
+
+            {/* Carte grise */}
+            <div className="doc-slot">
+              <div className="doc-slot-header">
+                <i className="fa-solid fa-file-lines" />
+                <div>
+                  <span className="doc-slot-label">Carte grise <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">Certificat d&apos;immatriculation du bateau</span>
+                </div>
               </div>
+              {docCarteGrise ? (
+                <div className="doc-slot-file">
+                  <i className={`fa-solid ${docCarteGrise.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
+                  <span>{docCarteGrise.name}</span>
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocCarteGrise(null)} aria-label="Retirer">
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="doc-slot-btn" onClick={() => refCarteGrise.current?.click()}>
+                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                </button>
+              )}
+              <input ref={refCarteGrise} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocCarteGrise(e.target.files[0]); e.target.value = ""; }} />
             </div>
-            <div className="price-estimate">
-              <div className="price-estimate-title">Estimation mensuelle</div>
-              <div className="price-estimate-row">
-                <span>4 semaines × {pricePerDay ? `${pricePerDay} € × 7 j` : "—"}</span>
-                <strong>{pricePerDay ? `${(parseInt(pricePerDay) * 28 * 0.85).toLocaleString("fr-FR")} €` : "—"}</strong>
+
+            {/* Assurance */}
+            <div className="doc-slot">
+              <div className="doc-slot-header">
+                <i className="fa-solid fa-shield-halved" />
+                <div>
+                  <span className="doc-slot-label">Assurance <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">Attestation d&apos;assurance en cours de validité</span>
+                </div>
               </div>
-              <small>Après commission SailingLoc (15 %) et frais de service</small>
+              {docAssurance ? (
+                <div className="doc-slot-file">
+                  <i className={`fa-solid ${docAssurance.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
+                  <span>{docAssurance.name}</span>
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocAssurance(null)} aria-label="Retirer">
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="doc-slot-btn" onClick={() => refAssurance.current?.click()}>
+                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                </button>
+              )}
+              <input ref={refAssurance} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocAssurance(e.target.files[0]); e.target.value = ""; }} />
             </div>
+
+            {/* Certificat */}
+            <div className="doc-slot">
+              <div className="doc-slot-header">
+                <i className="fa-solid fa-certificate" />
+                <div>
+                  <span className="doc-slot-label">Certificat <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">Titre de propriété ou certificat de jauge</span>
+                </div>
+              </div>
+              {docCertificat ? (
+                <div className="doc-slot-file">
+                  <i className={`fa-solid ${docCertificat.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
+                  <span>{docCertificat.name}</span>
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocCertificat(null)} aria-label="Retirer">
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="doc-slot-btn" onClick={() => refCertificat.current?.click()}>
+                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                </button>
+              )}
+              <input ref={refCertificat} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocCertificat(e.target.files[0]); e.target.value = ""; }} />
+            </div>
+
 
           </div>
         )}
 
+        {/* ── ÉTAPE 3 — RÉCAPITULATIF ── */}
         {step === 3 && (
-          <div className="form-section">
-            <h3>Disponibilités</h3>
-            <p className="form-section-desc">Définissez les créneaux où votre bateau est disponible à la location.</p>
-
-            <div className="dispo-slots">
-              {disponibilites.map((slot, i) => (
-                <DispoDateRangePicker
-                  key={i}
-                  slot={slot}
-                  index={i}
-                  onChange={updateSlot}
-                  onRemove={removeSlot}
-                  canRemove={disponibilites.length > 1}
-                />
-              ))}
-            </div>
-
-            <button type="button" className="btn btn-outline btn-sm dispo-add-btn" onClick={addSlot}>
-              <i className="fa-solid fa-plus" /> Ajouter un créneau
-            </button>
-          </div>
-        )}
-
-        {step === 4 && (
           <div className="form-section">
             <h3>Récapitulatif de votre annonce</h3>
             <div className="list-boat-recap">
@@ -590,27 +746,63 @@ export default function ListBoatForm() {
                 <strong>{selectedPort ? `${selectedPort.nom} – ${selectedPort.ville}` : "—"}</strong>
               </div>
               <div className="recap-row">
+                <span><i className="fa-solid fa-ruler-horizontal" /> Taille</span>
+                <strong>{length || "—"}</strong>
+              </div>
+              {capacity && (
+                <div className="recap-row">
+                  <span><i className="fa-solid fa-users" /> Capacité</span>
+                  <strong>{capacity} pers.</strong>
+                </div>
+              )}
+              {cabins && (
+                <div className="recap-row">
+                  <span><i className="fa-solid fa-bed" /> Cabines</span>
+                  <strong>{cabins}</strong>
+                </div>
+              )}
+              <div className="recap-row">
                 <span><i className="fa-solid fa-image" /> Photos</span>
                 <strong>{photos.length} photo{photos.length !== 1 ? "s" : ""}</strong>
+              </div>
+              <div className="recap-row">
+                <span><i className="fa-solid fa-file" /> Documents</span>
+                <strong>
+                  {[docCarteGrise && "Carte grise", docAssurance && "Assurance", docCertificat && "Certificat"]
+                    .filter(Boolean).join(", ") || <span style={{ color: "var(--orange, #f59e0b)" }}>Aucun — validation admin retardée</span>}
+                </strong>
               </div>
               <div className="recap-row">
                 <span><i className="fa-solid fa-euro-sign" /> Prix / jour</span>
                 <strong>{pricePerDay ? `${pricePerDay} €` : "—"}</strong>
               </div>
-              <div className="recap-row">
-                <span><i className="fa-solid fa-shield-halved" /> Caution</span>
-                <strong>{caution ? `${caution} €` : "—"}</strong>
-              </div>
-              <div className="recap-row">
-                <span><i className="fa-solid fa-calendar" /> Créneaux</span>
-                <strong>{disponibilites.filter((s) => s.date_debut).length} créneau(x) défini(s)</strong>
-              </div>
+              {prixHeure && (
+                <div className="recap-row">
+                  <span><i className="fa-solid fa-euro-sign" /> Prix / heure</span>
+                  <strong>{prixHeure} €</strong>
+                </div>
+              )}
+              {caution && (
+                <div className="recap-row">
+                  <span><i className="fa-solid fa-shield-halved" /> Caution</span>
+                  <strong>{caution} €</strong>
+                </div>
+              )}
             </div>
+
+            <div className="recap-status-info">
+              <i className="fa-solid fa-hourglass-half" />
+              <p>
+                Votre bateau sera créé avec le statut <strong>« en attente de validation »</strong>.
+                Un admin le validera avant publication — assurez-vous d&apos;avoir joint les documents justificatifs.
+              </p>
+            </div>
+
             <div className="list-boat-cgv">
               <label className="checkbox-label">
                 <input type="checkbox" required />
                 <span>
-                  J'accepte les <a href="#" className="auth-link">conditions pour les propriétaires</a> et je certifie être le propriétaire ou le représentant légal de ce bateau.
+                  J&apos;accepte les <a href="#" className="auth-link">conditions pour les propriétaires</a> et je certifie être le propriétaire ou le représentant légal de ce bateau.
                 </span>
               </label>
             </div>
@@ -618,6 +810,7 @@ export default function ListBoatForm() {
         )}
       </div>
 
+      {/* ── Navigation ── */}
       <div className="form-wizard-nav">
         {step > 0 && (
           <button type="button" className="btn btn-outline" onClick={prev} disabled={isSubmitting}>
@@ -628,18 +821,29 @@ export default function ListBoatForm() {
           <p style={{ color: "var(--red)", fontSize: ".875rem", flex: 1, textAlign: "center" }}>
             <i className="fa-solid fa-triangle-exclamation" /> {stepError || submitError}
           </p>
-        )}        {step < STEPS.length - 1 ? (
-          <div style={{ width: '100%', padding: '10px', display: 'flex'  }}>
-          <button type="button" className="btn btn-primary" style={{ marginLeft: "auto" }} onClick={next}>
-            Continuer <i className="fa-solid fa-arrow-right" />
-          </button>
-          </div>
-        ) : (
-          <button type="submit" className="btn btn-primary" style={{ marginLeft: "auto" }} disabled={isSubmitting}>
-            {submitLabel()}
-          </button>
         )}
+        <div className="form-wizard-nav-actions">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={handleSaveAndExit}
+            disabled={isSubmitting}
+            title="Sauvegarder le brouillon et revenir plus tard"
+          >
+            <i className="fa-regular fa-floppy-disk" /> Sauvegarder
+          </button>
+          {step < STEPS.length - 1 ? (
+            <button type="button" className="btn btn-primary" onClick={next} disabled={isSubmitting}>
+              Continuer <i className="fa-solid fa-arrow-right" />
+            </button>
+          ) : (
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              {submitLabel()}
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );
 }
+
