@@ -23,6 +23,25 @@ export interface DisponibiliteAPI {
   id_bateau: number;
 }
 
+/** Statuts de bateau utilisés dans le module Publication */
+export const StatutBateau = {
+  EN_ATTENTE_VALIDATION: "en attente de validation",
+  DISPONIBLE: "disponible",
+  LOUE: "loué",
+  MAINTENANCE: "maintenance",
+  SUSPENDU: "suspendu",
+} as const;
+export type StatutBateauValue = typeof StatutBateau[keyof typeof StatutBateau];
+
+export interface DocumentAPI {
+  id: number;
+  url: string;
+  nom?: string;
+  id_type_document?: number;
+  type_document?: { id: number; labelTypeDocument?: string; libelle?: string };
+  created_at?: string;
+}
+
 export interface BoatAPI {
   id: number;
   nomBateau: string;
@@ -33,7 +52,7 @@ export interface BoatAPI {
   capacite?: number | null;
   avecSkipper: boolean;
   description?: string | null;
-  statut: "disponible" | "indisponible" | "en_attente";
+  statut: string; // "disponible" | "en attente de validation" | "suspendu" | "loué" | "maintenance" | …
   caution?: string | number | null;
   carburantInclus?: boolean;
   permisRequis?: boolean;
@@ -43,8 +62,13 @@ export interface BoatAPI {
   id_utilisateur?: number;
   port?: { id: number; nom: string; ville: string };
   type_bateau?: { id: number; libelle: string };
+  /** Champ retourné par l'API pour les routes /bateaux */
+  proprietaire?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; statutCompte?: boolean };
+  /** Alias alternatif selon certains endpoints */
+  utilisateur?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; roles?: string[]; statutCompte?: boolean };
   photos?: PhotoAPI[];
   disponibilites?: DisponibiliteAPI[];
+  documents?: DocumentAPI[];
 }
 
 export interface CreateBoatPayload {
@@ -102,4 +126,8 @@ export const boatsApi = {
     api.get<DisponibiliteAPI[]>(`/api/bateaux/${id}/disponibilites`),
   getReservations: (id: number | string) =>
     api.get<unknown[]>(`/api/bateaux/${id}/reservations`),
+  getDocuments: (id: number | string) =>
+    api.get<DocumentAPI[]>(`/api/bateaux/${id}/documents`),
+  updateStatut: (id: number | string, statut: string) =>
+    api.patch<BoatAPI>(`/api/bateaux/${id}`, { statut }),
 };
