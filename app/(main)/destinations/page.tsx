@@ -44,17 +44,21 @@ export default async function DestinationsPage() {
                   />
                   <div className="dest-page-card-overlay" />
                 </div>
+                <span className="dest-page-card-price">Dès {dest.priceFrom} € / j</span>
                 <div className="dest-page-card-content">
                   <div className="dest-page-card-country">{dest.flag} {dest.country}</div>
                   <h3>{dest.name}</h3>
                   <p>{dest.tagline}</p>
                   <div className="dest-page-card-footer">
                     <span><i className="fa-solid fa-sailboat" /> {dest.boatCount} bateaux</span>
-                    <span>À partir de {dest.priceFrom} € / j</span>
                   </div>
                 </div>
+                <span className="dest-page-card-arrow" aria-hidden="true">
+                  <i className="fa-solid fa-arrow-right" />
+                </span>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
