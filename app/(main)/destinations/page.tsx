@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getDestinations } from "@/entities/destination";
+import HeroCarousel from "./HeroCarousel";
 
 export const metadata: Metadata = {
   title: "Destinations de voile — SailingLoc",
@@ -22,6 +23,12 @@ export default async function DestinationsPage() {
           <p className="hero-eyebrow">Nos destinations</p>
           <h1>Naviguez vers l'extraordinaire</h1>
           <p className="dest-hero-sub">Découvrez les plus belles eaux de Méditerranée et d'Atlantique, sélectionnées par nos experts nautiques.</p>
+        </div>
+      </section>
+
+      <section className="dest-featured-section">
+        <div className="container">
+          <HeroCarousel destinations={destinations} />
         </div>
       </section>
 
