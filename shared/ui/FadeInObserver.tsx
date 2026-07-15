@@ -18,7 +18,7 @@ export default function FadeInObserver() {
 
     const observe = () => {
       document
-        .querySelectorAll(".fade-in:not(.visible)")
+        .querySelectorAll(".fade-in:not(.visible), .reveal:not(.visible)")
         .forEach((el) => observer.observe(el));
     };
 

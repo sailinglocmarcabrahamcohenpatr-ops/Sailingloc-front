@@ -435,6 +435,27 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 }
 .fade-in.visible { opacity: 1; transform: none; }
 
+/* Directional scroll-reveal — opacity/translate flip once JS adds .visible on intersection.
+   Uses the standalone `translate` property (not `transform`) so it can't be clobbered by a
+   component's own `transition: all ...` (e.g. .dest-page-card's hover lift uses `transform`). */
+.reveal-left,
+.reveal-right,
+.reveal-up { opacity: 0; }
+.reveal-left  { translate: -56px 0; }
+.reveal-right { translate: 56px 0; }
+.reveal-up    { translate: 0 48px; }
+.reveal.reveal-left,
+.reveal.reveal-right,
+.reveal.reveal-up {
+  transition: opacity 1.3s cubic-bezier(.25,.1,.25,1), translate 1.3s cubic-bezier(.25,.1,.25,1), transform .2s ease, box-shadow .2s ease;
+}
+.reveal-left.visible,
+.reveal-right.visible,
+.reveal-up.visible { opacity: 1; translate: 0 0; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal-left, .reveal-right, .reveal-up { transition: opacity .3s ease; translate: 0 0; }
+}
+
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 1024px) {
   .footer-grid { grid-template-columns: 1fr 1fr 1fr; }

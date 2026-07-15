@@ -32,8 +32,15 @@ export default async function DestinationsPage() {
             <p>Des criques sauvages de Corse aux îles dorées des Cyclades</p>
           </div>
           <div className="destinations-page-grid">
-            {destinations.map((dest, i) => (
-              <Link key={dest.slug} href={`/destinations/${dest.slug}`} className={`dest-page-card fade-in${i === 0 ? " dest-page-card-large" : ""}`}>
+            {destinations.map((dest, i) => {
+              const direction = i === 0 ? "reveal-left" : i <= 2 ? "reveal-right" : "reveal-up";
+              return (
+              <Link
+                key={dest.slug}
+                href={`/destinations/${dest.slug}`}
+                className={`dest-page-card reveal ${direction}${i === 0 ? " dest-page-card-large" : ""}`}
+                style={{ transitionDelay: `${(i % 3) * 180}ms` }}
+              >
                 <div className="dest-page-card-img">
                   <Image
                     src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
