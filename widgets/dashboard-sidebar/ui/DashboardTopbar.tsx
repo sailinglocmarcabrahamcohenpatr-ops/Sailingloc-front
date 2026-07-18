@@ -27,6 +27,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/profil/paiements":                "Paiements",
   "/profil/parametres":               "Paramètres",
   "/profil/affichage":                "Affichage et accessibilité",
+  "/profil/devenir-proprietaire":     "Devenir propriétaire",
 };
 
 function getPageTitle(pathname: string): string {
