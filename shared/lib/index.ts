@@ -20,3 +20,6 @@ export type { MessageAPI, SendMessagePayload } from "./messages-api";
 
 export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi } from "./referentiels-api";
 export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI } from "./referentiels-api";
+
+export { ownerRequestsApi } from "./owner-requests-api";
+export type { OwnerRequestAPI, OwnerRequestUser, OwnerType, OwnerRequestStatus, CreateOwnerRequestPayload } from "./owner-requests-api";
