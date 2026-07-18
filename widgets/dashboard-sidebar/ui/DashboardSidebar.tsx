@@ -33,7 +33,6 @@ const renterLinks: NavLink[] = [
   { href: "/profil/documents", icon: "fa-id-card", label: "Documents" },
   { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements" },
   { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres" },
-  { href: "/inscrire-bateau", icon: "fa-plus", label: "Ajouter un bateau" },
   { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire" },
 ];
 
@@ -84,7 +83,7 @@ export default function DashboardSidebar() {
         </div>
       </div>
 
-      {!isAdmin && (
+      {!isAdmin && user?.role === "proprietaire" && (
         <button className="dash-role-switch" onClick={handleSwitchRole} title="Changer d'espace">
           <i className={`fa-solid ${isOwner ? "fa-user" : "fa-sailboat"}`} aria-hidden="true" />
           {isOwner ? "Espace locataire" : "Espace propriétaire"}

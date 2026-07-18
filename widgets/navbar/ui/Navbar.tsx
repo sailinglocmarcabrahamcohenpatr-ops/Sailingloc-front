@@ -113,9 +113,15 @@ export default function Navbar() {
                         </Link>
                       ) : !isOwnerSection ? (
                         <>
-                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
-                            <i className="fa-solid fa-sailboat" /> Espace propriétaire
-                          </Link>
+                          {user.role === "proprietaire" ? (
+                            <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
+                              <i className="fa-solid fa-sailboat" /> Espace propriétaire
+                            </Link>
+                          ) : (
+                            <Link href="/profil/devenir-proprietaire" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                              <i className="fa-solid fa-sailboat" /> Devenir propriétaire
+                            </Link>
+                          )}
                           <div className="navbar-dropdown-sep" />
                           <Link href="/profil" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-user" /> Mon profil
