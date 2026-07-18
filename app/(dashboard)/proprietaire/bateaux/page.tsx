@@ -107,7 +107,7 @@ export default function OwnerBoatsPage() {
           const st = STATUS_MAP[uiStatus];
           const imgSrc = boatImage(boat);
           const location = boatLocation(boat);
-          const boatType = boat.type_bateau?.libelle ?? "";
+          const boatType = boat.typeBateau?.labelTypeBateau ?? "";
 
           return (
             <div key={boat.id} className="owner-boat-card">

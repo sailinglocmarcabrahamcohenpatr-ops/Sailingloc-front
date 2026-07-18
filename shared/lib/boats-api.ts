@@ -37,10 +37,10 @@ export type StatutBateauValue = typeof StatutBateau[keyof typeof StatutBateau];
 
 export interface DocumentAPI {
   id: number;
-  url: string;
+  urlDocument: string | null;
   nom?: string;
   id_type_document?: number;
-  type_document?: { id: number; labelTypeDocument?: string; libelle?: string };
+  typeDocument?: { id: number; labelTypeDocument?: string };
   created_at?: string;
 }
 
@@ -63,7 +63,7 @@ export interface BoatAPI {
   id_type_bateau?: number;
   id_utilisateur?: number;
   port?: { id: number; nom: string; ville: string };
-  type_bateau?: { id: number; libelle: string };
+  typeBateau?: { id?: number; labelTypeBateau: string };
   /** Champ retourné par l'API pour les routes /bateaux */
   proprietaire?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; statutCompte?: boolean };
   /** Alias alternatif selon certains endpoints */

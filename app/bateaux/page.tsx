@@ -16,7 +16,7 @@ function adaptBoat(b: BoatAPI): Boat {
     id:          String(b.id),
     name:        b.nomBateau,
     location:    b.port ? b.port.ville : "France",
-    type:        (b.type_bateau?.libelle?.toLowerCase() ?? "voilier") as BoatType,
+    type:        (b.typeBateau?.labelTypeBateau?.toLowerCase() ?? "voilier") as BoatType,
     rating:      4.5,
     reviewCount: 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),

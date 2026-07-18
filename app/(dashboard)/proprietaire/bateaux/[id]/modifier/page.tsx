@@ -46,7 +46,7 @@ export default function EditBoatPage() {
         setBoatTypes(Array.isArray(types) ? types : []);
         setPorts(Array.isArray(portsRes) ? portsRes : []);
         setOwnerId(boat.id_utilisateur);
-        setTypeId(boat.id_type_bateau ?? boat.type_bateau?.id ?? null);
+        setTypeId(boat.id_type_bateau ?? boat.typeBateau?.id ?? null);
         setMotorisation((boat.motorisation as Motorisation) || "voile");
         setName(boat.nomBateau ?? "");
         setPortId(boat.id_port ?? boat.port?.id ?? null);

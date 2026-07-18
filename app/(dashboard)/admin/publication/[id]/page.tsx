@@ -27,14 +27,13 @@ function formatPrice(val?: string | number | null) {
 
 function docLabel(doc: DocumentAPI): string {
   if (doc.nom) return doc.nom;
-  if (doc.type_document?.labelTypeDocument) return doc.type_document.labelTypeDocument;
-  if (doc.type_document?.libelle) return doc.type_document.libelle;
-  const ext = doc.url.split(".").pop()?.toUpperCase();
+  if (doc.typeDocument?.labelTypeDocument) return doc.typeDocument.labelTypeDocument;
+  const ext = doc.urlDocument?.split(".").pop()?.toUpperCase();
   return ext ? `Document (${ext})` : "Document";
 }
 
 function docIcon(doc: DocumentAPI): string {
-  const ext = doc.url.split(".").pop()?.toLowerCase();
+  const ext = doc.urlDocument?.split(".").pop()?.toLowerCase();
   if (ext === "pdf") return "fa-file-pdf";
   if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext ?? "")) return "fa-file-image";
   return "fa-file-lines";
@@ -65,7 +64,7 @@ function DocViewerModal({
   doc: DocumentAPI;
   onClose: () => void;
 }) {
-  const url = resolvePhotoUrl(doc.url);
+  const url   = resolvePhotoUrl(doc.urlDocument ?? "");
   const label = docLabel(doc);
 
   return (
@@ -90,13 +89,13 @@ function DocViewerModal({
           </button>
         </div>
         <div className="pub-doc-modal-body">
-          {isPdfUrl(doc.url) ? (
+          {isPdfUrl(doc.urlDocument ?? "") ? (
             <iframe
               src={url}
               className="pub-doc-modal-iframe"
               title={label}
             />
-          ) : isImageUrl(doc.url) ? (
+          ) : isImageUrl(doc.urlDocument ?? "") ? (
             <img
               src={url}
               alt={label}
@@ -280,7 +279,6 @@ export default function AdminPublicationDetailPage() {
   const boatId  = params.id;
 
   const [boat, setBoat]           = useState<BoatAPI | null>(null);
-  const [docs, setDocs]           = useState<DocumentAPI[]>([]);
   const [reviews, setReviews]     = useState<AvisAPI[]>([]);
   const [ownerStats, setOwnerStats] = useState<OwnerStats | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -288,7 +286,7 @@ export default function AdminPublicationDetailPage() {
 
   const [viewingDoc, setViewingDoc]   = useState<DocumentAPI | null>(null);
   const [lightboxIdx, setLightboxIdx]  = useState<number | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"validate" | "suspend" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"validate" | "suspend" | "unsuspend" | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast]         = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -307,9 +305,8 @@ export default function AdminPublicationDetailPage() {
       .getOne(boatId)
       .then(async (b) => {
         setBoat(b);
-
-        // Load documents
-        boatsApi.getDocuments(boatId).then(setDocs).catch(() => setDocs([]));
+        // Documents are included directly in the boat response
+        // (no separate API call needed)
 
         // For available boats, also load reviews and owner stats
         if (b.statut === StatutBateau.DISPONIBLE) {
@@ -355,7 +352,9 @@ export default function AdminPublicationDetailPage() {
     if (!boat || !confirmAction) return;
     setActionLoading(true);
     const newStatut =
-      confirmAction === "validate" ? StatutBateau.DISPONIBLE : StatutBateau.SUSPENDU;
+      confirmAction === "validate"   ? StatutBateau.DISPONIBLE :
+      confirmAction === "unsuspend"  ? StatutBateau.DISPONIBLE :
+                                       StatutBateau.SUSPENDU;
     try {
       const updated = await boatsApi.updateStatut(boat.id, newStatut);
       setBoat((prev) => prev ? { ...prev, statut: updated.statut ?? newStatut } : prev);
@@ -363,6 +362,8 @@ export default function AdminPublicationDetailPage() {
       showToast(
         confirmAction === "validate"
           ? "Le bateau a été validé et est maintenant disponible."
+          : confirmAction === "unsuspend"
+          ? "La suspension a été levée. Le bateau est de nouveau disponible."
           : "Le bateau a été suspendu.",
         "success"
       );
@@ -406,6 +407,7 @@ export default function AdminPublicationDetailPage() {
 
   const isPending   = boat.statut === StatutBateau.EN_ATTENTE_VALIDATION;
   const isAvailable = boat.statut === StatutBateau.DISPONIBLE;
+  const docs        = boat.documents ?? [];
 
   const mainPhoto = boat.photos?.find((p) => p.ordreAffichage === 0) ?? boat.photos?.[0];
 
@@ -447,7 +449,7 @@ export default function AdminPublicationDetailPage() {
               )}
             </div>
             <p className="dash-sub" style={{ marginTop: 4 }}>
-              {boat.type_bateau?.libelle ?? "—"} · #{boat.id}
+              {boat.typeBateau?.labelTypeBateau ?? "—"} · #{boat.id}
             </p>
           </div>
           {/* ── Owner mini card in header ── */}
@@ -518,7 +520,7 @@ export default function AdminPublicationDetailPage() {
             </div>
             <div className="pub-info-item">
               <div className="pub-info-label">Type</div>
-              <div className="pub-info-value">{boat.type_bateau?.libelle ?? "—"}</div>
+              <div className="pub-info-value">{boat.typeBateau?.labelTypeBateau ?? "—"}</div>
             </div>
             <div className="pub-info-item">
               <div className="pub-info-label">Motorisation</div>
@@ -806,6 +808,25 @@ export default function AdminPublicationDetailPage() {
         </div>
       )}
 
+      {boat.statut === StatutBateau.SUSPENDU && (
+        <div className="pub-action-zone">
+          <div className="pub-action-zone-text">
+            <strong>Lever la suspension</strong>
+            <p>
+              Le bateau sera rétabli et son statut repassera à <strong>Disponible</strong>.
+              Il sera de nouveau visible sur la plateforme.
+            </p>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => setConfirmAction("unsuspend")}
+          >
+            <i className="fa-solid fa-circle-check" />
+            Lever la suspension
+          </button>
+        </div>
+      )}
+
       {/* ── Document viewer modal ── */}
       {viewingDoc && (
         <DocViewerModal doc={viewingDoc} onClose={() => setViewingDoc(null)} />
@@ -814,13 +835,23 @@ export default function AdminPublicationDetailPage() {
       {/* ── Confirm action modal ── */}
       {confirmAction && (
         <ConfirmModal
-          title={confirmAction === "validate" ? "Valider la publication" : "Suspendre le bateau"}
+          title={
+            confirmAction === "validate"  ? "Valider la publication" :
+            confirmAction === "unsuspend" ? "Lever la suspension" :
+                                           "Suspendre le bateau"
+          }
           message={
             confirmAction === "validate"
               ? `Êtes-vous sûr de vouloir valider la publication du bateau "${boat.nomBateau}" ? Il sera visible sur la plateforme.`
+              : confirmAction === "unsuspend"
+              ? `Êtes-vous sûr de vouloir lever la suspension du bateau "${boat.nomBateau}" ? Il redeviendra disponible sur la plateforme.`
               : `Êtes-vous sûr de vouloir suspendre le bateau "${boat.nomBateau}" ? Il ne sera plus visible sur la plateforme.`
           }
-          confirmLabel={confirmAction === "validate" ? "Valider" : "Suspendre"}
+          confirmLabel={
+            confirmAction === "validate"  ? "Valider" :
+            confirmAction === "unsuspend" ? "Lever la suspension" :
+                                           "Suspendre"
+          }
           danger={confirmAction === "suspend"}
           loading={actionLoading}
           onConfirm={handleAction}

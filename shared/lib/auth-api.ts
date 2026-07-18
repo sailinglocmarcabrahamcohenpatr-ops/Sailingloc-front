@@ -109,7 +109,7 @@ export async function apiLogin(payload: LoginPayload) {
 }
 
 export async function apiGetUserByEmail(email: string): Promise<UtilisateurAPI> {
-  return api.get<UtilisateurAPI>(`/utilisateurs/search/email?email=${encodeURIComponent(email)}`);
+  return api.get<UtilisateurAPI>(`/api/utilisateurs/search/email?email=${encodeURIComponent(email)}`);
 }
 
 export async function apiRegister(payload: RegisterPayload) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import { removeToken, setRoleCookie } from "./api-client";
+import { removeToken, setRoleCookie, ApiError } from "./api-client";
 import { apiGetUserByEmail } from "./auth-api";
 
 export type UserRole = "locataire" | "proprietaire" | "admin";
@@ -95,17 +95,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : "locataire";
 
     if (email) {
+      // Build a fallback user from the JWT itself (prenom/nom may be embedded)
+      const nameFromJwt = [jwt.prenom, jwt.nom]
+        .filter(Boolean)
+        .join(" ") || email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
       apiGetUserByEmail(email)
         .then((u) => {
-          const name = [u.prenom, u.nom].filter(Boolean).join(" ") || email.split("@")[0];
+          const name = [u.prenom, u.nom].filter(Boolean).join(" ") || nameFromJwt;
           const userId = u.id;
           setUser(buildUser({ email, name, role, userId, telephone: u.telephone }));
           setRoleCookie(role);
         })
-        .catch(() => {
-          // Token invalide ou expiré : on efface aussi le cookie d'auth pour
-          // que le middleware ne laisse plus passer cette session fantôme.
-          removeToken();
+        .catch((err) => {
+          if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+            // Token genuinely invalid — log out
+            removeToken();
+          } else {
+            // Endpoint unavailable or network error — keep the session alive
+            // using the data already in the JWT
+            setUser(buildUser({ email, name: nameFromJwt, role, userId }));
+            setRoleCookie(role);
+          }
         })
         .finally(() => setChecking(false));
     } else {

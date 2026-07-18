@@ -71,7 +71,7 @@ function BoatRow({ boat, tab }: { boat: BoatAPI; tab: Tab }) {
         </div>
       </td>
       <td data-label="Type" className="pub-col-text-sm">
-        {boat.type_bateau?.libelle ?? "—"}
+        {boat.typeBateau?.labelTypeBateau ?? "—"}
       </td>
       <td data-label="Port / Localisation" className="pub-col-text-sm">
         {location}
@@ -130,7 +130,7 @@ export default function AdminPublicationPage() {
   const uniqueTypes = useMemo(() => {
     const types = new Set<string>();
     allBoats.forEach((b) => {
-      if (b.type_bateau?.libelle) types.add(b.type_bateau.libelle);
+      if (b.typeBateau?.labelTypeBateau) types.add(b.typeBateau.labelTypeBateau);
     });
     return Array.from(types).sort();
   }, [allBoats]);
@@ -139,7 +139,7 @@ export default function AdminPublicationPage() {
     const q = search.toLowerCase();
     return allBoats.filter((b) => {
       if (b.statut !== statusFilter) return false;
-      if (filterType !== "all" && b.type_bateau?.libelle !== filterType) return false;
+      if (filterType !== "all" && b.typeBateau?.labelTypeBateau !== filterType) return false;
       if (q) {
         const ownerObj = b.proprietaire ?? b.utilisateur;
         const owner = ownerObj
