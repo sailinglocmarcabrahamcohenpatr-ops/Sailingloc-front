@@ -62,7 +62,9 @@ export interface BoatAPI {
   id_port?: number;
   id_type_bateau?: number;
   id_utilisateur?: number;
-  port?: { id: number; nom: string; ville: string };
+  /** `/api/ports` exige ROLE_USER : on ne peut pas le rappeler pour les visiteurs anonymes,
+   *  d'où l'usage direct de ces champs (déjà embarqués par le backend dans chaque bateau). */
+  port?: { id: number; nom: string; ville: string; pays?: string; latitude?: number | string; longitude?: number | string };
   typeBateau?: { id?: number; labelTypeBateau: string };
   /** Champ retourné par l'API pour les routes /bateaux */
   proprietaire?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; statutCompte?: boolean };

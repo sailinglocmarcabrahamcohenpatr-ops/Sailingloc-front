@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { searchBoats } from "@/entities/boat";
 import { BoatCard } from "@/entities/boat";
+import { getDestinations } from "@/entities/destination";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
 import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib/boats-api";
+import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 function adaptBoat(b: BoatAPI): Boat {
@@ -70,15 +72,35 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     if (depart)       apiParams.date_fin       = depart;
 
     const raw = await boatsApi.getAll(Object.keys(apiParams).length ? apiParams : undefined);
-    boats = raw.map(adaptBoat);
+
+    let filtered = raw;
+    if (destination) {
+      // Le backend ne filtre pas toujours fiablement par destination : on revérifie ici
+      // via le port réel embarqué dans chaque bateau (pays pour l'étranger, ville pour les
+      // régions FR). Pas d'appel à /api/ports : cet endpoint exige une auth que les visiteurs
+      // anonymes n'ont pas.
+      const destinations = await getDestinations();
+      filtered = raw.filter((b) => boatMatchesFreeQuery(b.port, destination, destinations));
+    }
+
+    boats = filtered.map(adaptBoat);
   } catch {
-    boats = await searchBoats({
+    const base = await searchBoats({
       types: types.length > 0 ? types : undefined,
-      destination,
       maxPrice:    prixMax  ? Number(prixMax)  : undefined,
       minCapacity: capacite ? Number(capacite) : undefined,
       minRating:   note     ? Number(note)     : undefined,
     });
+
+    if (!destination) {
+      boats = base;
+    } else {
+      const destinations = await getDestinations();
+      const knownDest = destinations.find((d) => normalizeText(d.name) === normalizeText(destination));
+      boats = knownDest
+        ? base.filter((b) => locationMatchesDestination(b.location, knownDest))
+        : base.filter((b) => b.location.toLowerCase().includes(destination.toLowerCase()));
+    }
   }
 
   const subtitle = [
