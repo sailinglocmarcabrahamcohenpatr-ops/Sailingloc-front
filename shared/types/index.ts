@@ -90,6 +90,7 @@ export interface FullDestination {
   boatCount: number;
   imageSeed: string;
   heroSeed: string;
+  heroImage?: string;
   bestPeriod: string;
   avgTemp: string;
   avgWind: string;
@@ -98,6 +99,8 @@ export interface FullDestination {
   highlights: { title: string; desc: string; icon: string }[];
   tags: string[];
   gallerySeeds: string[];
+  galleryImages?: string[];
+  center: { lat: number; lng: number };
 }
 
 export interface UserProfile {
