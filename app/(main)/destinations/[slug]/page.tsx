@@ -3,6 +3,63 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDestinations, getDestinationBySlug } from "@/entities/destination";
+import type { FullDestination } from "@/entities/destination";
+import { getBoats, type Boat } from "@/entities/boat";
+import { boatsApi, type BoatAPI } from "@/shared/lib/boats-api";
+import { matchesDestination as matchesDestinationApi, locationMatchesDestination } from "@/shared/lib/destination-match";
+import type { DestinationBoatMarker } from "./DestinationMap";
+import DestinationMapSection from "./DestinationMapSection";
+
+/** Décalage déterministe (basé sur l'id) pour disperser lisiblement les bateaux sans port géolocalisé. */
+function jitter(seed: number, base: number, spread: number): number {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  const frac = x - Math.floor(x);
+  return base + (frac - 0.5) * spread;
+}
+
+/** L'API renvoie parfois les nombres en string (comme `prixJour`) : on normalise défensivement. */
+function toNumber(v: number | string | undefined): number | undefined {
+  if (v == null) return undefined;
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function adaptApiBoat(b: BoatAPI, dest: FullDestination): DestinationBoatMarker | null {
+  if (!matchesDestinationApi(b.port, dest)) return null;
+
+  const lat = toNumber(b.port?.latitude) ?? jitter(b.id, dest.center.lat, 0.05);
+  const lng = toNumber(b.port?.longitude) ?? jitter(b.id * 7 + 3, dest.center.lng, 0.08);
+
+  return {
+    id: String(b.id),
+    name: b.nomBateau,
+    location: b.port?.ville || dest.name,
+    lat,
+    lng,
+    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+  };
+}
+
+async function getDestinationBoats(dest: FullDestination): Promise<DestinationBoatMarker[]> {
+  try {
+    const apiBoats = await boatsApi.getAll();
+    return apiBoats
+      .map((b) => adaptApiBoat(b, dest))
+      .filter((b): b is DestinationBoatMarker => b !== null);
+  } catch {
+    const mockBoats = await getBoats();
+    return mockBoats
+      .filter((b): b is Boat & { coordinates: { lat: number; lng: number } } => !!b.coordinates && locationMatchesDestination(b.location, dest))
+      .map((b) => ({
+        id: b.id,
+        name: b.name,
+        location: b.location,
+        lat: b.coordinates.lat,
+        lng: b.coordinates.lng,
+        pricePerDay: b.pricePerDay,
+      }));
+  }
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -28,6 +85,8 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const dest = await getDestinationBySlug(slug);
   if (!dest) notFound();
 
+  const destBoats = await getDestinationBoats(dest);
+
   return (
     <>
       <section className="dest-detail-hero">
@@ -42,7 +101,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           />
         ) : (
           <Image
-            src={`https://picsum.photos/seed/${dest.heroSeed}/1600/700`}
+            src={dest.heroImage ?? `https://picsum.photos/seed/${dest.heroSeed}/1600/700`}
             alt={dest.name}
             fill
             sizes="100vw"
@@ -55,7 +114,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           <div className="dest-detail-breadcrumb">
             <Link href="/destinations">Destinations</Link> / <span>{dest.name}</span>
           </div>
-          <div className="dest-detail-flag" aria-hidden="true"><span className="dest-flag-code">{dest.flag}</span></div>
+          <div className="dest-detail-flag" aria-hidden="true"><span className="dest-flag-code">{dest.flag} {dest.country}</span></div>
           <h1>{dest.name}</h1>
           <p className="dest-detail-tagline">{dest.tagline}</p>
           <div className="dest-detail-hero-meta">
@@ -63,6 +122,9 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <span><i className="fa-solid fa-euro-sign" /> À partir de {dest.priceFrom} € / jour</span>
             <span><i className="fa-solid fa-location-dot" /> {dest.region}</span>
           </div>
+        </div>
+        <div className="dest-detail-hero-scroll" aria-hidden="true">
+          <i className="fa-solid fa-chevron-down" />
         </div>
       </section>
 
@@ -91,6 +153,17 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             </div>
 
             <div className="dest-detail-section fade-in">
+              <DestinationMapSection
+                slug={dest.slug}
+                name={dest.name}
+                center={dest.center}
+                boatCount={dest.boatCount}
+                priceFrom={dest.priceFrom}
+                boats={destBoats}
+              />
+            </div>
+
+            <div className="dest-detail-section fade-in">
               <h2>Activités nautiques</h2>
               <div className="dest-activities-grid">
                 {dest.activities.map((a) => (
@@ -104,10 +177,10 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <div className="dest-detail-section fade-in">
               <h2>Galerie photos</h2>
               <div className="dest-gallery">
-                {dest.gallerySeeds.map((seed, i) => (
-                  <div key={seed} className={`dest-gallery-item${i === 0 ? " dest-gallery-main" : ""}`}>
+                {(dest.galleryImages ?? dest.gallerySeeds.map((seed) => `https://picsum.photos/seed/${seed}/800/600`)).map((src, i) => (
+                  <div key={src} className={`dest-gallery-item${i === 0 ? " dest-gallery-main" : ""}`}>
                     <Image
-                      src={`https://picsum.photos/seed/${seed}/800/600`}
+                      src={src}
                       alt={`${dest.name} — photo ${i + 1}`}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
