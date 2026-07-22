@@ -23,6 +23,25 @@ export default async function DestinationsPage() {
           <p className="hero-eyebrow">Nos destinations</p>
           <h1>Naviguez vers l'extraordinaire</h1>
           <p className="dest-hero-sub">Découvrez les plus belles eaux de Méditerranée et d'Atlantique, sélectionnées par nos experts nautiques.</p>
+          <div className="dest-hero-stats">
+            <div className="dest-hero-stat">
+              <strong>{destinations.length}</strong>
+              <span>destinations</span>
+            </div>
+            <div className="dest-hero-stat-divider" />
+            <div className="dest-hero-stat">
+              <strong>{destinations.reduce((sum, d) => sum + d.boatCount, 0)}+</strong>
+              <span>bateaux</span>
+            </div>
+            <div className="dest-hero-stat-divider" />
+            <div className="dest-hero-stat">
+              <strong>{new Set(destinations.map((d) => d.country)).size}</strong>
+              <span>pays</span>
+            </div>
+          </div>
+        </div>
+        <div className="dest-detail-hero-scroll" aria-hidden="true">
+          <i className="fa-solid fa-chevron-down" />
         </div>
       </section>
 
@@ -60,7 +79,9 @@ export default async function DestinationsPage() {
                 </div>
                 <span className="dest-page-card-price">Dès {dest.priceFrom} € / j</span>
                 <div className="dest-page-card-content">
-                  <div className="dest-page-card-country">{dest.flag} {dest.country}</div>
+                  <div className="dest-page-card-country">
+                    <span className="dest-page-card-flag">{dest.flag}</span> {dest.country}
+                  </div>
                   <h3>{dest.name}</h3>
                   <p>{dest.tagline}</p>
                   <div className="dest-page-card-footer">
