@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { reservationsApi } from "@/shared/lib";
 import type { ReservationAPI } from "@/shared/lib";
+import { RatingForm } from "@/features/rate-boat";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 
@@ -28,11 +29,13 @@ function libelleToKey(libelle?: string): BadgeKey {
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-const BookingCard = ({ r }: { r: ReservationAPI }) => {
+const BookingCard = ({ r, onRated }: { r: ReservationAPI; onRated: (reservationId: number) => void }) => {
   const key = libelleToKey(r.statutReservation?.libelle);
   const st = STATUS[key];
   const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
   const imgSrc = `https://picsum.photos/seed/boat-${r.idBateau}/400/300`;
+  const alreadyRated = (r.avis?.length ?? 0) > 0;
+  const [showRating, setShowRating] = useState(false);
 
   return (
     <div className="booking-card">
@@ -59,9 +62,15 @@ const BookingCard = ({ r }: { r: ReservationAPI }) => {
             <i className="fa-solid fa-eye" /> Voir le bateau
           </Link>
           {key === "completed" && (
-            <button className="btn btn-outline btn-sm">
-              <i className="fa-solid fa-star" /> Laisser un avis
-            </button>
+            alreadyRated ? (
+              <span className="btn btn-ghost btn-sm" style={{ color: "var(--text-3)", cursor: "default" }}>
+                <i className="fa-solid fa-check" /> Déjà noté
+              </span>
+            ) : (
+              <button className="btn btn-outline btn-sm" onClick={() => setShowRating(true)}>
+                <i className="fa-solid fa-star" /> Laisser un avis
+              </button>
+            )
           )}
           {(key === "confirmed" || key === "pending") && (
             <button className="btn btn-ghost btn-sm">
@@ -75,6 +84,18 @@ const BookingCard = ({ r }: { r: ReservationAPI }) => {
           )}
         </div>
       </div>
+
+      {showRating && (
+        <RatingForm
+          reservationId={r.id}
+          boatName={boatName}
+          onClose={() => setShowRating(false)}
+          onSuccess={() => {
+            setShowRating(false);
+            onRated(r.id);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -91,6 +112,12 @@ export default function UserReservationsPage() {
       .catch(() => setError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleRated = (reservationId: number) => {
+    setReservations((prev) =>
+      prev.map((r) => (r.id === reservationId ? { ...r, avis: [...(r.avis ?? []), true] } : r)),
+    );
+  };
 
   if (loading)
     return (
@@ -128,7 +155,7 @@ export default function UserReservationsPage() {
           <h3 className="dash-section-title">À venir</h3>
           <div className="bookings-list">
             {upcoming.map((r) => (
-              <BookingCard key={r.id} r={r} />
+              <BookingCard key={r.id} r={r} onRated={handleRated} />
             ))}
           </div>
         </div>
@@ -138,7 +165,7 @@ export default function UserReservationsPage() {
           <h3 className="dash-section-title">Historique</h3>
           <div className="bookings-list">
             {past.map((r) => (
-              <BookingCard key={r.id} r={r} />
+              <BookingCard key={r.id} r={r} onRated={handleRated} />
             ))}
           </div>
         </div>

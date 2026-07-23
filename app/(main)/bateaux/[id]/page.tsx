@@ -2,11 +2,37 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { PRODUCT_REVIEWS } from "@/entities/review";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
 import { LocationMapLoader } from "@/features/list-boat";
-import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib";
+import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI } from "@/shared/lib";
+
+interface RatingSummary {
+  rating: number;
+  count: number;
+  proprietaire: number;
+  bateau: number;
+  lieu: number;
+}
+
+function summarizeAvis(avis: AvisAPI[]): RatingSummary {
+  const count = avis.length;
+  if (count === 0) return { rating: 0, count: 0, proprietaire: 0, bateau: 0, lieu: 0 };
+
+  const avg = (key: "note" | "noteProprietaire" | "noteBateau" | "noteLieu") =>
+    avis.reduce((sum, a) => sum + a[key], 0) / count;
+
+  return {
+    rating: Math.round(avg("note") * 10) / 10,
+    count,
+    proprietaire: avg("noteProprietaire"),
+    bateau: avg("noteBateau"),
+    lieu: avg("noteLieu"),
+  };
+}
+
+const fmtReviewDate = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -150,6 +176,11 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
 
+  const avis = await avisApi.getByBateau(id).catch(() => [] as AvisAPI[]);
+  const summary = summarizeAvis(avis);
+  boat.rating = summary.rating;
+  boat.reviewCount = summary.count;
+
   return (
     <div className="container">
       <nav className="breadcrumb" aria-label="Fil d'Ariane">
@@ -285,11 +316,9 @@ export default async function ProductPage({ params }: PageProps) {
                 </div>
                 <div className="reviews-bars">
                   {[
-                    { label: "État général", pct: 96 },
-                    { label: "Confort", pct: 98 },
-                    { label: "Équipements", pct: 94 },
-                    { label: "Communication", pct: 100 },
-                    { label: "Rapport qualité/prix", pct: 90 },
+                    { label: "Propriétaire", pct: (summary.proprietaire / 5) * 100 },
+                    { label: "Bateau", pct: (summary.bateau / 5) * 100 },
+                    { label: "Lieu visité", pct: (summary.lieu / 5) * 100 },
                   ].map((bar) => (
                     <div key={bar.label} className="review-bar-row">
                       <span className="review-bar-label">{bar.label}</span>
@@ -310,41 +339,39 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
             )}
 
-            {PRODUCT_REVIEWS.map((review) => (
-              <article key={review.id} className="review-card">
-                <div className="review-author">
-                  <div className="review-author-avatar" aria-hidden="true">{review.initial}</div>
-                  <div className="review-author-info">
-                    <strong>{review.author}</strong>
-                    <span>{review.date}</span>
-                  </div>
-                </div>
-                <div className="review-rating" aria-label={`Note : ${review.rating} sur 5`}>
-                  {[...Array(5)].map((_, i) => (
-                    <i
-                      key={i}
-                      className={i < review.rating ? "fa-solid fa-star" : "fa-solid fa-star-half-stroke"}
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <p className="review-body">{review.body}</p>
-                {review.images && (
-                  <div className="review-imgs">
-                    {review.images.map((img) => (
-                      <Image
-                        key={img.src}
-                        src={img.src}
-                        alt={img.alt}
-                        width={80}
-                        height={60}
-                        style={{ objectFit: "cover", borderRadius: "var(--radius)" }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </article>
-            ))}
+            {avis.length === 0 ? (
+              <p style={{ color: "var(--text-2)" }}>
+                Ce bateau n&apos;a pas encore reçu d&apos;avis. Soyez le premier à le noter après votre location !
+              </p>
+            ) : (
+              avis.map((a) => {
+                const reviewer = a.utilisateur;
+                const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Locataire SailingLoc";
+                const initial = reviewer?.prenom?.[0]?.toUpperCase() ?? "?";
+
+                return (
+                  <article key={a.id} className="review-card">
+                    <div className="review-author">
+                      <div className="review-author-avatar" aria-hidden="true">{initial}</div>
+                      <div className="review-author-info">
+                        <strong>{authorName}</strong>
+                        <span>{fmtReviewDate(a.dateAvis)}</span>
+                      </div>
+                    </div>
+                    <div className="review-rating" aria-label={`Note : ${a.note} sur 5`}>
+                      {[...Array(5)].map((_, i) => (
+                        <i
+                          key={i}
+                          className={i < a.note ? "fa-solid fa-star" : "fa-regular fa-star"}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </div>
+                    <p className="review-body">{a.commentaire}</p>
+                  </article>
+                );
+              })
+            )}
           </section>
 
           <section className="location-section" aria-labelledby="location-title">

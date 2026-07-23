@@ -662,13 +662,12 @@ export default function AdminPublicationDetailPage() {
             ) : (
               <div className="pub-reviews-list">
                 {reviews.map((rv) => {
-                  const authorName = rv.utilisateur
-                    ? `${rv.utilisateur.prenom} ${rv.utilisateur.nom}`
-                    : `Utilisateur #${rv.id_utilisateur}`;
-                  const initials = rv.utilisateur
-                    ? `${rv.utilisateur.prenom[0] ?? ""}${rv.utilisateur.nom[0] ?? ""}`.toUpperCase()
+                  const reviewer = rv.utilisateur;
+                  const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Utilisateur inconnu";
+                  const initials = reviewer
+                    ? `${reviewer.prenom[0] ?? ""}${reviewer.nom[0] ?? ""}`.toUpperCase()
                     : "?";
-                  const dateAvis = (rv as unknown as { date_avis?: string }).date_avis ?? rv.created_at;
+                  const dateAvis = rv.dateAvis;
 
                   return (
                     <div key={rv.id} className="pub-review-item">

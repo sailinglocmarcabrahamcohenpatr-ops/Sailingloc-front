@@ -29,11 +29,26 @@ export interface CreateReservationPayload {
 export interface AvisAPI {
   id: number;
   note: number;
+  noteProprietaire: number;
+  noteBateau: number;
+  noteLieu: number;
+  commentaire: string;
+  dateAvis: string;
+  utilisateur?: { id: number; prenom: string; nom: string };
+  reservation?: {
+    id: number;
+    dateDebut: string;
+    dateFin: string;
+    bateau?: { id: number; nomBateau: string };
+  };
+}
+
+export interface CreateAvisPayload {
+  note_proprietaire: number;
+  note_bateau: number;
+  note_lieu: number;
   commentaire: string;
   id_reservation: number;
-  id_utilisateur: number;
-  utilisateur?: { prenom: string; nom: string };
-  created_at?: string;
 }
 
 export const reservationsApi = {
@@ -56,9 +71,15 @@ export const reservationsApi = {
 export const avisApi = {
   getAll: () =>
     api.get<AvisAPI[]>("/api/avis"),
+  /** Avis laissés par l'utilisateur connecté */
+  getMine: () =>
+    api.get<AvisAPI[]>("/api/avis/mine"),
+  /** Avis reçus par un bateau donné */
+  getByBateau: (bateauId: number | string) =>
+    api.get<AvisAPI[]>(`/api/avis/bateau/${bateauId}`, false),
   getOne: (id: number | string) =>
     api.get<AvisAPI>(`/api/avis/${id}`),
-  create: (data: { note: number; commentaire: string; id_reservation: number; id_utilisateur: number }) =>
+  create: (data: CreateAvisPayload) =>
     api.post<AvisAPI>("/api/avis", data, true),
   delete: (id: number | string) =>
     api.delete<void>(`/api/avis/${id}`),
