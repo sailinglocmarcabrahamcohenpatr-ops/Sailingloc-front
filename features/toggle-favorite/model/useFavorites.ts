@@ -1,36 +1,52 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
-const STORAGE_KEY = "sailingloc:favorites";
+import { useAuth } from "@/shared/lib/auth-context";
+import { favorisApi } from "@/shared/lib/favoris-api";
 
 export function useFavorites() {
+  const { user } = useAuth();
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setFavorites(new Set(JSON.parse(stored) as string[]));
-    } catch {
-      // localStorage may be unavailable (SSR, private browsing)
-    }
-  }, []);
+    const load = user
+      ? favorisApi.getAll().then((boats) => new Set(boats.map((b) => String(b.id))))
+      : Promise.resolve(new Set<string>());
 
-  const toggle = useCallback((id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
-      } catch {}
-      return next;
-    });
-  }, []);
+    load
+      .then(setFavorites)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user]);
 
-  const isFavorite = useCallback(
-    (id: string) => favorites.has(id),
-    [favorites]
+  const toggle = useCallback(
+    (id: string) => {
+      if (!user) return; // pas connecté : rien à persister côté serveur
+
+      const wasFavorite = favorites.has(id);
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (wasFavorite) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+
+      const request = wasFavorite ? favorisApi.remove(id) : favorisApi.add(id);
+      request.catch(() => {
+        // Échec réseau/serveur : on annule l'optimistic update
+        setFavorites((prev) => {
+          const next = new Set(prev);
+          if (wasFavorite) next.add(id);
+          else next.delete(id);
+          return next;
+        });
+      });
+    },
+    [user, favorites],
   );
 
-  return { favorites, isFavorite, toggle };
+  const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);
+
+  return { favorites, isFavorite, toggle, loading };
 }
