@@ -23,3 +23,5 @@ export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI } fro
 
 export { ownerRequestsApi } from "./owner-requests-api";
 export type { OwnerRequestAPI, OwnerRequestUser, OwnerType, OwnerRequestStatus, CreateOwnerRequestPayload } from "./owner-requests-api";
+
+export { favorisApi } from "./favoris-api";
