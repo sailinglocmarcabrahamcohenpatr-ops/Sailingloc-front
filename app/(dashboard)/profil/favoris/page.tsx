@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import FavorisContent from "./FavorisContent";
 
 export const metadata: Metadata = { title: "Favoris — SailingLoc" };
 
@@ -13,13 +13,7 @@ export default function FavorisPage() {
         </div>
       </div>
 
-      <div className="messages-empty" style={{ minHeight: 320 }}>
-        <i className="fa-solid fa-heart" aria-hidden="true" />
-        <p>Vous n&apos;avez pas encore de favoris.</p>
-        <Link href="/bateaux" className="btn btn-outline btn-sm">
-          <i className="fa-solid fa-magnifying-glass" style={{ fontSize: ".75em" }} /> Trouver un bateau
-        </Link>
-      </div>
+      <FavorisContent />
     </div>
   );
 }
