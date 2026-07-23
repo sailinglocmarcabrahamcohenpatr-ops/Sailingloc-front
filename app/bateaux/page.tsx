@@ -1,35 +1,14 @@
 import { Suspense } from "react";
-import { searchBoats } from "@/entities/boat";
+import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
 import { BoatCard } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
-import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib/boats-api";
+import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
+import { HeartButton } from "@/features/toggle-favorite";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
-function adaptBoat(b: BoatAPI): Boat {
-  const sortedPhotos = (b.photos ?? [])
-    .slice()
-    .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99));
-
-  const photos = sortedPhotos.map((p) => resolvePhotoUrl(p.url)).filter(Boolean);
-
-  return {
-    id:          String(b.id),
-    name:        b.nomBateau,
-    location:    b.port ? b.port.ville : "France",
-    type:        (b.typeBateau?.labelTypeBateau?.toLowerCase() ?? "voilier") as BoatType,
-    rating:      4.5,
-    reviewCount: 0,
-    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
-    imageUrl:    photos[0] ?? "",
-    imageSeed:   String(b.id),
-    capacity:    b.capacite ?? undefined,
-    cabins:      b.nombreCabines ?? undefined,
-    photos:      photos.length > 0 ? photos : undefined,
-    owner:       { name: "Propriétaire", avatarSeed: String(b.id) },
-  };
-}
+const adaptBoat = adaptBoatFromApi;
 
 const TYPE_LABELS: Record<string, string> = {
   voilier: "Voiliers",
@@ -125,7 +104,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
           ) : (
             <div className="boats-result-grid">
               {boats.map((boat) => (
-                <BoatCard key={boat.id} boat={boat} showMeta />
+                <BoatCard key={boat.id} boat={boat} showMeta action={<HeartButton boatId={boat.id} />} />
               ))}
             </div>
           )}
