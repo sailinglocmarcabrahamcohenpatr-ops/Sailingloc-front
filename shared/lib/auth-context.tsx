@@ -49,7 +49,7 @@ function buildUser(params: LoginParams): AuthUser {
   return { id: params.userId, name: params.name, email: params.email, initials, role: params.role, telephone: params.telephone };
 }
 
-function getJwtPayload(token: string): { id?: number; sub?: string; email?: string; username?: string; roles?: string[]; authorities?: Array<{ authority: string } | string> } | null {
+function getJwtPayload(token: string): { id?: number; sub?: string; email?: string; username?: string; prenom?: string; nom?: string; roles?: string[]; authorities?: Array<{ authority: string } | string> } | null {
   try {
     const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
     return JSON.parse(atob(base64));
