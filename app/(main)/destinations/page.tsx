@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getDestinations } from "@/entities/destination";
 import HeroCarousel from "./HeroCarousel";
+import "./destinations.css";
 
 export const metadata: Metadata = {
   title: "Destinations de voile — SailingLoc",

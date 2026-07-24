@@ -9,6 +9,7 @@ import { boatsApi, type BoatAPI } from "@/shared/lib/boats-api";
 import { matchesDestination as matchesDestinationApi, locationMatchesDestination } from "@/shared/lib/destination-match";
 import type { DestinationBoatMarker } from "./DestinationMap";
 import DestinationMapSection from "./DestinationMapSection";
+import "./destination-detail.css";
 
 /** Décalage déterministe (basé sur l'id) pour disperser lisiblement les bateaux sans port géolocalisé. */
 function jitter(seed: number, base: number, spread: number): number {
