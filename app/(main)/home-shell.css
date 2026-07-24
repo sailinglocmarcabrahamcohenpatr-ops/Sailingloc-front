@@ -1,0 +1,45 @@
+/* ──────────────────────────────────────────────────────────────
+   « Shell » flottant de l'accueil (esprit 2e référence) :
+   contenu avec marges latérales + coins arrondis en haut et en bas.
+   Volontairement SANS overflow:hidden sur le conteneur → les menus
+   déroulants (recherche, etc.) ne sont jamais coupés.
+   Scopé à la home. Co-localisé (hors app/globals.css).
+   ────────────────────────────────────────────────────────────── */
+
+.home-shell {
+  margin: 0 16px;
+}
+
+/* ── Coins hauts arrondis ──
+   On arrondit le FOND vidéo du hero (il ne contient que la vidéo →
+   overflow:hidden 100% sûr, aucun dropdown à l'intérieur).
+   La zone de contenu (barre de recherche) n'est pas rognée. */
+.home-shell > .hero {
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+}
+.home-shell .hero-bg {
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  overflow: hidden;
+}
+
+/* ── Coins bas arrondis sur la dernière section ── */
+.home-shell > *:last-child {
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
+/* ── Mobile : marges et rayons réduits ── */
+@media (max-width: 640px) {
+  .home-shell { margin: 0 10px; }
+  .home-shell > .hero,
+  .home-shell .hero-bg {
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+  .home-shell > *:last-child {
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+  }
+}

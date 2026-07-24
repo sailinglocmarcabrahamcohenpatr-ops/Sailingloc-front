@@ -4,12 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
+import "./navbar.css";
 
 const navLinks = [
-  { href: "/bateaux", label: "Bateaux" },
-  { href: "/destinations", label: "Destinations" },
-  { href: "/comment-ca-marche", label: "Comment ça marche" },
-  { href: "/proprietaire", label: "Propriétaires" },
+  { href: "/bateaux", label: "Bateaux", icon: "fa-sailboat" },
+  { href: "/destinations", label: "Destinations", icon: "fa-map-location-dot" },
+  { href: "/comment-ca-marche", label: "Comment ça marche", icon: "fa-circle-question" },
+  { href: "/proprietaire", label: "Propriétaires", icon: "fa-key" },
 ];
 
 function isActive(href: string, pathname: string): boolean {
@@ -67,6 +68,7 @@ export default function Navbar() {
                 href={link.href}
                 className={isActive(link.href, pathname) ? "active" : ""}
               >
+                <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
                 {link.label}
               </Link>
             ))}
@@ -175,8 +177,8 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <Link href="/connexion" className="btn btn-ghost">
-                <i className="fa-solid fa-user" aria-hidden="true" /> Se connecter
+              <Link href="/connexion" className="btn btn-ghost" aria-label="Se connecter">
+                <i className="fa-solid fa-user" aria-hidden="true" />
               </Link>
             )}
 
@@ -195,6 +197,7 @@ export default function Navbar() {
       <div className={`mobile-nav${mobileOpen ? " open" : ""}`} role="dialog" aria-label="Menu de navigation">
         {navLinks.map((link) => (
           <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)}>
+            <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
             {link.label}
           </Link>
         ))}

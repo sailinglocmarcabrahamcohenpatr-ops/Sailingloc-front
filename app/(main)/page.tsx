@@ -6,6 +6,7 @@ import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
+import "./home-shell.css";
 import "./home.css";
 
 export const metadata: Metadata = {
@@ -55,7 +56,7 @@ export default async function HomePage() {
   const destinations = await getDestinations();
 
   return (
-    <>
+    <div className="home-shell">
       {/* ── Hero ── */}
       <HeroSection />
 
@@ -295,6 +296,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
