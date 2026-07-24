@@ -1,0 +1,12 @@
+/* ──────────────────────────────────────────────────────────────
+   Bandeau de statistiques (widgets/stats-stripe).
+   Isolé hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.stats-stripe { background: var(--primary); padding: 48px 0; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; gap: 24px; }
+.stat-value { font-size: 2.25rem; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 8px; }
+.stat-label { font-size: .875rem; color: rgba(255,255,255,.8); }
+
+@media (max-width: 1024px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+}

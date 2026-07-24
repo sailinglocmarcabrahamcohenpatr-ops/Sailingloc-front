@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DESTINATIONS } from "@/shared/config";
+import "./destinations-carousel.css";
 
 export default function DestinationsCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Testimonial } from "@/shared/types";
+import "./testimonials.css";
 
 const TESTIMONIALS: Testimonial[] = [
   {

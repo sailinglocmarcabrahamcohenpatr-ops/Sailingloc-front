@@ -1,0 +1,32 @@
+/* ──────────────────────────────────────────────────────────────
+   Bloc CTA « devenez propriétaire » (widgets/owner-cta).
+   Isolé hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.owner-cta {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-3) 100%);
+  border-radius: var(--radius-2xl); overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr;
+  margin: 0 24px;
+}
+.owner-cta-text { padding: 64px 56px; }
+.owner-cta-text .tag {
+  display: inline-block; background: rgba(24,102,242,.25);
+  color: #93B4FF; border: 1px solid rgba(24,102,242,.4);
+  padding: 5px 14px; border-radius: 20px;
+  font-size: .75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: 20px;
+}
+.owner-cta-text h2 { color: var(--white); margin-bottom: 16px; max-width: 380px; }
+.owner-cta-text p { color: rgba(255,255,255,.7); margin-bottom: 36px; font-size: .9375rem; line-height: 1.75; max-width: 360px; }
+.owner-cta-text .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.owner-cta-img { position: relative; overflow: hidden; }
+.owner-cta-img img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 1024px) {
+  .owner-cta { grid-template-columns: 1fr; }
+  .owner-cta-img { display: none; }
+}
+@media (max-width: 768px) {
+  .owner-cta { margin: 0 16px; }
+  .owner-cta-text { padding: 40px 28px; }
+}

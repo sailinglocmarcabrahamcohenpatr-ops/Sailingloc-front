@@ -6,6 +6,7 @@ import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
+import "./home.css";
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",

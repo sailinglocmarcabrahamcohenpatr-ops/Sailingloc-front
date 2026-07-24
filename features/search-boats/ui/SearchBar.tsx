@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import "./search-bar.css";
 
 const BOAT_TYPES = [
   { value: "tous", label: "Tous types" },

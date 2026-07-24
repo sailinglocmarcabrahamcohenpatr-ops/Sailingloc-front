@@ -1,0 +1,30 @@
+/* ──────────────────────────────────────────────────────────────
+   Témoignages clients (widgets/testimonials).
+   Isolé hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.testimonials-section { background: var(--bg); }
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 40px;
+}
+@media (max-width: 960px) { .testimonials-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .testimonials-grid { grid-template-columns: 1fr; } }
+.testimonial-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: var(--transition);
+}
+.testimonial-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.testimonial-stars { color: var(--star); display: flex; gap: 3px; font-size: .9375rem; }
+.testimonial-body { font-size: .9375rem; line-height: 1.65; color: var(--text); flex: 1; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.testimonial-author strong { display: block; font-size: .9rem; }
+.testimonial-author span { font-size: .8125rem; color: var(--text-2); }

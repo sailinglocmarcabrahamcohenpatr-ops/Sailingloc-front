@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import "./owner-cta.css";
 
 export default function OwnerCTA() {
   return (

@@ -1,0 +1,16 @@
+/* ──────────────────────────────────────────────────────────────
+   Section pays / destinations phares (widgets/countries-section).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.countries-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.country-card { border-radius: var(--radius-xl); overflow: hidden; aspect-ratio: 3/2; position: relative; cursor: pointer; display: block; }
+.country-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.country-card:hover img { transform: scale(1.08); }
+.country-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.6) 0%, rgba(0,0,0,.05) 50%); }
+.country-card-label { position: absolute; bottom: 14px; left: 14px; color: var(--white); font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.country-card-sub { font-size: .75rem; font-weight: 400; opacity: .85; }
+.country-flag-code { font-size: .625rem; font-weight: 800; letter-spacing: .1em; background: rgba(255,255,255,.25); backdrop-filter: blur(4px); border-radius: 3px; padding: 2px 5px; }
+
+@media (max-width: 1024px) {
+  .countries-grid { grid-template-columns: repeat(2, 1fr); }
+}
