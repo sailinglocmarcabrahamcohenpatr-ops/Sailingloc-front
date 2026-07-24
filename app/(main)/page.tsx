@@ -6,6 +6,7 @@ import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
+import "./home-shell.css";
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -54,7 +55,7 @@ export default async function HomePage() {
   const destinations = await getDestinations();
 
   return (
-    <>
+    <div className="home-shell">
       {/* ── Hero ── */}
       <HeroSection />
 
@@ -270,6 +271,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
