@@ -5,6 +5,7 @@ import StarPicker from "./StarPicker";
 import { submitBoatRating } from "../api/rate";
 import { EMPTY_RATING, type RatingFormValues } from "../model/types";
 import type { AvisAPI } from "@/shared/lib";
+import "./rating-form.css";
 
 interface RatingFormProps {
   reservationId: number;

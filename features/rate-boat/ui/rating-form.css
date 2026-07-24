@@ -1,0 +1,59 @@
+/* ──────────────────────────────────────────────────────────────
+   Modale de notation multi-critères (features/rate-boat).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   Note : .notation-card / .notation-empty restent dans app/globals.css
+   car aussi utilisés directement par app/(dashboard)/profil/notations
+   et app/(dashboard)/admin/avis (hors de ce module).
+   ────────────────────────────────────────────────────────────── */
+.rating-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+  animation: doc-modal-fade-in .18s ease;
+}
+.rating-modal {
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 480px; animation: doc-modal-slide-in .2s ease; overflow: hidden;
+}
+.rating-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 0;
+}
+.rating-modal-header h2 { font-size: 1.0625rem; font-weight: 700; }
+.rating-modal-header h2 i { color: var(--star); margin-right: 6px; }
+.rating-modal-close {
+  width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border);
+  background: var(--card-bg); color: var(--text-2); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: .8125rem; transition: var(--transition); flex-shrink: 0;
+}
+.rating-modal-close:hover { border-color: var(--text); color: var(--text); }
+.rating-modal-boat { padding: 4px 24px 0; color: var(--text-2); font-size: .875rem; }
+.rating-modal-body { padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.star-picker-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.star-picker-label { font-size: .9375rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.star-picker-label i { color: var(--text-2); width: 16px; text-align: center; }
+.star-picker-stars { display: flex; gap: 4px; }
+.star-picker-btn {
+  background: none; border: none; cursor: pointer; padding: 2px; font-size: 1.25rem;
+  color: var(--border); line-height: 1; transition: transform .1s ease;
+}
+.star-picker-btn.filled { color: var(--star); }
+.star-picker-btn:hover { transform: scale(1.15); }
+
+.rating-modal-average {
+  display: flex; align-items: center; gap: 8px; font-size: .9375rem;
+  background: var(--bg); border-radius: var(--radius); padding: 10px 14px;
+}
+.rating-modal-average .stars { font-size: .8rem; }
+
+.rating-modal-comment-label { font-size: .875rem; font-weight: 600; }
+.rating-modal-textarea {
+  width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; font: inherit; resize: vertical; background: var(--card-bg); color: var(--text);
+}
+.rating-modal-textarea:focus { outline: none; border-color: var(--primary); }
+.rating-modal-error { color: var(--red); font-size: .875rem; }
+.rating-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+}
