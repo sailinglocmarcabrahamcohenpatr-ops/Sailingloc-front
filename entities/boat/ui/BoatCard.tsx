@@ -2,23 +2,19 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Boat } from "../model/types";
 import { getBoatImageUrl } from "../model/image";
+import BoatTypeIcon from "./BoatTypeIcon";
 import { cn, formatPrice } from "@/shared/lib/utils";
+import "./boat-card.css";
 
 interface BoatCardProps {
   boat: Boat;
   className?: string;
-  showMeta?: boolean;
   action?: React.ReactNode;
 }
 
-export default function BoatCard({
-  boat,
-  className = "",
-  showMeta = false,
-  action,
-}: BoatCardProps) {
-  const imgSrc = getBoatImageUrl(boat, 600, 450);
-  const isUploadedPhoto = imgSrc.startsWith("data:");
+export default function BoatCard({ boat, className = "", action }: BoatCardProps) {
+  const imgSrc = getBoatImageUrl(boat, 640, 820);
+  const typeLabel = boat.type.charAt(0).toUpperCase() + boat.type.slice(1);
 
   return (
     <Link
@@ -33,7 +29,7 @@ export default function BoatCard({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           style={{ objectFit: "cover" }}
-          unoptimized={isUploadedPhoto}
+          unoptimized
         />
         {boat.badge && (
           <div
@@ -50,39 +46,25 @@ export default function BoatCard({
         )}
         {action}
       </div>
+
       <div className="boat-card-body">
-        <div className="boat-card-name">{boat.name}</div>
-        <div className="boat-card-loc">
-          <i className="fa-solid fa-location-dot" aria-hidden="true" />
-          {boat.location}
+        <h3 className="boat-card-name">{boat.name}</h3>
+        <div className="boat-card-sub">
+          <BoatTypeIcon type={boat.type} style={{ fontSize: "1.15rem" }} />
+          {typeLabel}
         </div>
-        {showMeta && (
-          <div className="boat-card-meta">
-            {[
-              boat.cabins && `${boat.cabins} cabines`,
-              boat.toilets && `${boat.toilets} toilettes`,
-              boat.year,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </div>
-        )}
-        <div className="boat-card-foot">
-          <div className="boat-card-rating">
+
+        <div className="boat-card-info">
+          <span className="boat-card-price">
+            dès <strong>{formatPrice(boat.pricePerDay)}</strong>
+          </span>
+          <span className="boat-card-rating">
             <i className="fa-solid fa-star" aria-hidden="true" />
-            {boat.reviewCount > 0 ? (
-              <>
-                <strong>{boat.rating.toFixed(1)}</strong>
-                <span className="reviews">({boat.reviewCount} avis)</span>
-              </>
-            ) : (
-              <span className="reviews">Nouveau</span>
-            )}
-          </div>
-          <div className="boat-card-price">
-            {formatPrice(boat.pricePerDay)} <span>/ jour</span>
-          </div>
+            {boat.reviewCount > 0 ? boat.rating.toFixed(1) : "Nouveau"}
+          </span>
         </div>
+
+        <span className="boat-card-cta">Réserver</span>
       </div>
     </Link>
   );

@@ -1,11 +1,10 @@
 import { Suspense } from "react";
 import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
-import { BoatCard } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
-import { HeartButton } from "@/features/toggle-favorite";
+import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 const adaptBoat = adaptBoatFromApi;
@@ -104,7 +103,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
           ) : (
             <div className="boats-result-grid">
               {boats.map((boat) => (
-                <BoatCard key={boat.id} boat={boat} showMeta action={<HeartButton boatId={boat.id} />} />
+                <FavoriteBoatCard key={boat.id} boat={boat} />
               ))}
             </div>
           )}

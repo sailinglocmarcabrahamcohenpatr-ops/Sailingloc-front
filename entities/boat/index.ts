@@ -5,3 +5,4 @@ export { getBoats, getBoatById, getFeaturedBoats, searchBoats } from "./api/inde
 export { adaptBoatFromApi } from "./api/adapt";
 export { getUserBoats, addUserBoat, USER_BOATS_EVENT } from "./model/userBoats";
 export { default as BoatCard } from "./ui/BoatCard";
+export { default as BoatTypeIcon } from "./ui/BoatTypeIcon";
