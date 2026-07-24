@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
-import { FEATURED_BOATS } from "@/entities/boat";
+import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import "./home-shell.css";
@@ -97,7 +97,7 @@ export default async function HomePage() {
                 href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
                 className="category-card"
               >
-                <span className="category-icon" aria-hidden="true"><i className={`fa-solid ${cat.icon}`} /></span>
+                <span className="category-icon" aria-hidden="true"><BoatTypeIcon type={cat.type} style={{ fontSize: "2.1rem" }} /></span>
                 <strong>{cat.label}</strong>
                 <span>{cat.count}</span>
               </Link>

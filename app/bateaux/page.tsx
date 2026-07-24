@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { searchBoats } from "@/entities/boat";
-import { BoatCard } from "@/entities/boat";
+import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
 import { boatsApi, resolvePhotoUrl, type BoatAPI } from "@/shared/lib/boats-api";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
@@ -103,7 +103,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
           ) : (
             <div className="boats-result-grid">
               {boats.map((boat) => (
-                <BoatCard key={boat.id} boat={boat} showMeta />
+                <FavoriteBoatCard key={boat.id} boat={boat} />
               ))}
             </div>
           )}

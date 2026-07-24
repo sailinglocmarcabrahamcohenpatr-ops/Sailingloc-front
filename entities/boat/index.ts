@@ -4,3 +4,4 @@ export { getBoatImageUrl } from "./model/image";
 export { getBoats, getBoatById, getFeaturedBoats, searchBoats } from "./api/index";
 export { getUserBoats, addUserBoat, USER_BOATS_EVENT } from "./model/userBoats";
 export { default as BoatCard } from "./ui/BoatCard";
+export { default as BoatTypeIcon } from "./ui/BoatTypeIcon";

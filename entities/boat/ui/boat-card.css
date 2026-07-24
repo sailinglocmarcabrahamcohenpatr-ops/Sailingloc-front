@@ -1,0 +1,136 @@
+/* ──────────────────────────────────────────────────────────────
+   Carte bateau — panneau "frosted glass" clair en bas (inspiration
+   carte voyage). Photo plein cadre + panneau translucide clair avec
+   titre, sous-titre, ligne d'infos et bouton CTA.
+   Co-localisé (surcharge globals.css, intact) → anti-conflit.
+   ────────────────────────────────────────────────────────────── */
+
+.boat-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 10 / 13;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--navy) 14%, transparent);
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1), box-shadow .35s ease;
+}
+/* Photo plein cadre */
+.boat-card-img {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* Neutralise le lift + le zoom au survol hérités de globals.css */
+.boat-card:hover {
+  transform: none;
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--navy) 14%, transparent);
+}
+.boat-card:hover .boat-card-img img { transform: none; }
+
+/* Badge (haut gauche) + cœur (haut droit) */
+.boat-badge { z-index: 3; }
+.btn-heart {
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, .45);
+  color: #fff;
+  box-shadow: none;
+}
+.btn-heart:hover { background: rgba(255, 255, 255, .3); color: #fff; }
+.btn-heart.liked { color: var(--red); }
+
+/* Panneau frosted clair en bas */
+.boat-card-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #fff;
+}
+
+/* Voile sombre + flou léger, ESTOMPÉS progressivement vers le haut
+   (masque en dégradé) → pas de bord net entre flou et net. */
+.boat-card-body::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: -55px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(6, 15, 30, .58) 0%,
+    rgba(6, 15, 30, .2) 55%,
+    transparent 100%
+  );
+  -webkit-backdrop-filter: blur(3px) saturate(1.05);
+  backdrop-filter: blur(3px) saturate(1.05);
+  -webkit-mask-image: linear-gradient(to top, #000 42%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 42%, transparent 100%);
+}
+
+/* Réf : pas de badge, seulement le cœur en haut à droite */
+.boat-card .boat-badge { display: none; }
+
+.boat-card-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.5px;
+  line-height: 1.1;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .45);
+}
+.boat-card-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .95rem;
+  color: rgba(255, 255, 255, .85);
+  margin-bottom: 12px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
+}
+
+.boat-card-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: .95rem;
+  color: #fff;
+  margin-bottom: 16px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
+}
+.boat-card-info i { color: rgba(255, 255, 255, .78); margin-right: 5px; }
+.boat-card-price { color: #fff; }
+.boat-card-price strong { font-weight: 800; color: #fff; }
+.boat-card-rating { font-weight: 600; }
+.boat-card-rating i { color: var(--star); }
+
+/* Bouton CTA (pilule blanche flottante) */
+.boat-card-cta {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-weight: 700;
+  font-size: .95rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--navy) 14%, transparent);
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
