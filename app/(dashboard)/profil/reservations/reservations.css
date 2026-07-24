@@ -1,0 +1,20 @@
+/* ──────────────────────────────────────────────────────────────
+   Page "Mes réservations" (app/(dashboard)/profil/reservations).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   Note : .booking-card lui-même reste global (fiche bateau + dashboard) ;
+   ici on ne cible que les sélecteurs propres à la liste des réservations.
+   ────────────────────────────────────────────────────────────── */
+.bookings-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+.bookings-list .booking-card {
+  box-shadow: var(--shadow);
+  display: flex;
+}
+.booking-card-img { position: relative; width: 180px; flex-shrink: 0; }
+@media (max-width: 768px) { .booking-card-img { width: 100%; height: 180px; } .bookings-list .booking-card { flex-direction: column; } }
+.booking-card-info { flex: 1; padding: 20px 24px; }
+.booking-card-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.booking-card-hd h3 { font-size: 1.0625rem; margin-top: 6px; }
+.booking-card-hd p { font-size: .875rem; color: var(--text-2); margin-top: 4px; }
+.bookings-list .booking-price { font-size: 1.375rem; color: var(--primary); white-space: nowrap; }
+.booking-card-dates { font-size: .875rem; color: var(--text-2); display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+.booking-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }

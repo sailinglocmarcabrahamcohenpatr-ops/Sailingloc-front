@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/shared/lib";
+import "./profile.css";
 
 const QUICK_LINKS = [
   { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", color: "#1866F2", bg: "#EEF3FE" },

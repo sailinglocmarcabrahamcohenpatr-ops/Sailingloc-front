@@ -8,6 +8,7 @@ import { useAuth, reservationsApi, referentielsApi } from "@/shared/lib";
 import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
 import type { Boat } from "@/entities/boat";
 import { getBoatImageUrl } from "@/entities/boat";
+import "./reservation.css";
 
 function daysBetween(start: string, end: string): number {
   const diff = Math.ceil(

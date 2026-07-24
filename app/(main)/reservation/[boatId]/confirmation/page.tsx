@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import "../reservation.css";
 
 export const metadata: Metadata = {
   title: "Réservation confirmée — SailingLoc",

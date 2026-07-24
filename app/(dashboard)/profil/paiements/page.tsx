@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./paiements.css";
 
 export const metadata: Metadata = { title: "Paiements — SailingLoc" };
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { reservationsApi } from "@/shared/lib";
 import type { ReservationAPI } from "@/shared/lib";
 import { RatingForm } from "@/features/rate-boat";
+import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { boatsApi, reservationsApi, useAuth } from "@/shared/lib";
 import type { BoatAPI, ReservationAPI } from "@/shared/lib";
+import "./revenue.css";
 
 const COMMISSION_RATE = 0.15;
 const MONTHS_BACK = 6;
