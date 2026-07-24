@@ -9,8 +9,8 @@
   position: relative;
   display: block;
   aspect-ratio: 10 / 13;
-  border-radius: 30px;
-  border: 1px solid var(--border);
+  border-radius: 52px;
+  border: 8px solid #fff;
   overflow: hidden;
   background: var(--card-bg);
   box-shadow: 0 14px 38px color-mix(in srgb, var(--navy) 14%, transparent);
