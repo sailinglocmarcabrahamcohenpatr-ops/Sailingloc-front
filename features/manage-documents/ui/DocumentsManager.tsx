@@ -1,113 +1,87 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { documentsApi, referentielsApi, resolvePhotoUrl } from "@/shared/lib";
+import type { DocumentAPI, TypeDocumentAPI } from "@/shared/lib";
 
-type DocStatus = "verified" | "pending" | "missing" | "optional";
-
-interface Doc {
-  id: string;
-  label: string;
-  description: string;
-  icon: string;
-  status: DocStatus;
-  date: string;
-  fileName?: string;
+/** Devine une icône FontAwesome à partir du libellé du type de document (aucune liste de types n'est fixée côté backend). */
+function iconForLabel(label: string): string {
+  const l = label.toLowerCase();
+  if (l.includes("identité") || l.includes("cni")) return "fa-id-card";
+  if (l.includes("permis")) return "fa-anchor";
+  if (l.includes("assurance")) return "fa-shield-halved";
+  if (l.includes("certificat")) return "fa-certificate";
+  if (l.includes("grise") || l.includes("immatriculation")) return "fa-file-lines";
+  return "fa-folder-plus";
 }
-
-interface DocType {
-  id: string;
-  label: string;
-  description: string;
-  icon: string;
-}
-
-const STATUS_META = {
-  verified: { label: "Vérifié", cls: "badge-status green", icon: "fa-circle-check" },
-  pending:  { label: "En cours", cls: "badge-status orange", icon: "fa-clock" },
-  missing:  { label: "Manquant", cls: "badge-status red", icon: "fa-circle-xmark" },
-  optional: { label: "Facultatif", cls: "badge-status grey", icon: "fa-circle-plus" },
-};
-
-/* Documents affichés par défaut, par ordre de priorité. */
-const INITIAL_DOCS: Doc[] = [
-  {
-    id: "cni",
-    label: "Carte d'identité",
-    description: "Pièce d'identité nationale recto-verso",
-    icon: "fa-id-card",
-    status: "verified",
-    date: "Vérifié le 12 mars 2024",
-  },
-  {
-    id: "permis-bateau",
-    label: "Permis bateau",
-    description: "Permis côtier ou hauturier",
-    icon: "fa-anchor",
-    status: "missing",
-    date: "Non fourni",
-  },
-  {
-    id: "autre",
-    label: "Autre document",
-    description: "Tout justificatif complémentaire utile à votre dossier",
-    icon: "fa-folder-plus",
-    status: "optional",
-    date: "Non fourni",
-  },
-];
-
-/* Documents facultatifs proposables via "Ajouter un document" — utiles pour
-   renforcer un dossier mais non exigés par défaut. */
-const DOCUMENT_CATALOG: DocType[] = [
-  {
-    id: "assurance-bateau",
-    label: "Assurance bateau",
-    description: "Attestation d'assurance responsabilité civile nautique en cours de validité",
-    icon: "fa-shield-halved",
-  },
-  {
-    id: "certificat-ce",
-    label: "Certificat CE",
-    description: "Certificat de conformité CE du bateau loué",
-    icon: "fa-certificate",
-  },
-  {
-    id: "carte-grise",
-    label: "Carte grise",
-    description: "Certificat d'immatriculation du véhicule",
-    icon: "fa-file-lines",
-  },
-];
 
 export default function DocumentsManager() {
-  const [docs, setDocs] = useState<Doc[]>(INITIAL_DOCS);
-  const [catalogOpen, setCatalogOpen] = useState(false);
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [types, setTypes] = useState<TypeDocumentAPI[]>([]);
+  const [documents, setDocuments] = useState<DocumentAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [uploadingTypeId, setUploadingTypeId] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<Record<number, string>>({});
+  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
-  const availableTypes = DOCUMENT_CATALOG.filter((t) => !docs.some((d) => d.id === t.id));
+  useEffect(() => {
+    Promise.all([referentielsApi.getTypesDocuments(), documentsApi.getAll()])
+      .then(([t, d]) => {
+        setTypes(t);
+        setDocuments(d);
+      })
+      .catch(() => setLoadError("Impossible de charger vos documents."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleFileChange = (docId: string, file: File | null) => {
+  const triggerUpload = (typeId: number) => {
+    inputRefs.current[typeId]?.click();
+  };
+
+  const handleFileChange = async (type: TypeDocumentAPI, previous: DocumentAPI | undefined, file: File | null) => {
     if (!file) return;
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId
-          ? { ...d, status: "pending", date: "En attente de vérification", fileName: file.name }
-          : d
-      )
+    setUploadingTypeId(type.id);
+    setUploadError((prev) => ({ ...prev, [type.id]: "" }));
+    try {
+      const uploaded = await documentsApi.create(file, type.id);
+      setDocuments((prev) => [...prev.filter((d) => d.typeDocument?.id !== type.id), uploaded]);
+      // Remplacement : l'ancien fichier n'a plus d'utilité une fois le nouveau confirmé côté serveur.
+      if (previous) {
+        documentsApi.delete(previous.id).catch(() => {});
+      }
+    } catch {
+      setUploadError((prev) => ({ ...prev, [type.id]: "Échec de l'envoi. Réessayez." }));
+    } finally {
+      setUploadingTypeId(null);
+    }
+  };
+
+  const handleDelete = async (doc: DocumentAPI) => {
+    try {
+      await documentsApi.delete(doc.id);
+      setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+    } catch {
+      if (doc.typeDocument) {
+        setUploadError((prev) => ({ ...prev, [doc.typeDocument!.id]: "Impossible de supprimer ce document." }));
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="dash-page">
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+      </div>
     );
-  };
+  }
 
-  const triggerUpload = (docId: string) => {
-    inputRefs.current[docId]?.click();
-  };
-
-  const addDocumentType = (type: DocType) => {
-    setDocs((prev) => [
-      ...prev,
-      { id: type.id, label: type.label, description: type.description, icon: type.icon, status: "optional", date: "Non fourni" },
-    ]);
-    setCatalogOpen(false);
-  };
+  if (loadError) {
+    return (
+      <div className="dash-page">
+        <p style={{ color: "var(--red)", padding: "24px" }}>{loadError}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="dash-page">
@@ -116,93 +90,87 @@ export default function DocumentsManager() {
           <h1 className="dash-title">Mes documents</h1>
           <p className="dash-sub">Gérez vos justificatifs pour accéder à toutes les fonctionnalités</p>
         </div>
-        {availableTypes.length > 0 && (
-          <button type="button" className="btn btn-primary" onClick={() => setCatalogOpen(true)}>
-            <i className="fa-solid fa-plus" /> Ajouter un document
-          </button>
-        )}
       </div>
 
       <div className="docs-info-banner">
         <i className="fa-solid fa-circle-info" />
         <div>
-          <strong>Pourquoi vérifier vos documents ?</strong>
-          <p>Les propriétaires accordent leur confiance aux profils vérifiés et un dossier complet augmente vos chances d'acceptation. À l'inverse, tout document manquant ou non vérifié peut entraîner le rejet de votre demande de réservation.</p>
+          <strong>Pourquoi fournir vos documents ?</strong>
+          <p>Les propriétaires accordent leur confiance aux profils avec un dossier complet, ce qui augmente vos chances d&apos;acceptation.</p>
         </div>
       </div>
 
       <div className="docs-list">
-        {docs.map((doc) => (
-          <div key={doc.id} className="doc-item">
-            <div className="doc-icon">
-              <i className={`fa-solid ${doc.icon}`} aria-hidden="true" />
-            </div>
+        {types.map((type) => {
+          const doc = documents.find((d) => d.typeDocument?.id === type.id);
+          const label = type.labelTypeDocument ?? type.libelle ?? "Document";
+          const icon = iconForLabel(label);
+          const busy = uploadingTypeId === type.id;
 
-            <div className="doc-info">
-              <strong>{doc.label}</strong>
-              <span style={{ fontSize: ".75rem", color: "var(--text-3)" }}>{doc.description}</span>
-              <span>{doc.fileName ? `Fichier : ${doc.fileName}` : doc.date}</span>
-            </div>
+          return (
+            <div key={type.id} className="doc-item">
+              <div className="doc-icon">
+                <i className={`fa-solid ${icon}`} aria-hidden="true" />
+              </div>
 
-            <span className={STATUS_META[doc.status].cls}>
-              <i className={`fa-solid ${STATUS_META[doc.status].icon}`} aria-hidden="true" />
-              {STATUS_META[doc.status].label}
-            </span>
+              <div className="doc-info">
+                <strong>{label}</strong>
+                <span>{doc ? "Envoyé" : "Non fourni"}</span>
+                {uploadError[type.id] && (
+                  <span style={{ color: "var(--red)" }}>{uploadError[type.id]}</span>
+                )}
+              </div>
 
-            <div className="doc-actions">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                style={{ display: "none" }}
-                ref={(el) => { inputRefs.current[doc.id] = el; }}
-                onChange={(e) => handleFileChange(doc.id, e.target.files?.[0] ?? null)}
-              />
-              {doc.status === "verified" ? (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn btn-ghost btn-sm">
+              <span className={doc ? "badge-status green" : "badge-status grey"}>
+                <i className={`fa-solid ${doc ? "fa-circle-check" : "fa-circle-xmark"}`} aria-hidden="true" />
+                {doc ? "Envoyé" : "Manquant"}
+              </span>
+
+              <div className="doc-actions">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  style={{ display: "none" }}
+                  ref={(el) => {
+                    inputRefs.current[type.id] = el;
+                  }}
+                  onChange={(e) => {
+                    handleFileChange(type, doc, e.target.files?.[0] ?? null);
+                    e.target.value = "";
+                  }}
+                />
+                {doc && (
+                  <a
+                    href={resolvePhotoUrl(doc.urlDocument ?? "")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-ghost btn-sm"
+                  >
                     <i className="fa-solid fa-eye" /> Voir
+                  </a>
+                )}
+                {doc && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleDelete(doc)}
+                    disabled={busy}
+                  >
+                    <i className="fa-solid fa-trash" /> Supprimer
                   </button>
-                  <button className="btn btn-outline btn-sm" onClick={() => triggerUpload(doc.id)}>
-                    <i className="fa-solid fa-rotate" /> Remplacer
-                  </button>
-                </div>
-              ) : (
-                <button className="btn btn-outline btn-sm" onClick={() => triggerUpload(doc.id)}>
-                  <i className="fa-solid fa-upload" />
-                  {doc.fileName ? "Remplacer" : "Ajouter"}
+                )}
+                <button
+                  className="btn btn-outline btn-sm"
+                  onClick={() => triggerUpload(type.id)}
+                  disabled={busy}
+                >
+                  {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-upload" />}
+                  {doc ? "Remplacer" : "Ajouter"}
                 </button>
-              )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-
-      {catalogOpen && (
-        <div className="doc-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setCatalogOpen(false); }}>
-          <div className="doc-modal" role="dialog" aria-modal="true" aria-label="Ajouter un document">
-            <div className="doc-modal-header">
-              <h2>Quel document voulez-vous ajouter ?</h2>
-              <button className="doc-modal-close" onClick={() => setCatalogOpen(false)} aria-label="Fermer">
-                <i className="fa-solid fa-xmark" />
-              </button>
-            </div>
-            <div className="doc-modal-body">
-              {availableTypes.map((type) => (
-                <button key={type.id} type="button" className="doc-type-card" onClick={() => addDocumentType(type)}>
-                  <span className="doc-type-icon">
-                    <i className={`fa-solid ${type.icon}`} aria-hidden="true" />
-                  </span>
-                  <span className="doc-type-info">
-                    <strong>{type.label}</strong>
-                    <span>{type.description}</span>
-                  </span>
-                  <i className="fa-solid fa-chevron-right doc-type-arrow" aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

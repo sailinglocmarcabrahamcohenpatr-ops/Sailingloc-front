@@ -119,9 +119,3 @@ export const paiementsApi = {
     api.delete<void>(`/api/paiements/${id}`),
 };
 
-export const avisApi2 = {
-  getAll: () =>
-    api.get<{ id: number; note: number; commentaire: string; id_reservation: number; id_utilisateur: number }[]>("/api/avis"),
-  getOne: (id: number | string) =>
-    api.get(`/api/avis/${id}`),
-};

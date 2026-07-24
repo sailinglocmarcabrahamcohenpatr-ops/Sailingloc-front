@@ -30,13 +30,35 @@ function libelleToKey(libelle?: string): BadgeKey {
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-const BookingCard = ({ r, onRated }: { r: ReservationAPI; onRated: (reservationId: number) => void }) => {
+const BookingCard = ({
+  r,
+  onRated,
+  onCancelled,
+}: {
+  r: ReservationAPI;
+  onRated: (reservationId: number) => void;
+  onCancelled: (reservationId: number) => void;
+}) => {
   const key = libelleToKey(r.statutReservation?.libelle);
   const st = STATUS[key];
   const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
   const imgSrc = `https://picsum.photos/seed/boat-${r.idBateau}/400/300`;
   const alreadyRated = (r.avis?.length ?? 0) > 0;
   const [showRating, setShowRating] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    setCancelError("");
+    try {
+      await reservationsApi.cancel(r.id);
+      onCancelled(r.id);
+    } catch {
+      setCancelError("Impossible d'annuler cette réservation.");
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="booking-card">
@@ -79,11 +101,19 @@ const BookingCard = ({ r, onRated }: { r: ReservationAPI; onRated: (reservationI
             </button>
           )}
           {key === "confirmed" && (
-            <button className="btn btn-ghost btn-sm" style={{ color: "var(--red)" }}>
-              <i className="fa-solid fa-xmark" /> Annuler
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ color: "var(--red)" }}
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler
             </button>
           )}
         </div>
+        {cancelError && (
+          <p style={{ color: "var(--red)", fontSize: ".8125rem", marginTop: 6 }}>{cancelError}</p>
+        )}
       </div>
 
       {showRating && (
@@ -118,6 +148,10 @@ export default function UserReservationsPage() {
     setReservations((prev) =>
       prev.map((r) => (r.id === reservationId ? { ...r, avis: [...(r.avis ?? []), true] } : r)),
     );
+  };
+
+  const handleCancelled = (reservationId: number) => {
+    setReservations((prev) => prev.filter((r) => r.id !== reservationId));
   };
 
   if (loading)
@@ -156,7 +190,7 @@ export default function UserReservationsPage() {
           <h3 className="dash-section-title">À venir</h3>
           <div className="bookings-list">
             {upcoming.map((r) => (
-              <BookingCard key={r.id} r={r} onRated={handleRated} />
+              <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
             ))}
           </div>
         </div>
@@ -166,7 +200,7 @@ export default function UserReservationsPage() {
           <h3 className="dash-section-title">Historique</h3>
           <div className="bookings-list">
             {past.map((r) => (
-              <BookingCard key={r.id} r={r} onRated={handleRated} />
+              <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
             ))}
           </div>
         </div>

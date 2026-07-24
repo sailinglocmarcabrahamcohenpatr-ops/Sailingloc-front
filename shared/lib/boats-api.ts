@@ -66,6 +66,9 @@ export interface BoatAPI {
    *  d'où l'usage direct de ces champs (déjà embarqués par le backend dans chaque bateau). */
   port?: { id: number; nom: string; ville: string; pays?: string; latitude?: number | string; longitude?: number | string };
   typeBateau?: { id?: number; labelTypeBateau: string };
+  /** Champs calculés côté backend (jamais stockés) à partir des avis réels du bateau. */
+  noteMoyenne?: number;
+  nombreAvis?: number;
   /** Champ retourné par l'API pour les routes /bateaux */
   proprietaire?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; statutCompte?: boolean };
   /** Alias alternatif selon certains endpoints */
