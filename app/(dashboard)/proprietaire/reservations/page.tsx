@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { reservationsApi } from "@/shared/lib";
-import type { ReservationAPI } from "@/shared/lib";
+import { reservationsApi, referentielsApi } from "@/shared/lib";
+import type { ReservationAPI, StatutReservationAPI } from "@/shared/lib";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 
@@ -47,9 +47,17 @@ function renterName(r: ReservationAPI): string {
 const Section = ({
   title,
   items,
+  actioningId,
+  actionError,
+  onConfirm,
+  onRefuse,
 }: {
   title: string;
   items: ReservationAPI[];
+  actioningId: number | null;
+  actionError: Record<number, string>;
+  onConfirm: (r: ReservationAPI) => void;
+  onRefuse: (r: ReservationAPI) => void;
 }) =>
   items.length > 0 ? (
     <div>
@@ -62,6 +70,7 @@ const Section = ({
           const st = STATUS[key];
           const days = daysBetween(r.dateDebut, r.dateFin);
           const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
+          const busy = actioningId === r.id;
 
           return (
             <div key={r.id} className="reservation-row">
@@ -83,11 +92,19 @@ const Section = ({
               <div className="reservation-actions">
                 {key === "pending" && (
                   <>
-                    <button className="btn btn-primary btn-sm">
-                      <i className="fa-solid fa-check" /> Confirmer
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => onConfirm(r)}
+                      disabled={busy}
+                    >
+                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-check" />} Confirmer
                     </button>
-                    <button className="btn btn-outline btn-sm">
-                      <i className="fa-solid fa-xmark" /> Refuser
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={() => onRefuse(r)}
+                      disabled={busy}
+                    >
+                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Refuser
                     </button>
                   </>
                 )}
@@ -97,6 +114,11 @@ const Section = ({
                   </button>
                 )}
               </div>
+              {actionError[r.id] && (
+                <p style={{ color: "var(--red)", fontSize: ".8125rem", gridColumn: "1 / -1", margin: "4px 0 0" }}>
+                  {actionError[r.id]}
+                </p>
+              )}
             </div>
           );
         })}
@@ -106,16 +128,52 @@ const Section = ({
 
 export default function OwnerReservationsPage() {
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
+  const [statuts, setStatuts] = useState<StatutReservationAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actioningId, setActioningId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    reservationsApi
-      .getAll()
-      .then(setReservations)
+    Promise.all([reservationsApi.getAll(), referentielsApi.getStatutsReservations()])
+      .then(([resa, sts]) => {
+        setReservations(resa);
+        setStatuts(sts);
+      })
       .catch(() => setError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleConfirm = async (r: ReservationAPI) => {
+    const confirme = statuts.find((s) => s.libelle.toLowerCase().includes("confirm"));
+    if (!confirme) {
+      setActionError((prev) => ({ ...prev, [r.id]: "Statut « confirmée » introuvable." }));
+      return;
+    }
+    setActioningId(r.id);
+    setActionError((prev) => ({ ...prev, [r.id]: "" }));
+    try {
+      const updated = await reservationsApi.update(r.id, { id_statut_reservation: confirme.id });
+      setReservations((prev) => prev.map((x) => (x.id === r.id ? { ...x, ...updated } : x)));
+    } catch {
+      setActionError((prev) => ({ ...prev, [r.id]: "Impossible de confirmer cette réservation." }));
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const handleRefuse = async (r: ReservationAPI) => {
+    setActioningId(r.id);
+    setActionError((prev) => ({ ...prev, [r.id]: "" }));
+    try {
+      await reservationsApi.cancel(r.id);
+      setReservations((prev) => prev.filter((x) => x.id !== r.id));
+    } catch {
+      setActionError((prev) => ({ ...prev, [r.id]: "Impossible de refuser cette réservation." }));
+    } finally {
+      setActioningId(null);
+    }
+  };
 
   if (loading)
     return (
@@ -151,9 +209,30 @@ export default function OwnerReservationsPage() {
           </p>
         </div>
       </div>
-      <Section title="En attente de confirmation" items={pending} />
-      <Section title="Réservations confirmées" items={active} />
-      <Section title="Historique" items={past} />
+      <Section
+        title="En attente de confirmation"
+        items={pending}
+        actioningId={actioningId}
+        actionError={actionError}
+        onConfirm={handleConfirm}
+        onRefuse={handleRefuse}
+      />
+      <Section
+        title="Réservations confirmées"
+        items={active}
+        actioningId={actioningId}
+        actionError={actionError}
+        onConfirm={handleConfirm}
+        onRefuse={handleRefuse}
+      />
+      <Section
+        title="Historique"
+        items={past}
+        actioningId={actioningId}
+        actionError={actionError}
+        onConfirm={handleConfirm}
+        onRefuse={handleRefuse}
+      />
     </div>
   );
 }

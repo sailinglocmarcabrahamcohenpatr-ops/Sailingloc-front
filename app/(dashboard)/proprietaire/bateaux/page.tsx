@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { boatsApi, resolvePhotoUrl } from "@/shared/lib";
+import { boatsApi, resolvePhotoUrl, useAuth } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
 
 type UiStatus = "active" | "inactive" | "pending";
@@ -40,6 +40,7 @@ function boatLocation(boat: BoatAPI): string {
 }
 
 export default function OwnerBoatsPage() {
+  const { user } = useAuth();
   const [boats, setBoats] = useState<BoatAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,12 +48,13 @@ export default function OwnerBoatsPage() {
   const [toggleError, setToggleError] = useState("");
 
   useEffect(() => {
+    if (!user?.id) return;
     boatsApi
-      .getAll()
+      .getAll({ proprietaire_id: String(user.id) })
       .then(setBoats)
       .catch(() => setError("Impossible de charger les bateaux."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.id]);
 
   const handleToggleStatus = async (boat: BoatAPI, nextActive: boolean) => {
     setTogglingId(boat.id);

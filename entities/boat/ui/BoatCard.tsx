@@ -70,8 +70,14 @@ export default function BoatCard({
         <div className="boat-card-foot">
           <div className="boat-card-rating">
             <i className="fa-solid fa-star" aria-hidden="true" />
-            <strong>{boat.rating.toFixed(1)}</strong>
-            <span className="reviews">({boat.reviewCount} avis)</span>
+            {boat.reviewCount > 0 ? (
+              <>
+                <strong>{boat.rating.toFixed(1)}</strong>
+                <span className="reviews">({boat.reviewCount} avis)</span>
+              </>
+            ) : (
+              <span className="reviews">Nouveau</span>
+            )}
           </div>
           <div className="boat-card-price">
             {formatPrice(boat.pricePerDay)} <span>/ jour</span>
