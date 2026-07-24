@@ -15,13 +15,32 @@
    overflow:hidden 100% sûr, aucun dropdown à l'intérieur).
    La zone de contenu (barre de recherche) n'est pas rognée. */
 .home-shell > .hero {
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+  border-radius: 28px;
 }
 .home-shell .hero-bg {
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+  border-radius: 28px;
   overflow: hidden;
+}
+
+/* Section « Quel bateau recherchez-vous ? » en bloc arrondi visible */
+.home-shell section[aria-labelledby="cat-title"] {
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+/* Section « garanties » : retrait du trait du bas + marge en haut */
+.home-shell .trust-section {
+  border-bottom: none;
+  margin-top: 28px;
+}
+
+/* Section « Bateaux en vedette » en bloc arrondi */
+.home-shell section[aria-labelledby="featured-title"] {
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  margin: 14px 0;
 }
 
 /* ── Coins bas arrondis sur la dernière section ── */
