@@ -21,11 +21,7 @@ export default function BoatCard({
   const isUploadedPhoto = imgSrc.startsWith("data:");
 
   return (
-    <Link
-      href={`/bateaux/${boat.id}`}
-      className={cn("boat-card", className)}
-      aria-label={`${boat.name} — ${boat.location}`}
-    >
+    <div className={cn("boat-card", className)}>
       <div className="boat-card-img">
         <Image
           src={imgSrc}
@@ -51,7 +47,13 @@ export default function BoatCard({
         {action}
       </div>
       <div className="boat-card-body">
-        <div className="boat-card-name">{boat.name}</div>
+        <Link
+          href={`/bateaux/${boat.id}`}
+          className="boat-card-name stretched-link"
+          aria-label={`${boat.name} — ${boat.location}`}
+        >
+          {boat.name}
+        </Link>
         <div className="boat-card-loc">
           <i className="fa-solid fa-location-dot" aria-hidden="true" />
           {boat.location}
@@ -84,6 +86,6 @@ export default function BoatCard({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
