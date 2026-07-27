@@ -30,6 +30,7 @@ export default function ListBoatForm() {
   const [submitError, setSubmitError] = useState("");
   const [draftRestored, setDraftRestored] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const submittingRef = useRef(false);
 
   /* ── Données API ── */
@@ -294,7 +295,8 @@ export default function ListBoatForm() {
 
       clearDraft();
       clearFilesDraft();
-      router.push(`/proprietaire/bateaux/${boat.id}/calendrier?bienvenue=1`);
+      setSubmitted(true);
+      setTimeout(() => router.push("/proprietaire/bateaux"), 3000);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Erreur lors de la soumission.");
       setSubmitStep("idle");
@@ -316,6 +318,20 @@ export default function ListBoatForm() {
       case "documents": return <><i className="fa-solid fa-circle-notch fa-spin" /> Documents ({uploadedDocs}/{[docCarteGrise, docAssurance, docCertificat].filter(Boolean).length})…</>;
       default:          return <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>;
     }
+  }
+
+  if (submitted) {
+    return (
+      <div className="save-confirm">
+        <i className="fa-solid fa-hourglass-half" />
+        <h3>Votre annonce a bien été soumise !</h3>
+        <p>
+          Nos équipes vérifient actuellement vos documents légaux. Votre bateau sera mis en ligne
+          et ouvert à la location dès que la validation sera terminée.
+        </p>
+        <small>Redirection vers votre espace…</small>
+      </div>
+    );
   }
 
   if (draftSaved) {

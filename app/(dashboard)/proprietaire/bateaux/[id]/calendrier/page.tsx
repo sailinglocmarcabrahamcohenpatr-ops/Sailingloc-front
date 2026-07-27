@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
@@ -27,8 +27,6 @@ function isCancelled(libelle?: string): boolean {
 export default function OwnerBoatCalendarPage() {
   const params = useParams<{ id: string }>();
   const boatId = params.id;
-  const searchParams = useSearchParams();
-  const welcome = searchParams.get("bienvenue") === "1";
 
   const [boat, setBoat] = useState<BoatAPI | null>(null);
   const [dispos, setDispos] = useState<DisponibiliteAPI[]>([]);
@@ -135,16 +133,6 @@ export default function OwnerBoatCalendarPage() {
           <i className="fa-solid fa-eye" /> Voir l&apos;annonce
         </Link>
       </div>
-
-      {welcome && (
-        <div className="cal-welcome-banner">
-          <i className="fa-solid fa-circle-check" />
-          <span>
-            Votre bateau <strong>{boat.nomBateau}</strong> est publié ! Ouvrez vos premières périodes de
-            location ci-dessous pour qu&apos;il devienne réservable.
-          </span>
-        </div>
-      )}
 
       <div className="owner-calendar-layout">
         <div className="owner-calendar-main">
