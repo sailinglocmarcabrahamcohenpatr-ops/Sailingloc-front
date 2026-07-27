@@ -23,7 +23,7 @@ const adminLinks: NavLink[] = [
   { href: "/admin/bateaux",           icon: "fa-sailboat",       label: "Ajouter un bateau" },
   { href: "/admin/publication",       icon: "fa-file-circle-check", label: "Publication" },
   { href: "/admin/demandes-proprio",  icon: "fa-user-check",     label: "Demandes propriétaire" },
-  { href: "/admin/messages",          icon: "fa-envelope",       label: "Messages", badge: 3 },
+  { href: "/admin/messages",          icon: "fa-envelope",       label: "Messages" },
 ];
 
 const renterLinks: NavLink[] = [
