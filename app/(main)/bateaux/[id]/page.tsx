@@ -57,6 +57,7 @@ interface BoatPageData {
   description: string | null;
   caution: number;
   ownerSeed: string;
+  ownerName: string;
   galleryImages: { src: string; alt: string }[];
 }
 
@@ -77,10 +78,17 @@ function adaptBoat(b: BoatAPI): BoatPageData {
           { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: "Cabine principale" },
         ];
 
+  const owner = b.proprietaire ?? b.utilisateur;
+  const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : "Propriétaire";
+
+  const lat = b.port?.latitude != null ? Number(b.port.latitude) : NaN;
+  const lng = b.port?.longitude != null ? Number(b.port.longitude) : NaN;
+
   return {
     id: String(b.id),
     name: b.nomBateau,
     location: b.port ? b.port.ville : "France",
+    coordinates: !Number.isNaN(lat) && !Number.isNaN(lng) ? { lat, lng } : undefined,
     type: b.typeBateau?.labelTypeBateau ?? "Voilier",
     rating: 0,
     reviewCount: 0,
@@ -95,6 +103,7 @@ function adaptBoat(b: BoatAPI): BoatPageData {
     description: b.description ?? null,
     caution: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? 0),
     ownerSeed: String(b.id_utilisateur ?? b.id),
+    ownerName,
     galleryImages,
   };
 }
@@ -223,7 +232,7 @@ export default async function ProductPage({ params }: PageProps) {
               />
               <div className="product-owner-info">
                 <small>Proposé par</small>
-                <strong>Propriétaire</strong>
+                <strong>{boat.ownerName}</strong>
                 <Link href="#">
                   Voir le profil{" "}
                   <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
@@ -399,7 +408,7 @@ export default async function ProductPage({ params }: PageProps) {
           rating={boat.rating}
           reviewCount={boat.reviewCount}
           capacity={boat.capacity || 8}
-          ownerName="Propriétaire"
+          ownerName={boat.ownerName}
         />
       </div>
     </div>
