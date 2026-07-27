@@ -136,6 +136,39 @@
   margin: 14px 0;
 }
 
+/* Section « Réservez en 3 étapes » (Simple, rapide, sécurisé) en bloc arrondi */
+.home-shell section[aria-labelledby="hiw-title"] {
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  margin: 14px 0;
+  overflow: hidden;
+}
+
+/* Section « Ce que disent nos navigateurs » : fond blanc */
+.home-shell .testimonials-section {
+  background: var(--white);
+}
+
+/* Section stats : NOIR SUR BLANC + bloc arrondi (cohérence avec les autres) */
+.home-shell .stats-dark-section {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  margin: 14px 0;
+  overflow: hidden;
+}
+.home-shell .stats-dark-item { border-color: var(--border); }
+.home-shell .stats-dark-icon { color: var(--primary); }
+.home-shell .stats-dark-item strong { color: var(--text); }
+.home-shell .stats-dark-item span { color: var(--text-2); }
+
+/* Section « Pour les propriétaires » (…40 000 €) : coins arrondis */
+.home-shell .owner-cta-home {
+  border-radius: 28px;
+  overflow: hidden;
+  margin: 14px 0;
+}
+
 /* ── Coins bas arrondis sur la dernière section ── */
 .home-shell > *:last-child {
   border-bottom-left-radius: 28px;

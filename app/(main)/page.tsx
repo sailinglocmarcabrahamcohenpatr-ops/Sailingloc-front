@@ -6,6 +6,7 @@ import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
+import StatsCounters from "./StatsCounters";
 import "./home-shell.css";
 
 export const metadata: Metadata = {
@@ -44,13 +45,6 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const TRUST_BADGES = [
-  { icon: "fa-shield-halved", label: "Assurance incluse", desc: "Tous risques sur chaque location" },
-  { icon: "fa-lock", label: "Paiement sécurisé", desc: "Cryptage SSL & fonds bloqués" },
-  { icon: "fa-circle-check", label: "Propriétaires vérifiés", desc: "Identité & documents contrôlés" },
-  { icon: "fa-headset", label: "Support 24h/24", desc: "Assistance en mer si besoin" },
-];
-
 export default async function HomePage() {
   const destinations = await getDestinations();
 
@@ -59,22 +53,10 @@ export default async function HomePage() {
       {/* ── Hero ── */}
       <HeroSection />
 
-      {/* ── Trust badges ── */}
-      <section className="trust-section" aria-label="Nos garanties">
+      {/* ── Stats ── */}
+      <section className="stats-dark-section" aria-label="Chiffres clés">
         <div className="container">
-          <div className="trust-grid">
-            {TRUST_BADGES.map((b) => (
-              <div key={b.label} className="trust-badge">
-                <div className="trust-badge-icon">
-                  <i className={`fa-solid ${b.icon}`} aria-hidden="true" />
-                </div>
-                <div>
-                  <strong>{b.label}</strong>
-                  <span>{b.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <StatsCounters />
         </div>
       </section>
 
@@ -181,26 +163,6 @@ export default async function HomePage() {
 
       {/* ── Avis clients ── */}
       <Testimonials />
-
-      {/* ── Stats ── */}
-      <section className="stats-dark-section" aria-label="Chiffres clés">
-        <div className="container">
-          <div className="stats-dark-grid">
-            {[
-              { val: "3 200+", label: "Bateaux disponibles", icon: "fa-sailboat" },
-              { val: "15", label: "Pays en Europe", icon: "fa-earth-europe" },
-              { val: "50 000+", label: "Voyages réalisés", icon: "fa-anchor" },
-              { val: "4.9 / 5", label: "Note de satisfaction", icon: "fa-star" },
-            ].map((s) => (
-              <div key={s.label} className="stats-dark-item fade-in">
-                <i className={`fa-solid ${s.icon} stats-dark-icon`} aria-hidden="true" />
-                <strong>{s.val}</strong>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Owner CTA ── */}
       <section className="owner-cta-home" aria-labelledby="owner-cta-title">

@@ -28,28 +28,6 @@ export default function HeroSection() {
           </p>
 
           <SearchBar />
-
-          <div className="hero-trust">
-            <div className="hero-trust-item">
-              <strong>3 200+</strong>
-              <span>Bateaux disponibles</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>15</strong>
-              <span>Pays couverts</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>4.9 / 5</strong>
-              <span>Satisfaction client</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>50 000+</strong>
-              <span>Voyages réalisés</span>
-            </div>
-          </div>
         </div>
       </div>
     </section>
