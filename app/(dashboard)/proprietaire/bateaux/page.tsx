@@ -6,10 +6,10 @@ import Link from "next/link";
 import { boatsApi, resolvePhotoUrl, useAuth } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
 
-type UiStatus = "active" | "inactive" | "pending";
+type UiStatus = "active" | "inactive" | "pending" | "refused";
 
 // `statut` est un champ libre côté API (ex: "disponible", "en attente de validation",
-// "loué", "maintenance", "suspendu") — on ne mappe que les valeurs connues.
+// "loué", "maintenance", "suspendu", "refusé") — on ne mappe que les valeurs connues.
 const STATUT_MAP: Record<string, UiStatus> = {
   disponible: "active",
   indisponible: "inactive",
@@ -17,12 +17,14 @@ const STATUT_MAP: Record<string, UiStatus> = {
   maintenance: "inactive",
   en_attente: "pending",
   "en attente de validation": "pending",
+  refusé: "refused",
 };
 
 const STATUS_MAP: Record<UiStatus, { label: string; cls: string }> = {
   active: { label: "Publié", cls: "badge-status green" },
   inactive: { label: "Désactivé", cls: "badge-status grey" },
   pending: { label: "En révision", cls: "badge-status orange" },
+  refused: { label: "Refusé", cls: "badge-status red" },
 };
 
 function boatImage(boat: BoatAPI): string {
@@ -169,9 +171,11 @@ export default function OwnerBoatsPage() {
                 >
                   <i className="fa-solid fa-eye" /> Voir
                 </Link>
-                <Link href={`/proprietaire/bateaux/${boat.id}/calendrier`} className="btn btn-outline btn-sm">
-                  <i className="fa-solid fa-calendar-days" /> Calendrier
-                </Link>
+                {uiStatus !== "refused" && (
+                  <Link href={`/proprietaire/bateaux/${boat.id}/calendrier`} className="btn btn-outline btn-sm">
+                    <i className="fa-solid fa-calendar-days" /> Calendrier
+                  </Link>
+                )}
                 <Link href={`/proprietaire/bateaux/${boat.id}/modifier`} className="btn btn-outline btn-sm">
                   <i className="fa-solid fa-pen-to-square" /> Modifier
                 </Link>

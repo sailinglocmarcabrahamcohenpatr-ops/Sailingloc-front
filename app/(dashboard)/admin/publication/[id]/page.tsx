@@ -287,7 +287,7 @@ export default function AdminPublicationDetailPage() {
 
   const [viewingDoc, setViewingDoc]   = useState<DocumentAPI | null>(null);
   const [lightboxIdx, setLightboxIdx]  = useState<number | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"validate" | "suspend" | "unsuspend" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"validate" | "reject" | "suspend" | "unsuspend" | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast]         = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -361,6 +361,7 @@ export default function AdminPublicationDetailPage() {
     const newStatut =
       confirmAction === "validate"   ? StatutBateau.DISPONIBLE :
       confirmAction === "unsuspend"  ? StatutBateau.DISPONIBLE :
+      confirmAction === "reject"     ? StatutBateau.REFUSE :
                                        StatutBateau.SUSPENDU;
     try {
       const updated = await boatsApi.updateStatut(boat.id, newStatut);
@@ -371,6 +372,8 @@ export default function AdminPublicationDetailPage() {
           ? "Le bateau a été validé et est maintenant disponible."
           : confirmAction === "unsuspend"
           ? "La suspension a été levée. Le bateau est de nouveau disponible."
+          : confirmAction === "reject"
+          ? "La demande de publication a été refusée."
           : "Le bateau a été suspendu.",
         "success"
       );
@@ -785,13 +788,22 @@ export default function AdminPublicationDetailPage() {
               passera à <strong>Disponible</strong>.
             </p>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => setConfirmAction("validate")}
-          >
-            <i className="fa-solid fa-circle-check" />
-            Valider la publication
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              className="btn btn-outline"
+              onClick={() => setConfirmAction("reject")}
+            >
+              <i className="fa-solid fa-xmark" />
+              Refuser
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => setConfirmAction("validate")}
+            >
+              <i className="fa-solid fa-circle-check" />
+              Valider la publication
+            </button>
+          </div>
         </div>
       )}
 
@@ -844,6 +856,7 @@ export default function AdminPublicationDetailPage() {
           title={
             confirmAction === "validate"  ? "Valider la publication" :
             confirmAction === "unsuspend" ? "Lever la suspension" :
+            confirmAction === "reject"    ? "Refuser la publication" :
                                            "Suspendre le bateau"
           }
           message={
@@ -851,14 +864,17 @@ export default function AdminPublicationDetailPage() {
               ? `Êtes-vous sûr de vouloir valider la publication du bateau "${boat.nomBateau}" ? Il sera visible sur la plateforme.`
               : confirmAction === "unsuspend"
               ? `Êtes-vous sûr de vouloir lever la suspension du bateau "${boat.nomBateau}" ? Il redeviendra disponible sur la plateforme.`
+              : confirmAction === "reject"
+              ? `Êtes-vous sûr de vouloir refuser la publication du bateau "${boat.nomBateau}" ? Le propriétaire devra soumettre une nouvelle demande.`
               : `Êtes-vous sûr de vouloir suspendre le bateau "${boat.nomBateau}" ? Il ne sera plus visible sur la plateforme.`
           }
           confirmLabel={
             confirmAction === "validate"  ? "Valider" :
             confirmAction === "unsuspend" ? "Lever la suspension" :
+            confirmAction === "reject"    ? "Refuser" :
                                            "Suspendre"
           }
-          danger={confirmAction === "suspend"}
+          danger={confirmAction === "suspend" || confirmAction === "reject"}
           loading={actionLoading}
           onConfirm={handleAction}
           onCancel={() => setConfirmAction(null)}

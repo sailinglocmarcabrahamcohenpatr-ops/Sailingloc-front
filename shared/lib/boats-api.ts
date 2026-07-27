@@ -32,6 +32,7 @@ export const StatutBateau = {
   LOUE: "loué",
   MAINTENANCE: "maintenance",
   SUSPENDU: "suspendu",
+  REFUSE: "refusé",
 } as const;
 export type StatutBateauValue = typeof StatutBateau[keyof typeof StatutBateau];
 

@@ -10,7 +10,7 @@ import "../publication/publication.css";
 /* ── Constants ── */
 const PAGE_SIZE = 10;
 
-type Tab = "en-attente" | "disponible" | "suspendu";
+type Tab = "en-attente" | "disponible" | "suspendu" | "refuse";
 
 /* ── Helpers ── */
 function formatDate(dateStr?: string | null) {
@@ -124,6 +124,7 @@ export default function AdminPublicationPage() {
     "en-attente": StatutBateau.EN_ATTENTE_VALIDATION,
     "disponible":  StatutBateau.DISPONIBLE,
     "suspendu":    StatutBateau.SUSPENDU,
+    "refuse":      StatutBateau.REFUSE,
   };
   const statusFilter = STATUS_MAP[tab];
 
@@ -161,6 +162,7 @@ export default function AdminPublicationPage() {
   const pendingCount   = allBoats.filter((b) => b.statut === StatutBateau.EN_ATTENTE_VALIDATION).length;
   const availableCount = allBoats.filter((b) => b.statut === StatutBateau.DISPONIBLE).length;
   const suspendedCount = allBoats.filter((b) => b.statut === StatutBateau.SUSPENDU).length;
+  const refusedCount   = allBoats.filter((b) => b.statut === StatutBateau.REFUSE).length;
 
   return (
     <div className="dash-page">
@@ -201,6 +203,14 @@ export default function AdminPublicationPage() {
             <i className="fa-solid fa-ban" />
             Suspendus
             <span className="pub-tab-count">{suspendedCount}</span>
+          </button>
+          <button
+            className={`pub-tab${tab === "refuse" ? " active" : ""}`}
+            onClick={() => setTab("refuse")}
+          >
+            <i className="fa-solid fa-xmark" />
+            Refusés
+            <span className="pub-tab-count">{refusedCount}</span>
           </button>
         </div>
 
@@ -264,7 +274,9 @@ export default function AdminPublicationPage() {
                     ? "Aucun bateau en attente de validation."
                     : tab === "disponible"
                     ? "Aucun bateau disponible pour l'instant."
-                    : "Aucun bateau suspendu."}
+                    : tab === "suspendu"
+                    ? "Aucun bateau suspendu."
+                    : "Aucune demande refusée."}
                 </p>
               </div>
             ) : (
@@ -276,7 +288,12 @@ export default function AdminPublicationPage() {
                       <th>Type</th>
                       <th>Port / Localisation</th>
                       <th>Propriétaire</th>
-                      <th>{tab === "en-attente" ? "Date de création" : tab === "suspendu" ? "Date de suspension" : "Date de publication"}</th>
+                      <th>
+                        {tab === "en-attente" ? "Date de création" :
+                         tab === "suspendu"   ? "Date de suspension" :
+                         tab === "refuse"     ? "Date de refus" :
+                                                "Date de publication"}
+                      </th>
                       <th></th>
                     </tr>
                   </thead>

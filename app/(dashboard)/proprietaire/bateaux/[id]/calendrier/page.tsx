@@ -24,11 +24,15 @@ function isCancelled(libelle?: string): boolean {
   return (libelle ?? "").toLowerCase().includes("annul");
 }
 
-// Même mapping que dans "Mes bateaux" : un bateau encore en attente de validation
-// n'est pas approuvé, le calendrier ne doit pas lui être accessible.
+// Même mapping que dans "Mes bateaux" : un bateau qui n'a jamais été approuvé
+// (encore en attente, ou refusé par l'admin) n'a pas accès au calendrier.
 const PENDING_STATUTS = new Set(["en_attente", "en attente de validation"]);
+const REFUSED_STATUTS = new Set(["refusé"]);
 function isPending(statut: string): boolean {
   return PENDING_STATUTS.has(statut);
+}
+function isRefused(statut: string): boolean {
+  return REFUSED_STATUTS.has(statut);
 }
 
 export default function OwnerBoatCalendarPage() {
@@ -126,7 +130,7 @@ export default function OwnerBoatCalendarPage() {
     );
   }
 
-  if (isPending(boat.statut)) {
+  if (isPending(boat.statut) || isRefused(boat.statut)) {
     return (
       <div className="dash-page">
         <div className="dash-page-hd">
@@ -138,9 +142,10 @@ export default function OwnerBoatCalendarPage() {
           </div>
         </div>
         <p style={{ color: "var(--text-2)", padding: "24px" }}>
-          <i className="fa-solid fa-hourglass-half" /> Ce bateau est en attente de validation par
-          l&apos;administrateur. Le calendrier de disponibilités sera accessible dès que votre
-          annonce sera approuvée.
+          <i className={`fa-solid ${isRefused(boat.statut) ? "fa-circle-xmark" : "fa-hourglass-half"}`} />{" "}
+          {isRefused(boat.statut)
+            ? "Cette annonce a été refusée par l'administrateur. Le calendrier de disponibilités n'est pas accessible — soumettez une nouvelle demande pour ce bateau."
+            : "Ce bateau est en attente de validation par l'administrateur. Le calendrier de disponibilités sera accessible dès que votre annonce sera approuvée."}
         </p>
       </div>
     );
