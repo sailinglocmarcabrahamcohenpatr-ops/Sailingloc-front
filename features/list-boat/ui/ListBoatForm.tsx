@@ -124,9 +124,7 @@ export default function ListBoatForm() {
     loadFilesFromDraft().then(async (files) => {
       if (!files) return;
       if (files.photos.length > 0) {
-        const entries = await Promise.all(
-          files.photos.map(async (file) => ({ file, preview: await compressImage(file) })),
-        );
+        const entries = await Promise.all(files.photos.map((file) => compressImage(file)));
         setPhotos(entries);
       }
       if (files.carteGrise) setDocCarteGrise(files.carteGrise);
@@ -189,9 +187,7 @@ export default function ListBoatForm() {
     setPhotoError("");
     const room = MAX_PHOTOS - photos.length;
     const accepted = imageFiles.slice(0, room);
-    const entries = await Promise.all(
-      accepted.map(async (file) => ({ file, preview: await compressImage(file) })),
-    );
+    const entries = await Promise.all(accepted.map((file) => compressImage(file)));
     setPhotos((prev) => [...prev, ...entries]);
   };
 
