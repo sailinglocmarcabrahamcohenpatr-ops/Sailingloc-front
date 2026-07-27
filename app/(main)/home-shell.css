@@ -52,26 +52,19 @@
   transition: background-color .2s ease;
 }
 .home-shell .trust-badge-icon { margin-top: 1px; }
-/* Couleur sémantique par garantie */
-.home-shell .trust-badge:nth-child(1) { --accent: var(--green); }   /* Assurance  */
-.home-shell .trust-badge:nth-child(2) { --accent: var(--primary); } /* Paiement   */
-.home-shell .trust-badge:nth-child(3) { --accent: #8B5CF6; }        /* Vérifiés   */
-.home-shell .trust-badge:nth-child(4) { --accent: var(--star); }    /* Support    */
+/* Pastilles uniformes (couleurs sémantiques retirées) */
+.home-shell .trust-badge { --accent: var(--primary); }
 .home-shell .trust-badge-icon {
   width: 46px;
   height: 46px;
-  border-radius: 50%; /* pastille ronde */
-  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  border-radius: 0;
+  background: transparent; /* fond bleu clair retiré : icône seule */
   color: var(--accent);
-  transition: background-color .2s ease, color .2s ease, transform .2s ease;
-}
-.home-shell .trust-badge:hover {
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  font-size: 1.5rem; /* icône plus présente sans pastille */
+  transition: color .2s ease, transform .2s ease;
 }
 .home-shell .trust-badge:hover .trust-badge-icon {
-  background: var(--accent);
-  color: #fff;
-  transform: scale(1.06);
+  transform: scale(1.08);
 }
 
 /* Responsive (surcharge des media queries de globals, moins spécifiques) */
