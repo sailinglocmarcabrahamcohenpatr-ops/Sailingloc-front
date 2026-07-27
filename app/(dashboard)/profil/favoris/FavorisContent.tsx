@@ -48,7 +48,6 @@ export default function FavorisContent() {
         <BoatCard
           key={boat.id}
           boat={boat}
-          showMeta
           action={<HeartButton boatId={boat.id} onToggled={(active) => handleToggled(boat.id, active)} />}
         />
       ))}
