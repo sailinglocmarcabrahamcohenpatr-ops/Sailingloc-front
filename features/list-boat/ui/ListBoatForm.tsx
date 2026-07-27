@@ -198,6 +198,16 @@ export default function ListBoatForm() {
     if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
   };
 
+  /** Sélection d'un document justificatif — compresse les photos de documents (souvent plusieurs Mo depuis un téléphone) avant de les stocker ; laisse les PDF tels quels. */
+  const handleDocSelect = async (file: File, setter: (f: File) => void) => {
+    if (file.type.startsWith("image/")) {
+      const { file: compressed } = await compressImage(file, 2000, 0.85);
+      setter(compressed);
+    } else {
+      setter(file);
+    }
+  };
+
   const removePhoto = (index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
@@ -679,7 +689,7 @@ export default function ListBoatForm() {
                   <i className="fa-solid fa-upload" /> Choisir un fichier
                 </button>
               )}
-              <input ref={refCarteGrise} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocCarteGrise(e.target.files[0]); e.target.value = ""; }} />
+              <input ref={refCarteGrise} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocCarteGrise); e.target.value = ""; }} />
             </div>
 
             {/* Assurance */}
@@ -704,7 +714,7 @@ export default function ListBoatForm() {
                   <i className="fa-solid fa-upload" /> Choisir un fichier
                 </button>
               )}
-              <input ref={refAssurance} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocAssurance(e.target.files[0]); e.target.value = ""; }} />
+              <input ref={refAssurance} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocAssurance); e.target.value = ""; }} />
             </div>
 
             {/* Certificat */}
@@ -729,7 +739,7 @@ export default function ListBoatForm() {
                   <i className="fa-solid fa-upload" /> Choisir un fichier
                 </button>
               )}
-              <input ref={refCertificat} type="file" accept=".pdf,image/*" hidden onChange={(e) => { if (e.target.files?.[0]) setDocCertificat(e.target.files[0]); e.target.value = ""; }} />
+              <input ref={refCertificat} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocCertificat); e.target.value = ""; }} />
             </div>
 
 
