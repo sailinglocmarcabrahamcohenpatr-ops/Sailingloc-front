@@ -85,6 +85,57 @@
   .home-shell .trust-grid { grid-template-columns: 1fr; }
 }
 
+/* ──────────────────────────────────────────────────────────────
+   Cartes de catégories (« Quel bateau recherchez-vous ? ») :
+   pastille d'icône ronde à CODE COULEUR par type de bateau, coins
+   arrondis, survol travaillé (remplissage + tint + lift).
+   ────────────────────────────────────────────────────────────── */
+.home-shell .categories-grid { gap: 16px; }
+
+.home-shell .category-card {
+  gap: 14px;
+  padding: 26px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card-bg);
+  transition: transform .22s ease, box-shadow .22s ease,
+    border-color .22s ease, background-color .22s ease;
+}
+
+/* Couleur sémantique par type (ordre de BOAT_CATEGORIES) */
+.home-shell .category-card:nth-child(1) { --accent: #1866F2; } /* voilier     */
+.home-shell .category-card:nth-child(2) { --accent: #0EA5A5; } /* catamaran   */
+.home-shell .category-card:nth-child(3) { --accent: #F59E0B; } /* moteur      */
+.home-shell .category-card:nth-child(4) { --accent: #8B5CF6; } /* semi-rigide */
+.home-shell .category-card:nth-child(5) { --accent: #10B981; } /* habitable   */
+.home-shell .category-card:nth-child(6) { --accent: #EC4899; } /* sans-permis */
+
+.home-shell .category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%; /* pastille ronde */
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  transition: background-color .22s ease, color .22s ease, transform .22s ease;
+}
+.home-shell .category-card strong { font-size: .95rem; color: var(--text); }
+
+.home-shell .category-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--card-bg));
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text); /* neutralise le color:primary de globals */
+}
+.home-shell .category-card:hover .category-icon {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.08);
+}
+
 /* Section « Bateaux en vedette » en bloc arrondi */
 .home-shell section[aria-labelledby="featured-title"] {
   border-radius: 28px;
