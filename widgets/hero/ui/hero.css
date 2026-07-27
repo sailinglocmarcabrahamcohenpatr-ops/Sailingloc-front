@@ -1,0 +1,15 @@
+/* ──────────────────────────────────────────────────────────────
+   Ajustements co-localisés du hero (surcharge de globals.css, intact).
+   Spécificité .hero .hero-content (0,2,0) > .hero-content de globals.
+   ────────────────────────────────────────────────────────────── */
+
+/* Remonte un peu le contenu du hero (moins de padding en haut). */
+.hero .hero-content {
+  padding-top: 52px; /* globals : 72px */
+}
+
+@media (max-width: 640px) {
+  .hero .hero-content {
+    padding-top: 36px; /* globals : 48px */
+  }
+}

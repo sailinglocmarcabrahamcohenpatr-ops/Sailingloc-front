@@ -1,17 +1,12 @@
 import { SearchBar } from "@/features/search-boats";
+import HeroVideo from "./HeroVideo";
+import "./hero.css";
 
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Bannière principale">
       <div className="hero-bg">
-        <video
-          className="hero-video"
-          src="/videos/hero-background.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
+        <HeroVideo />
         <div className="hero-overlay" aria-hidden="true" />
       </div>
 
