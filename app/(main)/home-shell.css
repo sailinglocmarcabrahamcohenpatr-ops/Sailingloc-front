@@ -30,10 +30,59 @@
   margin: 14px 0;
 }
 
-/* Section « garanties » : retrait du trait du bas + marge en haut */
+/* ── Section « garanties » : carte blanche FLOTTANTE qui chevauche le bas
+   du hero (A), avec pastilles d'icônes à CODE COULEUR sémantique (D). ── */
 .home-shell .trust-section {
-  border-bottom: none;
-  margin-top: 28px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 22px 0; /* flux normal : plus de chevauchement */
+}
+.home-shell .trust-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  /* plus de carte flottante : ni fond, ni bordure, ni ombre */
+}
+.home-shell .trust-badge {
+  align-items: flex-start; /* icône alignée avec le titre, pas centrée sur le bloc */
+  gap: 13px;
+  padding: 18px 20px;
+  border-right: none; /* plus de filets : la couleur porte la séparation */
+  border-radius: 18px;
+  transition: background-color .2s ease;
+}
+.home-shell .trust-badge-icon { margin-top: 1px; }
+/* Couleur sémantique par garantie */
+.home-shell .trust-badge:nth-child(1) { --accent: var(--green); }   /* Assurance  */
+.home-shell .trust-badge:nth-child(2) { --accent: var(--primary); } /* Paiement   */
+.home-shell .trust-badge:nth-child(3) { --accent: #8B5CF6; }        /* Vérifiés   */
+.home-shell .trust-badge:nth-child(4) { --accent: var(--star); }    /* Support    */
+.home-shell .trust-badge-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%; /* pastille ronde */
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+.home-shell .trust-badge:hover {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.home-shell .trust-badge:hover .trust-badge-icon {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+/* Responsive (surcharge des media queries de globals, moins spécifiques) */
+@media (max-width: 900px) {
+  .home-shell .trust-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .home-shell .trust-section { margin: 16px 0; }
+}
+@media (max-width: 520px) {
+  .home-shell .trust-grid { grid-template-columns: 1fr; }
 }
 
 /* Section « Bateaux en vedette » en bloc arrondi */
