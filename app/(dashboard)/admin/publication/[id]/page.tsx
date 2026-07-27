@@ -279,6 +279,7 @@ export default function AdminPublicationDetailPage() {
   const boatId  = params.id;
 
   const [boat, setBoat]           = useState<BoatAPI | null>(null);
+  const [documents, setDocuments] = useState<DocumentAPI[]>([]);
   const [reviews, setReviews]     = useState<AvisAPI[]>([]);
   const [ownerStats, setOwnerStats] = useState<OwnerStats | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -305,8 +306,14 @@ export default function AdminPublicationDetailPage() {
       .getOne(boatId)
       .then(async (b) => {
         setBoat(b);
-        // Documents are included directly in the boat response
-        // (no separate API call needed)
+
+        // Le endpoint /bateaux/{id} ne sérialise pas les documents (pas de groupe
+        // de sérialisation sur cette relation côté backend) : on les récupère via
+        // le sous-endpoint dédié.
+        boatsApi
+          .getDocuments(boatId)
+          .then(setDocuments)
+          .catch(() => setDocuments([]));
 
         // For available boats, also load reviews and owner stats
         if (b.statut === StatutBateau.DISPONIBLE) {
@@ -407,7 +414,7 @@ export default function AdminPublicationDetailPage() {
 
   const isPending   = boat.statut === StatutBateau.EN_ATTENTE_VALIDATION;
   const isAvailable = boat.statut === StatutBateau.DISPONIBLE;
-  const docs        = boat.documents ?? [];
+  const docs        = documents;
 
   const mainPhoto = boat.photos?.find((p) => p.ordreAffichage === 0) ?? boat.photos?.[0];
 
