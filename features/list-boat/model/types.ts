@@ -13,10 +13,4 @@ export interface DocumentEntry {
 export type Motorisation = "voile" | "moteur" | "hybride";
 
 /** États de progression lors de la soumission */
-export type SubmitStep = "idle" | "boat" | "photos" | "documents" | "disponibilites";
-
-/** Créneau de disponibilité saisi dans le formulaire (avant création via l'API) */
-export interface DisponibiliteSlot {
-  date_debut: string;
-  date_fin: string;
-}
+export type SubmitStep = "idle" | "boat" | "photos" | "documents";
