@@ -24,6 +24,13 @@ function isCancelled(libelle?: string): boolean {
   return (libelle ?? "").toLowerCase().includes("annul");
 }
 
+// Même mapping que dans "Mes bateaux" : un bateau encore en attente de validation
+// n'est pas approuvé, le calendrier ne doit pas lui être accessible.
+const PENDING_STATUTS = new Set(["en_attente", "en attente de validation"]);
+function isPending(statut: string): boolean {
+  return PENDING_STATUTS.has(statut);
+}
+
 export default function OwnerBoatCalendarPage() {
   const params = useParams<{ id: string }>();
   const boatId = params.id;
@@ -115,6 +122,26 @@ export default function OwnerBoatCalendarPage() {
     return (
       <div className="dash-page">
         <p style={{ color: "var(--red)", padding: "24px" }}>{error || "Bateau introuvable."}</p>
+      </div>
+    );
+  }
+
+  if (isPending(boat.statut)) {
+    return (
+      <div className="dash-page">
+        <div className="dash-page-hd">
+          <div>
+            <Link href="/proprietaire/bateaux" className="cal-back-link">
+              <i className="fa-solid fa-arrow-left" /> Mes bateaux
+            </Link>
+            <h1 className="dash-title">Calendrier — {boat.nomBateau}</h1>
+          </div>
+        </div>
+        <p style={{ color: "var(--text-2)", padding: "24px" }}>
+          <i className="fa-solid fa-hourglass-half" /> Ce bateau est en attente de validation par
+          l&apos;administrateur. Le calendrier de disponibilités sera accessible dès que votre
+          annonce sera approuvée.
+        </p>
       </div>
     );
   }

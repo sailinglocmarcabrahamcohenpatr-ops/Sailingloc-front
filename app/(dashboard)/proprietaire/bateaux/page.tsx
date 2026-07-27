@@ -56,6 +56,10 @@ export default function OwnerBoatsPage() {
       .finally(() => setLoading(false));
   }, [user?.id]);
 
+  // Un bateau en attente de validation n'apparaît pas encore dans "Mes bateaux" —
+  // il ne devient visible au propriétaire qu'une fois approuvé par l'admin.
+  const visibleBoats = boats.filter((b) => (STATUT_MAP[b.statut] ?? "pending") !== "pending");
+
   const handleToggleStatus = async (boat: BoatAPI, nextActive: boolean) => {
     setTogglingId(boat.id);
     setToggleError("");
@@ -89,7 +93,7 @@ export default function OwnerBoatsPage() {
         <div>
           <h1 className="dash-title">Mes bateaux</h1>
           <p className="dash-sub">
-            {boats.length} annonce{boats.length !== 1 ? "s" : ""} sur SailingLoc
+            {visibleBoats.length} annonce{visibleBoats.length !== 1 ? "s" : ""} sur SailingLoc
           </p>
         </div>
         <Link href="/proprietaire/bateaux/nouveau" className="btn btn-primary">
@@ -104,7 +108,7 @@ export default function OwnerBoatsPage() {
       )}
 
       <div className="owner-boats-list">
-        {boats.map((boat, i) => {
+        {visibleBoats.map((boat, i) => {
           const uiStatus: UiStatus = STATUT_MAP[boat.statut] ?? "pending";
           const st = STATUS_MAP[uiStatus];
           const imgSrc = boatImage(boat);
