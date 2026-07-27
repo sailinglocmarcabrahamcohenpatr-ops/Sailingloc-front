@@ -50,17 +50,26 @@ export default function OwnerBoatsPage() {
   const [toggleError, setToggleError] = useState("");
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.email) return;
+    // Le JWT ne porte pas l'id numérique de l'utilisateur (aucune claim `id`
+    // n'est ajoutée côté backend), donc `user.id` vaut 0 pour un propriétaire
+    // — filtrer par `proprietaire_id` bloquerait la page indéfiniment. On
+    // charge tous les bateaux et on filtre côté client par email, seule
+    // donnée d'identité fiable disponible sans appel réservé aux admins.
     boatsApi
-      .getAll({ proprietaire_id: String(user.id) })
-      .then(setBoats)
+      .getAll()
+      .then((all) =>
+        setBoats(all.filter((b) => (b.proprietaire?.email ?? b.utilisateur?.email) === user.email))
+      )
       .catch(() => setError("Impossible de charger les bateaux."))
       .finally(() => setLoading(false));
-  }, [user?.id]);
+  }, [user?.email]);
 
-  // Un bateau en attente de validation n'apparaît pas encore dans "Mes bateaux" —
-  // il ne devient visible au propriétaire qu'une fois approuvé par l'admin.
-  const visibleBoats = boats.filter((b) => (STATUT_MAP[b.statut] ?? "pending") !== "pending");
+  // Toutes les demandes du propriétaire restent visibles ici, quel que soit
+  // leur statut — le badge (En révision / Publié / Refusé / Désactivé) reflète
+  // simplement le vrai statut renvoyé par l'API, et se met donc à jour tout
+  // seul dès qu'un admin valide ou refuse la demande.
+  const visibleBoats = boats;
 
   const handleToggleStatus = async (boat: BoatAPI, nextActive: boolean) => {
     setTogglingId(boat.id);
@@ -171,7 +180,7 @@ export default function OwnerBoatsPage() {
                 >
                   <i className="fa-solid fa-eye" /> Voir
                 </Link>
-                {uiStatus !== "refused" && (
+                {uiStatus !== "refused" && uiStatus !== "pending" && (
                   <Link href={`/proprietaire/bateaux/${boat.id}/calendrier`} className="btn btn-outline btn-sm">
                     <i className="fa-solid fa-calendar-days" /> Calendrier
                   </Link>

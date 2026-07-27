@@ -83,19 +83,21 @@ export async function apiLogin(payload: LoginPayload) {
 
   const jwt = decodeJwt(token);
   const email = jwt.sub ?? jwt.email ?? jwt.username ?? payload.email;
-  const userId = jwt.id ?? 0;
   const role = extractRoleFromJwt(jwt);
 
-  // Fetch real user data from DB
+  // Fetch real user data from DB — c'est aussi la seule source fiable de
+  // l'id numérique (le JWT n'embarque aucune claim `id`).
   let name = extractNameFromJwt(jwt, email);
   let telephone: string | undefined;
+  let userId = jwt.id ?? 0;
   try {
     const user = await apiGetUserByEmail(email);
-    console.log("Fetched user data:", user);
     name = [user.prenom, user.nom].filter(Boolean).join(" ") || name;
     telephone = user.telephone;
+    userId = user.id ?? userId;
   } catch {
-    // fallback to JWT data if fetch fails
+    // fallback to JWT data if fetch fails (ex: endpoint réservé aux admins
+    // pour un compte propriétaire/locataire — userId reste 0 dans ce cas)
   }
 
   return {
