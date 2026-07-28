@@ -59,12 +59,18 @@ export default async function ReservationPage({ params, searchParams }: PageProp
   const { startDate: sd, endDate: ed, guests: g } = await searchParams;
 
   let boat: Boat;
+  let statut: string;
   try {
     const data = await boatsApi.getOne(boatId);
+    statut = data.statut;
     boat = adaptBoat(data);
   } catch {
     notFound();
   }
+
+  // Même garde que sur la fiche bateau : impossible de réserver un bateau
+  // qui n'est pas publié, même en accédant directement à cette URL.
+  if (statut !== "disponible") notFound();
 
   const startDate = sd ?? getDefaultStartDate();
   const endDate = ed ?? getDefaultEndDate(startDate);

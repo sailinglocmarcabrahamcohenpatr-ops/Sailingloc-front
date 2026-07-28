@@ -40,7 +40,10 @@ export default async function BoatsPage({ searchParams }: PageProps) {
   let boats: Boat[];
 
   try {
-    const apiParams: Record<string, string> = {};
+    // Le catalogue public ne doit montrer que les annonces réellement publiées —
+    // un bateau en attente de validation, suspendu, refusé ou en maintenance ne
+    // doit pas être visible ni réservable par un locataire.
+    const apiParams: Record<string, string> = { statut: "disponible" };
     if (destination)  apiParams.destination   = destination;
     if (type)         apiParams.type          = type;
     if (prixMax)      apiParams.prix_max       = prixMax;

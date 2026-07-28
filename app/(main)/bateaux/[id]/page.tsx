@@ -178,12 +178,19 @@ export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
 
   let boat: BoatPageData;
+  let statut: string;
   try {
     const data = await boatsApi.getOne(id);
+    statut = data.statut;
     boat = adaptBoat(data);
   } catch {
     notFound();
   }
+
+  // Un bateau qui n'est pas publié (en attente, suspendu, refusé, en
+  // maintenance) ne doit pas être consultable par un visiteur/locataire,
+  // même via un lien direct.
+  if (statut !== "disponible") notFound();
 
   const avis = await avisApi.getByBateau(id).catch(() => [] as AvisAPI[]);
   const summary = summarizeAvis(avis);
