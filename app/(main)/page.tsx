@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
+import { DestinationsHome } from "@/widgets/destinations-home";
+import StatsCounters from "./StatsCounters";
 import "./home-shell.css";
 import "./home.css";
 
@@ -45,13 +46,6 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const TRUST_BADGES = [
-  { icon: "fa-shield-halved", label: "Assurance incluse", desc: "Tous risques sur chaque location" },
-  { icon: "fa-lock", label: "Paiement sécurisé", desc: "Cryptage SSL & fonds bloqués" },
-  { icon: "fa-circle-check", label: "Propriétaires vérifiés", desc: "Identité & documents contrôlés" },
-  { icon: "fa-headset", label: "Support 24h/24", desc: "Assistance en mer si besoin" },
-];
-
 export default async function HomePage() {
   const destinations = await getDestinations();
 
@@ -60,22 +54,10 @@ export default async function HomePage() {
       {/* ── Hero ── */}
       <HeroSection />
 
-      {/* ── Trust badges ── */}
-      <section className="trust-section" aria-label="Nos garanties">
+      {/* ── Stats ── */}
+      <section className="stats-dark-section" aria-label="Chiffres clés">
         <div className="container">
-          <div className="trust-grid">
-            {TRUST_BADGES.map((b) => (
-              <div key={b.label} className="trust-badge">
-                <div className="trust-badge-icon">
-                  <i className={`fa-solid ${b.icon}`} aria-hidden="true" />
-                </div>
-                <div>
-                  <strong>{b.label}</strong>
-                  <span>{b.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <StatsCounters />
         </div>
       </section>
 
@@ -119,31 +101,7 @@ export default async function HomePage() {
               Toutes les destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </Link>
           </div>
-          <div className="destinations-home-grid fade-in">
-            {destinations.slice(0, 6).map((dest, i) => (
-              <Link
-                key={dest.slug}
-                href={`/destinations/${dest.slug}`}
-                className={`dest-home-card${i === 0 ? " dest-home-card--large" : ""}`}
-              >
-                <div className="dest-home-img">
-                  <Image
-                    src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
-                    alt={dest.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-                <div className="dest-home-overlay" />
-                <div className="dest-home-content">
-                  <span className="dest-home-flag" aria-hidden="true">{dest.flag}</span>
-                  <h3>{dest.name}</h3>
-                  <p>{dest.boatCount} bateaux · dès {dest.priceFrom} €/j</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <DestinationsHome destinations={destinations} />
         </div>
       </section>
 
@@ -206,26 +164,6 @@ export default async function HomePage() {
 
       {/* ── Avis clients ── */}
       <Testimonials />
-
-      {/* ── Stats ── */}
-      <section className="stats-dark-section" aria-label="Chiffres clés">
-        <div className="container">
-          <div className="stats-dark-grid">
-            {[
-              { val: "3 200+", label: "Bateaux disponibles", icon: "fa-sailboat" },
-              { val: "15", label: "Pays en Europe", icon: "fa-earth-europe" },
-              { val: "50 000+", label: "Voyages réalisés", icon: "fa-anchor" },
-              { val: "4.9 / 5", label: "Note de satisfaction", icon: "fa-star" },
-            ].map((s) => (
-              <div key={s.label} className="stats-dark-item fade-in">
-                <i className={`fa-solid ${s.icon} stats-dark-icon`} aria-hidden="true" />
-                <strong>{s.val}</strong>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Owner CTA ── */}
       <section className="owner-cta-home" aria-labelledby="owner-cta-title">

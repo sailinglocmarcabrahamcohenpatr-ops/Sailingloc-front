@@ -1,0 +1,56 @@
+/* ──────────────────────────────────────────────────────────────
+   Styles co-localisés de la page /proprietaire (route (main)).
+   Volontairement HORS de app/globals.css pour éviter les conflits
+   de merge avec la branche dev (qui édite globals.css en continu).
+   Ne cible que des classes propres à cette page (prop-login-*, prop-revenue-*).
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Section connexion espace propriétaire ── */
+.prop-login-section { background: var(--navy); padding: 80px 0; }
+.prop-login-inner {
+  display: grid;
+  grid-template-columns: 1fr 460px;
+  gap: 60px;
+  align-items: center;
+}
+.prop-login-card { max-width: 100%; }
+.prop-login-signup { margin-top: 24px; color: rgba(255, 255, 255, .72); font-size: .9375rem; }
+.prop-login-signup a { color: var(--white); font-weight: 700; text-decoration: underline; }
+
+/* ── Tablette / petit laptop : empilement, carte bornée et centrée ──
+   Évite que la carte de connexion s'étire sur toute la largeur (aspect « vide »). */
+@media (max-width: 900px) {
+  .prop-login-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    justify-items: center;
+  }
+  .prop-login-text { max-width: 560px; width: 100%; }
+  .prop-login-card { max-width: 460px; width: 100%; }
+}
+
+/* ── Mobile : densité resserrée, on récupère de la largeur utile ── */
+@media (max-width: 480px) {
+  .prop-login-section { padding: 48px 0; }
+  .prop-login-inner { gap: 32px; }
+  /* Sélecteur descendant pour l'emporter sur .auth-card (padding 48px 40px) */
+  .prop-login-section .prop-login-card { padding: 32px 22px; }
+}
+
+/* ── Table des revenus : restacking lisible sur mobile ──
+   En dessous de 560px, les 3 colonnes (67px/82px) deviennent illisibles.
+   On empile : nom du bateau en tête, puis durée (gauche) + revenus (droite). */
+@media (max-width: 560px) {
+  .prop-revenue-table-hd { display: none; }
+  .prop-revenue-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "type type"
+      "weeks amount";
+    gap: 4px 12px;
+    padding: 16px 18px;
+  }
+  .prop-revenue-row > span:nth-child(1) { grid-area: type; font-weight: 700; }
+  .prop-revenue-row > span:nth-child(2) { grid-area: weeks; color: var(--text-2); font-size: .8125rem; }
+  .prop-revenue-row > span:nth-child(3) { grid-area: amount; text-align: right; align-self: center; }
+}

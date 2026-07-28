@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BoatTypeIcon } from "@/entities/boat";
+import type { BoatType } from "@/entities/boat";
+import SearchSelect from "./SearchSelect";
+import DateField from "./DateField";
 import "./search-bar.css";
 
 const BOAT_TYPES = [
@@ -50,26 +54,29 @@ export default function SearchBar() {
           <label htmlFor="sb-type">
             <i className="fa-solid fa-sailboat" aria-hidden="true" /> Type de bateau
           </label>
-          <select
+          <SearchSelect
             id="sb-type"
             value={boatType}
-            onChange={(e) => setBoatType(e.target.value)}
-          >
-            {BOAT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+            options={BOAT_TYPES}
+            onChange={setBoatType}
+            renderIcon={(v) =>
+              v === "tous" ? (
+                <i className="fa-solid fa-ship" aria-hidden="true" />
+              ) : (
+                <BoatTypeIcon type={v as BoatType} />
+              )
+            }
+          />
         </div>
 
         <div className="search-field">
           <label htmlFor="sb-arrival">
             <i className="fa-regular fa-calendar" aria-hidden="true" /> Arrivée
           </label>
-          <input
-            type="date"
+          <DateField
             id="sb-arrival"
             value={arrival}
-            onChange={(e) => setArrival(e.target.value)}
+            onChange={setArrival}
           />
         </div>
 
@@ -77,11 +84,12 @@ export default function SearchBar() {
           <label htmlFor="sb-departure">
             <i className="fa-regular fa-calendar" aria-hidden="true" /> Départ
           </label>
-          <input
-            type="date"
+          <DateField
             id="sb-departure"
             value={departure}
-            onChange={(e) => setDeparture(e.target.value)}
+            onChange={setDeparture}
+            min={arrival}
+            align="right"
           />
         </div>
 

@@ -37,3 +37,215 @@
   .search-btn-wrap { padding: 6px; }
   .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Contrôles custom de la barre de recherche (select type de bateau
+   + champs date) : déclencheurs alignés sur le style des champs, et
+   popovers habillés au style du site (carte claire arrondie).
+   Co-localisé (hors app/globals.css) → anti-conflit.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Wrappers : la popover se positionne par rapport au champ ── */
+.sb-select,
+.sb-date {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Déclencheurs : même rendu que .search-field input (texte blanc) ── */
+.sb-select-trigger,
+.sb-date-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  font-size: .9375rem;
+  font-weight: 500;
+  color: var(--white);
+  text-align: left;
+}
+.sb-date-trigger.is-empty {
+  color: rgba(255, 255, 255, .6);
+  font-weight: 400;
+}
+.sb-select-caret {
+  font-size: .7rem;
+  color: rgba(255, 255, 255, .7);
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+
+/* ── Popover commune (carte claire style site) ── */
+.sb-popover {
+  position: absolute;
+  bottom: calc(100% + 14px); /* s'ouvre vers le HAUT de la barre de recherche */
+  left: 0;
+  z-index: 60;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 -14px 44px rgba(8, 20, 40, .22); /* ombre projetée vers le haut */
+  padding: 8px;
+  animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
+}
+.sb-popover--right {
+  left: auto;
+  right: 0;
+}
+@keyframes sb-pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Liste du select ── */
+.sb-select-list {
+  list-style: none;
+  margin: 0;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sb-select-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sb-select-option:hover {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--primary);
+}
+.sb-select-option.is-selected {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.sb-select-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--primary);
+}
+.sb-select-option-label { flex: 1; white-space: nowrap; }
+.sb-select-check {
+  font-size: .8rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── Calendrier ── */
+.sb-calendar {
+  width: 292px;
+  padding: 14px;
+}
+.sb-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sb-cal-title {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: capitalize;
+  letter-spacing: -.2px;
+}
+.sb-cal-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: .8rem;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.sb-cal-nav:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.sb-cal-nav:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+.sb-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.sb-cal-weekdays { margin-bottom: 4px; }
+.sb-cal-wd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.sb-cal-empty { aspect-ratio: 1; }
+.sb-cal-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: background-color .12s ease, color .12s ease;
+}
+.sb-cal-day:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.sb-cal-day.is-today {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+.sb-cal-day.is-selected {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.sb-cal-day:disabled {
+  color: var(--text-3);
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ── Mobile : champs empilés → largeur confortable, sans déborder l'écran
+   (surtout PAS bridée à la largeur du champ, sinon les libellés se coupent) ── */
+@media (max-width: 640px) {
+  .sb-popover { max-width: calc(100vw - 32px); }
+  .sb-select-list { min-width: 220px; }
+  .sb-calendar { width: min(292px, calc(100vw - 32px)); }
+}

@@ -104,3 +104,14 @@
   .hero-trust-sep { display: none; }
   .hero-trust-item { padding: 6px 12px; }
 }
+
+/* Remonte un peu le contenu du hero (moins de padding en haut). */
+.hero .hero-content {
+  padding-top: 52px; /* globals : 72px */
+}
+
+@media (max-width: 640px) {
+  .hero .hero-content {
+    padding-top: 36px; /* globals : 48px */
+  }
+}

@@ -1,0 +1,44 @@
+/* ──────────────────────────────────────────────────────────────
+   Section « Destinations populaires » (home).
+   - Apparition « pop » échelonnée des 6 cartes à l'entrée dans le viewport.
+   - Au survol : la carte double légèrement (×1.2) sur place, au-dessus.
+   Isolé dans le widget (hors app/globals.css) → aucun conflit de merge.
+   ────────────────────────────────────────────────────────────── */
+
+.destinations-home-grid { position: relative; }
+
+.dest-home-card {
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* ── Apparition « pop » décalée à l'arrivée sur la section ──
+   dest-armed = JS actif : cartes masquées tant que non révélées
+   (repli sans JS : cartes visibles normalement). */
+.destinations-home-grid.dest-armed:not(.dest-revealed) .dest-home-card {
+  opacity: 0;
+}
+
+.destinations-home-grid.dest-revealed .dest-home-card {
+  animation: destCardPop .55s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  animation-delay: calc(var(--pop-i, 0) * 200ms);
+}
+
+@keyframes destCardPop {
+  0%   { opacity: 0; transform: scale(.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Survol : ×1.2 sur place, au-dessus (pas de transparence sur les autres) ── */
+@media (hover: hover) {
+  .destinations-home-grid.is-zooming .dest-home-card.is-active {
+    transform: scale(1.2);
+    transform-origin: center center;
+    z-index: 10;
+  }
+}
+
+/* Respect du réglage système « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  .destinations-home-grid.dest-armed:not(.dest-revealed) .dest-home-card { opacity: 1; }
+  .destinations-home-grid.dest-revealed .dest-home-card { animation: none; }
+}
