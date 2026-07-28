@@ -54,14 +54,26 @@ export default async function BoatsPage({ searchParams }: PageProps) {
 
     const raw = await boatsApi.getAll(Object.keys(apiParams).length ? apiParams : undefined);
 
-    let filtered = raw;
+    // Un bateau que le propriétaire a bloqué pour maintenance sur la période
+    // actuelle ne doit pas non plus apparaître dans le catalogue tant que ce
+    // blocage est actif, même si son statut global reste "disponible".
+    const todayKey = new Date().toISOString().split("T")[0];
+    let filtered = raw.filter((b) => {
+      const dispos = b.disponibilites ?? [];
+      return !dispos.some((d) => {
+        if (d.statut !== "bloque") return false;
+        const debut = d.dateDebut.split("T")[0];
+        const fin = (d.dateFin ?? d.dateDebut).split("T")[0];
+        return todayKey >= debut && todayKey <= fin;
+      });
+    });
     if (destination) {
       // Le backend ne filtre pas toujours fiablement par destination : on revérifie ici
       // via le port réel embarqué dans chaque bateau (pays pour l'étranger, ville pour les
       // régions FR). Pas d'appel à /api/ports : cet endpoint exige une auth que les visiteurs
       // anonymes n'ont pas.
       const destinations = await getDestinations();
-      filtered = raw.filter((b) => boatMatchesFreeQuery(b.port, destination, destinations));
+      filtered = filtered.filter((b) => boatMatchesFreeQuery(b.port, destination, destinations));
     }
 
     boats = filtered.map(adaptBoat);
