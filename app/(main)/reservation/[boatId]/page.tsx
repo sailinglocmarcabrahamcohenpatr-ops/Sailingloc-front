@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { boatsApi, resolvePhotoUrl } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
@@ -57,6 +59,25 @@ function getDefaultEndDate(start: string) {
 export default async function ReservationPage({ params, searchParams }: PageProps) {
   const { boatId } = await params;
   const { startDate: sd, endDate: ed, guests: g } = await searchParams;
+
+  // Réserver un bateau est une action réservée aux comptes locataires — un
+  // compte propriétaire (ou admin) n'a pas vocation à louer via la plateforme
+  // avec ce rôle. Le cookie `sailingloc_role` est posé côté client à la
+  // connexion / au changement d'espace (cf. shared/lib/api-client.ts).
+  const role = (await cookies()).get("sailingloc_role")?.value;
+  if (role === "proprietaire" || role === "admin") {
+    return (
+      <div className="container" style={{ padding: "60px 0" }}>
+        <div className="messages-empty" style={{ minHeight: 280, padding: 40 }}>
+          <i className="fa-solid fa-user-lock" aria-hidden="true" />
+          <p>La réservation est réservée aux comptes locataires.</p>
+          <Link href="/proprietaire/bateaux" className="btn btn-outline btn-sm">
+            <i className="fa-solid fa-arrow-left" /> Retour à mon espace propriétaire
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   let boat: Boat;
   let statut: string;

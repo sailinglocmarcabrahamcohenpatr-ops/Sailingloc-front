@@ -86,8 +86,10 @@ export default function BookingCard({
   const days = canBook ? daysBetween(startDate, endDate) : 0;
   const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
 
+  const isOwnerAccount = user?.role === "proprietaire" || user?.role === "admin";
+
   const handleBook = () => {
-    if (!canBook) return;
+    if (!canBook || isOwnerAccount) return;
     const destination = `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`;
     if (!user) {
       router.push(`/connexion?redirect=${encodeURIComponent(destination)}`);
@@ -165,14 +167,28 @@ export default function BookingCard({
             className="btn btn-primary booking-cta"
             type="button"
             onClick={handleBook}
-            disabled={!canBook}
-            title={!canBook ? "Choisissez vos dates sur le calendrier" : undefined}
+            disabled={!canBook || isOwnerAccount}
+            title={
+              isOwnerAccount
+                ? "La réservation est réservée aux comptes locataires"
+                : !canBook
+                ? "Choisissez vos dates sur le calendrier"
+                : undefined
+            }
           >
             <i className="fa-solid fa-calendar-check" aria-hidden="true" />
-            {!canBook ? "Choisir des dates" : user ? "Réserver maintenant" : "Se connecter pour réserver"}
+            {isOwnerAccount
+              ? "Réservé aux locataires"
+              : !canBook
+              ? "Choisir des dates"
+              : user
+              ? "Réserver maintenant"
+              : "Se connecter pour réserver"}
           </button>
           <p className="booking-note">
-            Vous ne serez débité qu&apos;après confirmation du propriétaire
+            {isOwnerAccount
+              ? "Basculez vers l'espace locataire pour réserver ce bateau."
+              : "Vous ne serez débité qu'après confirmation du propriétaire"}
           </p>
           <div className="booking-contact">
             <Link href="/contact">
