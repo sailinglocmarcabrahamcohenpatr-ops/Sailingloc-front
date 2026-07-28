@@ -883,6 +883,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   background: rgba(239, 68, 68, .14) !important; color: #B91C1C !important;
   text-decoration: line-through; opacity: .85 !important; cursor: not-allowed;
 }
+.rdp-day-blocked button {
+  background: var(--border) !important; color: var(--text-2) !important;
+  text-decoration: line-through; opacity: .85 !important;
+}
 
 /* Sélection de plage (react-day-picker) — le thème shadcn par défaut utilise
    `bg-muted` pour les jours intermédiaires, quasi invisible sur ce fond clair.

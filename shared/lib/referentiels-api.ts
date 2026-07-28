@@ -97,10 +97,12 @@ export const disponibilitesApi = {
     api.get<DisponibiliteAPI[]>("/api/disponibilites"),
   getOne: (id: number | string) =>
     api.get<DisponibiliteAPI>(`/api/disponibilites/${id}`),
-  /** date_debut/date_fin/id_bateau en snake_case : convention des payloads POST de cette API */
-  create: (data: { date_debut: string; date_fin: string; id_bateau: number }) =>
+  /** date_debut/date_fin/id_bateau en snake_case : convention des payloads POST de cette API.
+   *  `statut` : "disponible" (défaut, ouvert à la location), "bloque" (bloqué par le
+   *  propriétaire, ex. maintenance) ou "indisponible". */
+  create: (data: { date_debut: string; date_fin: string; id_bateau: number; statut?: string }) =>
     api.post<DisponibiliteAPI>("/api/disponibilites", data, true),
-  update: (id: number | string, data: { date_debut: string; date_fin: string }) =>
+  update: (id: number | string, data: { date_debut: string; date_fin: string; statut?: string }) =>
     api.put<DisponibiliteAPI>(`/api/disponibilites/${id}`, data),
   delete: (id: number | string) =>
     api.delete<void>(`/api/disponibilites/${id}`),

@@ -59,10 +59,14 @@ export default function BookingCard({
     Promise.all([boatsApi.getOne(boatId), boatsApi.getReservations(boatId)])
       .then(([boat, reservations]) => {
         setOpenRanges(
-          (boat.disponibilites ?? []).map((d) => ({
-            from: new Date(d.dateDebut),
-            to: new Date(d.dateFin ?? d.dateDebut),
-          }))
+          (boat.disponibilites ?? [])
+            // Une disponibilité "bloque" est fermée par le propriétaire (ex. maintenance) —
+            // elle ne doit pas apparaître comme réservable côté locataire.
+            .filter((d) => d.statut !== "bloque")
+            .map((d) => ({
+              from: new Date(d.dateDebut),
+              to: new Date(d.dateFin ?? d.dateDebut),
+            }))
         );
         setBookedRanges(
           reservations

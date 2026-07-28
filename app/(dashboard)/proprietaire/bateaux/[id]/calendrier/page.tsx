@@ -73,10 +73,22 @@ export default function OwnerBoatCalendarPage() {
     [reservations],
   );
 
+  // Une disponibilité au statut "bloque" est une période que le propriétaire a
+  // volontairement fermée (ex. maintenance) — distincte des périodes ouvertes
+  // à la location (statut par défaut "disponible").
+  const openDispos = useMemo(() => dispos.filter((d) => d.statut !== "bloque"), [dispos]);
+  const blockedDispos = useMemo(() => dispos.filter((d) => d.statut === "bloque"), [dispos]);
+
   const openRanges = useMemo(
     () =>
-      dispos.map((d) => ({ from: toDate(d.dateDebut), to: toDate(d.dateFin ?? d.dateDebut) })),
-    [dispos],
+      openDispos.map((d) => ({ from: toDate(d.dateDebut), to: toDate(d.dateFin ?? d.dateDebut) })),
+    [openDispos],
+  );
+
+  const blockedRanges = useMemo(
+    () =>
+      blockedDispos.map((d) => ({ from: toDate(d.dateDebut), to: toDate(d.dateFin ?? d.dateDebut) })),
+    [blockedDispos],
   );
 
   const today = new Date();
@@ -96,6 +108,26 @@ export default function OwnerBoatCalendarPage() {
       load();
     } catch {
       setActionError("Impossible d'ouvrir cette période. Réessayez.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBlockRange = async () => {
+    if (!pending?.from || !pending?.to || !boat) return;
+    setSaving(true);
+    setActionError("");
+    try {
+      await disponibilitesApi.create({
+        date_debut: toIsoDay(pending.from),
+        date_fin: toIsoDay(pending.to),
+        id_bateau: boat.id,
+        statut: "bloque",
+      });
+      setPending(undefined);
+      load();
+    } catch {
+      setActionError("Impossible de bloquer cette période. Réessayez.");
     } finally {
       setSaving(false);
     }
@@ -159,7 +191,10 @@ export default function OwnerBoatCalendarPage() {
             <i className="fa-solid fa-arrow-left" /> Mes bateaux
           </Link>
           <h1 className="dash-title">Calendrier — {boat.nomBateau}</h1>
-          <p className="dash-sub">Choisissez les périodes où votre bateau est ouvert à la location.</p>
+          <p className="dash-sub">
+            Choisissez les périodes où votre bateau est ouvert à la location, ou bloquez des
+            dates pour maintenance.
+          </p>
         </div>
         <Link href={`/bateaux/${boat.id}`} target="_blank" rel="noopener" className="btn btn-outline">
           <i className="fa-solid fa-eye" /> Voir l&apos;annonce
@@ -171,7 +206,7 @@ export default function OwnerBoatCalendarPage() {
           <div className="cal-legend">
             <span><i className="cal-dot cal-dot-open" /> Ouvert à la location</span>
             <span><i className="cal-dot cal-dot-booked" /> Réservé</span>
-            <span><i className="cal-dot cal-dot-closed" /> Fermé</span>
+            <span><i className="cal-dot cal-dot-closed" /> Bloqué (maintenance)</span>
           </div>
 
           <Calendar
@@ -180,12 +215,24 @@ export default function OwnerBoatCalendarPage() {
             onSelect={setPending}
             numberOfMonths={2}
             disabled={{ before: today }}
-            modifiers={{ open: openRanges, booked: bookedRanges }}
-            modifiersClassNames={{ open: "rdp-day-open", booked: "rdp-day-booked" }}
+            modifiers={{ open: openRanges, booked: bookedRanges, blocked: blockedRanges }}
+            modifiersClassNames={{ open: "rdp-day-open", booked: "rdp-day-booked", blocked: "rdp-day-blocked" }}
           />
 
           <div className="cal-actions">
             {actionError && <p className="cal-action-error">{actionError}</p>}
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={handleBlockRange}
+              disabled={!pending?.from || !pending?.to || saving}
+            >
+              {saving ? (
+                <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
+              ) : (
+                <><i className="fa-solid fa-ban" /> Bloquer pour maintenance</>
+              )}
+            </button>
             <button
               type="button"
               className="btn btn-primary"
@@ -203,15 +250,15 @@ export default function OwnerBoatCalendarPage() {
 
         <aside className="owner-calendar-side">
           <div className="cal-side-block">
-            <h3>Périodes ouvertes ({dispos.length})</h3>
-            {dispos.length === 0 ? (
+            <h3>Périodes ouvertes ({openDispos.length})</h3>
+            {openDispos.length === 0 ? (
               <p className="cal-empty">
                 Aucune période ouverte pour l&apos;instant — le bateau n&apos;apparaît pas comme disponible
                 auprès des locataires.
               </p>
             ) : (
               <ul className="cal-period-list">
-                {dispos.map((d) => (
+                {openDispos.map((d) => (
                   <li key={d.id}>
                     <span>
                       <i className="fa-solid fa-calendar-day" />
@@ -221,6 +268,32 @@ export default function OwnerBoatCalendarPage() {
                       type="button"
                       onClick={() => handleRemove(d.id)}
                       aria-label="Retirer cette période"
+                      disabled={saving}
+                    >
+                      <i className="fa-solid fa-xmark" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="cal-side-block">
+            <h3>Périodes bloquées ({blockedDispos.length})</h3>
+            {blockedDispos.length === 0 ? (
+              <p className="cal-empty">Aucune période bloquée pour maintenance.</p>
+            ) : (
+              <ul className="cal-period-list">
+                {blockedDispos.map((d) => (
+                  <li key={d.id}>
+                    <span>
+                      <i className="fa-solid fa-ban" />
+                      {fmtFR(d.dateDebut)}{d.dateFin ? ` → ${fmtFR(d.dateFin)}` : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(d.id)}
+                      aria-label="Débloquer cette période"
                       disabled={saving}
                     >
                       <i className="fa-solid fa-xmark" />
