@@ -30,6 +30,7 @@ export default function Gallery({ images }: GalleryProps) {
             alt={images[activeIndex]?.alt ?? "Photo principale"}
             fill
             priority
+            unoptimized
             style={{ objectFit: "cover" }}
           />
         </div>
@@ -45,6 +46,7 @@ export default function Gallery({ images }: GalleryProps) {
               src={img.src}
               alt={img.alt}
               fill
+              unoptimized
               style={{ objectFit: "cover" }}
             />
           </button>

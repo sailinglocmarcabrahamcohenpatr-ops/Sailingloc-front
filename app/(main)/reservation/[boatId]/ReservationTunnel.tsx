@@ -197,6 +197,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
                     alt={boat.name}
                     width={80}
                     height={64}
+                    unoptimized
                     className="res-boat-recap-img"
                   />
                   <div className="res-boat-recap-info">

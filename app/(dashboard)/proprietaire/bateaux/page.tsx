@@ -135,6 +135,7 @@ export default function OwnerBoatsPage() {
                     alt={boat.nomBateau}
                     fill
                     sizes="160px"
+                    unoptimized
                     style={{ objectFit: "cover" }}
                     loading={i === 0 ? "eager" : "lazy"}
                     priority={i === 0}
