@@ -134,23 +134,6 @@ const SPECS = (boat: BoatPageData) =>
     { icon: "fa-droplet", val: boat.carburantInclus ? "Inclus" : "Non inclus", label: "Carburant" },
   ];
 
-const EQUIPMENT = [
-  "GPS & chartplotter",
-  "Wi-Fi à bord",
-  "Climatisation",
-  "Pilote automatique",
-  "Réfrigérateur",
-  "Cuisinière au gaz (3 feux)",
-  "Panneau solaire",
-  "Dessalinisateur",
-  "Dinghy + moteur HB",
-  "Équipements de plongée",
-  "VHF portatif",
-  "Équipements de sécurité",
-  "Draps & serviettes",
-  "Antifouling récent",
-];
-
 const RULES = [
   {
     icon: "fa-clock",
@@ -277,17 +260,6 @@ export default async function ProductPage({ params }: PageProps) {
                 </p>
               </>
             )}
-          </div>
-
-          <div className="equipment">
-            <h3>Équipements &amp; confort</h3>
-            <div className="equip-grid">
-              {EQUIPMENT.map((item) => (
-                <div key={item} className="equip-item">
-                  <i className="fa-solid fa-check" aria-hidden="true" /> {item}
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="rules">
