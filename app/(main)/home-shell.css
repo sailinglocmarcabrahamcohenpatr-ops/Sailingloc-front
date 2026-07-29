@@ -152,12 +152,10 @@
 /* Section stats : NOIR SUR BLANC + bloc arrondi (cohérence avec les autres) */
 .home-shell .stats-dark-section {
   background: var(--white);
-  border: 1px solid var(--border);
   border-radius: 28px;
   margin: 14px 0;
   overflow: hidden;
 }
-.home-shell .stats-dark-item { border-color: var(--border); }
 .home-shell .stats-dark-icon { color: var(--primary); }
 .home-shell .stats-dark-item strong { color: var(--text); }
 .home-shell .stats-dark-item span { color: var(--text-2); }
