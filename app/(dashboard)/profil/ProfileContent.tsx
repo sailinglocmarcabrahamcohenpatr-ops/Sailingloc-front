@@ -25,9 +25,7 @@ export default function ProfileContent() {
 
   const displayName = user?.name ?? "Mon compte";
   const displayEmail = user?.email ?? "";
-  // Cette page ne s'affiche que dans l'espace locataire — le badge doit donc
-  // toujours indiquer "Locataire", même si le compte a aussi un rôle propriétaire.
-  const displayRole = "Locataire";
+  const displayRole = user?.role === "proprietaire" ? "Propriétaire" : "Locataire";
   const nameParts = displayName.split(" ");
   const firstName = nameParts[0] ?? "";
   const lastName = nameParts.slice(1).join(" ");

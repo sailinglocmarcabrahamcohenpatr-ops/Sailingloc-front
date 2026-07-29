@@ -13,7 +13,14 @@ const ownerLinks: NavLink[] = [
   { href: "/proprietaire/reservations",   icon: "fa-calendar-check", label: "Réservations" },
   { href: "/proprietaire/revenus",        icon: "fa-chart-line",     label: "Revenus" },
   { href: "/proprietaire/messages",       icon: "fa-envelope",       label: "Messages" },
+  { href: "/profil/parametres",           icon: "fa-sliders",        label: "Paramètres" },
+  { href: "/profil/affichage",            icon: "fa-moon",           label: "Affichage et accessibilité" },
 ];
+
+// Pages partagées (hors de "/proprietaire") rattachées à l'espace propriétaire
+// quand c'est le rôle actif — sans quoi les liens ajoutés ci-dessus dans
+// ownerLinks feraient basculer la sidebar vers le menu locataire une fois cliqués.
+const SHARED_OWNER_PAGES = ["/profil/affichage", "/profil/parametres"];
 
 const adminLinks: NavLink[] = [
   { href: "/admin/dashboard",         icon: "fa-house",          label: "Dashboard", exact: true },
@@ -48,20 +55,31 @@ export default function DashboardSidebar() {
   const { user, logout, switchRole } = useAuth();
 
   const isAdmin = pathname.startsWith("/admin");
-  const isOwner = !isAdmin && pathname.startsWith("/proprietaire");
+  const isOwner =
+    !isAdmin &&
+    (pathname.startsWith("/proprietaire") ||
+      (SHARED_OWNER_PAGES.includes(pathname) && user?.role === "proprietaire"));
   const links = isAdmin ? adminLinks : isOwner ? ownerLinks : renterLinks;
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   const displayName = user?.name ?? (isAdmin ? "Admin" : isOwner ? "Marc Dupont" : "Marie Dupont");
-  const displayRole = isAdmin ? "Administrateur" : isOwner ? "Propriétaire" : "Locataire";
+  const displayRole = isAdmin
+    ? "Administrateur"
+    : isOwner || user?.role === "proprietaire"
+    ? "Propriétaire"
+    : "Locataire";
   const initials = displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const handleSwitchRole = () => {
-    switchRole();
-    if (isOwner) router.push("/profil");
-    else router.push("/proprietaire/bateaux");
+    if (isOwner) {
+      switchRole("locataire");
+      router.push("/profil");
+    } else {
+      switchRole("proprietaire");
+      router.push("/proprietaire/bateaux");
+    }
   };
 
   const handleLogout = () => {
