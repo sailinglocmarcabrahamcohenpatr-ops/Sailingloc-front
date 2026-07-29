@@ -9,7 +9,13 @@ import "./utilisateurs.css";
 /* ── Constantes ── */
 const PAGE_SIZE = 10;
 
-type EditForm = { prenom: string; nom: string; email: string; telephone: string; statutCompte: boolean };
+type EditForm = { statutCompte: "actif" | "inactif"; role: "admin" | "proprietaire" | "locataire" };
+
+const ROLE_TO_API: Record<"admin" | "proprietaire" | "locataire", string[]> = {
+  admin:        ["ROLE_ADMIN", "ROLE_PROPRIETAIRE", "ROLE_USER"],
+  proprietaire: ["ROLE_PROPRIETAIRE", "ROLE_USER"],
+  locataire:    ["ROLE_USER"],
+};
 
 /* ── Helpers ── */
 function initials(u: UtilisateurAPI) {
@@ -38,7 +44,7 @@ export default function AdminUtilisateursPage() {
   const [selected, setSelected]       = useState<Set<number>>(new Set());
   const [page, setPage]               = useState(1);
   const [editingUser, setEditingUser]  = useState<UtilisateurAPI | null>(null);
-  const [editForm, setEditForm]       = useState<EditForm>({ prenom: "", nom: "", email: "", telephone: "", statutCompte: true });
+  const [editForm, setEditForm]       = useState<EditForm>({ statutCompte: "actif", role: "locataire" });
   const [saving, setSaving]           = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<UtilisateurAPI | null>(null);
   const [deleting, setDeleting]           = useState(false);
@@ -54,8 +60,8 @@ export default function AdminUtilisateursPage() {
   const filtered = useMemo(() => {
     return users.filter((u) => {
       if (filterRole !== "all" && topRole(u.roles) !== filterRole) return false;
-      if (filterStatut === "actif" && u.statutCompte === false) return false;
-      if (filterStatut === "desactive" && u.statutCompte !== false) return false;
+          if (filterStatut === "actif"   && u.statutCompte !== "actif")   return false;
+          if (filterStatut === "inactif" && u.statutCompte !== "inactif") return false;
       return true;
     });
   }, [users, filterRole, filterStatut]);
@@ -82,7 +88,10 @@ export default function AdminUtilisateursPage() {
 
   function startEdit(u: UtilisateurAPI) {
     setEditingUser(u);
-    setEditForm({ prenom: u.prenom ?? "", nom: u.nom ?? "", email: u.email ?? "", telephone: u.telephone ?? "", statutCompte: u.statutCompte ?? true });
+    setEditForm({
+      statutCompte: u.statutCompte === "inactif" ? "inactif" : "actif",
+      role: topRole(u.roles),
+    });
   }
 
   function closeModal() { setEditingUser(null); }
@@ -91,14 +100,15 @@ export default function AdminUtilisateursPage() {
     if (!editingUser) return;
     setSaving(true);
     try {
-      const updated = await utilisateursApi.update(editingUser.id, {
-        prenom: editForm.prenom,
-        nom: editForm.nom,
-        email: editForm.email,
-        telephone: editForm.telephone || undefined,
-        statutCompte: editForm.statutCompte,
+      const updatedUser = await utilisateursApi.patch(editingUser.id, {
+        statut_compte: editForm.statutCompte,
+        roles: ROLE_TO_API[editForm.role],
       });
-      setUsers((prev) => prev.map((u) => (u.id === editingUser.id ? { ...u, ...updated } : u)));
+      setUsers((prev) => prev.map((u) =>
+        u.id === editingUser.id
+          ? { ...u, ...updatedUser, roles: ROLE_TO_API[editForm.role] }
+          : u
+      ));
       setEditingUser(null);
     } catch {
       setError("Erreur lors de la sauvegarde.");
@@ -164,7 +174,7 @@ export default function AdminUtilisateursPage() {
               </div>
               <p className="users-modal-delete-warning">
                 <i className="fa-solid fa-triangle-exclamation" />
-                Cette action est <strong>irréversible</strong>. Le compte sera définitivement supprimé.
+                Cette action est irréversible. Le compte sera définitivement supprimé.
               </p>
             </div>
 
@@ -195,7 +205,7 @@ export default function AdminUtilisateursPage() {
             <div className="users-modal-header">
               <h2>
                 <div className="users-modal-avatar">{initials(editingUser)}</div>
-                Modifier l&apos;utilisateur
+                Modifier l'utilisateur
               </h2>
               <button className="users-modal-close" onClick={closeModal} aria-label="Fermer">
                 <i className="fa-solid fa-xmark" />
@@ -203,25 +213,12 @@ export default function AdminUtilisateursPage() {
             </div>
 
             <div className="users-modal-body">
-              <div className="users-modal-row">
-                <div className="users-modal-field">
-                  <label htmlFor="edit-prenom">Prénom</label>
-                  <input id="edit-prenom" value={editForm.prenom} onChange={(e) => setEditForm({ ...editForm, prenom: e.target.value })} placeholder="Prénom" />
+              <div className="users-modal-info">
+                <div className="users-avatar" style={{ width: 40, height: 40, fontSize: ".9rem", flexShrink: 0 }}>{initials(editingUser)}</div>
+                <div>
+                  <strong>{editingUser.prenom} {editingUser.nom}</strong>
+                  <span style={{ display: "block", fontSize: ".8125rem", color: "var(--text-2)", marginTop: 2 }}>{editingUser.email}</span>
                 </div>
-                <div className="users-modal-field">
-                  <label htmlFor="edit-nom">Nom</label>
-                  <input id="edit-nom" value={editForm.nom} onChange={(e) => setEditForm({ ...editForm, nom: e.target.value })} placeholder="Nom" />
-                </div>
-              </div>
-
-              <div className="users-modal-field">
-                <label htmlFor="edit-email">Adresse e-mail</label>
-                <input id="edit-email" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="email@exemple.com" />
-              </div>
-
-              <div className="users-modal-field">
-                <label htmlFor="edit-tel">Téléphone</label>
-                <input id="edit-tel" type="tel" value={editForm.telephone} onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })} placeholder="+33 6 00 00 00 00" />
               </div>
 
               <div className="users-modal-field">
@@ -229,29 +226,33 @@ export default function AdminUtilisateursPage() {
                 <div className="users-modal-status-row">
                   <button
                     type="button"
-                    className={`users-modal-status-btn${editForm.statutCompte ? " active" : ""}`}
-                    onClick={() => setEditForm({ ...editForm, statutCompte: true })}
+                    className={`users-modal-status-btn${editForm.statutCompte === "actif" ? " active" : ""}`}
+                    onClick={() => setEditForm({ ...editForm, statutCompte: "actif" })}
                   >
                     <i className="fa-solid fa-circle-check" /> Actif
                   </button>
                   <button
                     type="button"
-                    className={`users-modal-status-btn${!editForm.statutCompte ? " inactive" : ""}`}
-                    onClick={() => setEditForm({ ...editForm, statutCompte: false })}
+                    className={`users-modal-status-btn${editForm.statutCompte === "inactif" ? " inactive" : ""}`}
+                    onClick={() => setEditForm({ ...editForm, statutCompte: "inactif" })}
                   >
-                    <i className="fa-solid fa-circle-xmark" /> Désactivé
+                    <i className="fa-solid fa-circle-xmark" /> Inactif
                   </button>
                 </div>
               </div>
 
               <div className="users-modal-field">
-                <label>Rôles actuels</label>
-                <div className="users-modal-roles">
-                  {editingUser.roles.map((r) => {
-                    const rl = topRole([r]);
-                    return <span key={r} className={`users-role-badge ${rl}`}>{ROLE_LABEL[rl]}</span>;
-                  })}
-                </div>
+                <label htmlFor="edit-role">Rôle</label>
+                <select
+                  id="edit-role"
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value as EditForm["role"] })}
+                  className="users-modal-select"
+                >
+                  <option value="locataire">Locataire</option>
+                  <option value="proprietaire">Propriétaire</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
             </div>
 
@@ -303,7 +304,7 @@ export default function AdminUtilisateursPage() {
           >
             <option value="all">Tous les statuts</option>
             <option value="actif">Actif</option>
-            <option value="desactive">Désactivé</option>
+            <option value="inactif">Désactivé</option>
           </select>
         </div>
         {selected.size > 0 && (
@@ -358,8 +359,8 @@ export default function AdminUtilisateursPage() {
                         <td style={{ color: "var(--text-2)" }}>{u.email}</td>
                         <td className="col-phone" style={{ color: "var(--text-2)" }}>{u.telephone ?? "-"}</td>
                         <td>
-                          <span className={`badge-status ${u.statutCompte === false ? "red" : "green"}`}>
-                            {u.statutCompte === false ? "Désactivé" : "Actif"}
+                          <span className={`badge-status ${u.statutCompte === "inactif" ? "red" : "green"}`}>
+                            {u.statutCompte === "inactif" ? "Désactivé" : "Actif"}
                           </span>
                         </td>
                         <td>

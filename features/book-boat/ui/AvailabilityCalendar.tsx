@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DateRange } from "react-day-picker";
+import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMediaQuery, breakpoints } from "@/shared/hooks/useMediaQuery";
 
 export interface DateSpan {
   from: Date;
@@ -13,7 +14,7 @@ export interface DateSpan {
 interface Props {
   value: DateRange | undefined;
   onChange: (range: DateRange | undefined) => void;
-  openRanges: DateSpan[];
+  blockedRanges: DateSpan[];
   bookedRanges: DateSpan[];
   loading: boolean;
 }
@@ -39,23 +40,35 @@ function formatFR(d?: Date): string {
 }
 
 /**
- * Calendrier de disponibilité pour le locataire : sélection restreinte aux
- * périodes ouvertes par le propriétaire et non déjà réservées.
+ * Calendrier de disponibilité pour le locataire : toutes les dates futures sont
+ * réservables sauf celles bloquées (statut "bloque" / "indisponible") ou déjà réservées.
  */
-export default function AvailabilityCalendar({ value, onChange, openRanges, bookedRanges, loading }: Props) {
+export default function AvailabilityCalendar({ value, onChange, blockedRanges, bookedRanges, loading }: Props) {
   const [open, setOpen] = useState(false);
+  const isWide = useMediaQuery(breakpoints.md);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  /* Fermer en cliquant en dehors */
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
   const isSelectable = (day: Date): boolean => {
     if (day < today) return false;
-    const inOpenRange = openRanges.some((r) => isInRange(day, r));
-    if (!inOpenRange) return false;
+    if (blockedRanges.some((r) => isInRange(day, r))) return false;
     return !bookedRanges.some((r) => isInRange(day, r));
   };
 
-  // Empêche de sélectionner un intervalle qui traverserait un jour réservé/fermé :
-  // on referme l'intervalle au dernier jour valide contigu.
   const clampRange = (range: DateRange | undefined): DateRange | undefined => {
     if (!range?.from || !isSelectable(range.from)) return undefined;
     if (!range.to) return range;
@@ -69,54 +82,86 @@ export default function AvailabilityCalendar({ value, onChange, openRanges, book
     return { from: range.from, to: last };
   };
 
-  const hasAvailability = !loading && openRanges.length > 0;
+  const hasSelection = Boolean(value?.from && value?.to);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="avail-cal-trigger" aria-label="Choisir vos dates de location">
+    <div className="avail-cal-wrapper" ref={wrapperRef}>
+      {/* Trigger */}
+      <button
+        type="button"
+        className="avail-cal-trigger"
+        aria-expanded={open}
+        aria-label="Choisir vos dates de location"
+        onClick={() => setOpen((v) => !v)}
+      >
         <i className="fa-regular fa-calendar" />
         <span className={value?.from ? "avail-cal-value" : "avail-cal-placeholder"}>
           {value?.from ? formatFR(value.from) : "Arrivée"} → {value?.to ? formatFR(value.to) : "Départ"}
         </span>
-      </PopoverTrigger>
-      <PopoverContent className="dispo-popover-content" align="start" side="bottom">
-        {loading ? (
-          <div className="avail-cal-loading">
-            <i className="fa-solid fa-circle-notch fa-spin" /> Chargement du calendrier…
-          </div>
-        ) : !hasAvailability ? (
-          <p className="avail-cal-empty">
-            Le propriétaire n&apos;a pas encore ouvert de créneau de location pour ce bateau.
-          </p>
-        ) : (
-          <>
-            <div className="cal-legend cal-legend-sm">
-              <span><i className="cal-dot cal-dot-open" /> Disponible</span>
-              <span><i className="cal-dot cal-dot-booked" /> Réservé</span>
+        <i className={`fa-solid fa-chevron-down avail-cal-chevron${open ? " open" : ""}`} />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="avail-cal-dropdown">
+          {loading ? (
+            <div className="avail-cal-loading">
+              <i className="fa-solid fa-circle-notch fa-spin" /> Chargement…
             </div>
-            <Calendar
-              mode="range"
-              selected={value}
-              onSelect={(r) => onChange(clampRange(r))}
-              numberOfMonths={2}
-              disabled={(day) => !isSelectable(day)}
-              modifiers={{ booked: bookedRanges }}
-              modifiersClassNames={{ booked: "rdp-day-booked" }}
-              defaultMonth={value?.from ?? openRanges[0]?.from ?? today}
-            />
-          </>
-        )}
-        <div className="dispo-popover-footer">
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => setOpen(false)}
-            disabled={!value?.from || !value?.to}
-          >
-            <i className="fa-solid fa-check" /> Valider
-          </button>
+          ) : (
+            <>
+              {/* Légende */}
+              <div className="avail-cal-legend">
+                <span><i className="cal-dot cal-dot-open" /> Disponible</span>
+                <span><i className="cal-dot cal-dot-booked" /> Réservé</span>
+                <span><i className="cal-dot cal-dot-blocked" /> Bloqué</span>
+              </div>
+
+              <Calendar
+                  mode="range"
+                  locale={fr}
+                  
+                selected={value}
+                onSelect={(r) => onChange(clampRange(r))}
+                numberOfMonths={isWide ? 2 : 1}
+                disabled={(day) => !isSelectable(day)}
+                modifiers={{ booked: bookedRanges, blocked: blockedRanges }}
+                modifiersClassNames={{ booked: "rdp-day-booked", blocked: "rdp-day-blocked" }}
+                defaultMonth={value?.from ?? today}
+              />
+
+              {/* Footer */}
+              <div className="avail-cal-footer">
+                {hasSelection && (
+                  <span className="avail-cal-summary">
+                    <i className="fa-regular fa-calendar-check" />
+                    {formatFR(value!.from)} → {formatFR(value!.to)}
+                  </span>
+                )}
+                <div className="avail-cal-footer-actions">
+                  <button
+                    type="button"
+                    className="avail-cal-btn-clear"
+                    onClick={() => onChange(undefined)}
+                    disabled={!value?.from}
+                  >
+                    Effacer
+                  </button>
+                  <button
+                    type="button"
+                    className="avail-cal-btn-confirm"
+                    onClick={() => setOpen(false)}
+                    disabled={!hasSelection}
+                  >
+                    <i className="fa-solid fa-check" /> Confirmer les dates
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }
+

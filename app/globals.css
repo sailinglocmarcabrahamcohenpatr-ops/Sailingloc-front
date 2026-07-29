@@ -815,7 +815,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .location-map--interactive .location-preview-map { width: 100%; height: 100%; }
 .location-label { margin-top: 12px; font-size: .9375rem; color: var(--text-2); display: flex; align-items: flex-start; gap: 8px; }
 .location-label i { color: var(--primary); margin-top: 2px; }
-.booking-card { display: block; background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden; position: sticky; top: 88px; }
+.booking-card { display: block; background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: visible; position: sticky; top: 88px; }
 .booking-header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-3) 100%); padding: 24px; }
 .booking-price { font-size: 2rem; font-weight: 800; color: var(--white); }
 .booking-price span { font-size: 1rem; font-weight: 400; color: rgba(255,255,255,.7); }
@@ -823,7 +823,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .booking-rating i { color: var(--star); font-size: .875rem; }
 .booking-rating span { font-size: .875rem; color: rgba(255,255,255,.75); }
 .booking-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.booking-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.booking-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: var(--radius-lg); position: relative; }
 .booking-date-field { padding: 12px; }
 .booking-date-field:first-child { border-right: 1px solid var(--border); }
 .booking-date-field label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); display: block; margin-bottom: 4px; }
@@ -856,16 +856,83 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 /* Calendrier de disponibilité (locataire) */
 .booking-dates-cal { display: flex; flex-direction: column; gap: 6px; }
 .booking-dates-cal > label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
+
+/* Wrapper relatif pour ancrer le dropdown */
+.avail-cal-wrapper { position: relative; width: 100%; }
+
+/* Trigger */
 .avail-cal-trigger {
   display: flex; align-items: center; gap: 10px; width: 100%;
   padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-lg);
   background: var(--card-bg); cursor: pointer; text-align: left; transition: var(--transition);
 }
-.avail-cal-trigger:hover { border-color: var(--primary); background: var(--primary-light); }
-.avail-cal-trigger > i { color: var(--primary); font-size: .9rem; flex-shrink: 0; }
+.avail-cal-trigger:hover,
+.avail-cal-trigger[aria-expanded="true"] { border-color: var(--primary); background: var(--primary-light); }
+.avail-cal-trigger > .fa-calendar { color: var(--primary); font-size: .9rem; flex-shrink: 0; }
 .avail-cal-placeholder { color: var(--text-3); flex: 1; font-size: .9375rem; }
 .avail-cal-value { color: var(--text); font-weight: 600; flex: 1; font-size: .9375rem; }
-.avail-cal-loading, .avail-cal-empty { padding: 20px; text-align: center; font-size: .8125rem; color: var(--text-2); max-width: 280px; }
+.avail-cal-chevron { color: var(--text-3); font-size: .75rem; transition: transform .2s; flex-shrink: 0; }
+.avail-cal-chevron.open { transform: rotate(180deg); }
+
+/* Dropdown positionné en absolu (le wrapper est le parent relatif) */
+.avail-cal-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 45px;
+  z-index: 200;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.07);
+  padding: 20px;
+  width: max-content;
+  max-width: min(680px, calc(100vw - 16px));
+  overflow-x: auto;
+}
+
+/* Légende interne */
+.avail-cal-legend {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  margin-bottom: 12px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: .78rem; color: var(--text-2);
+}
+.avail-cal-legend span { display: flex; align-items: center; gap: 6px; }
+
+/* Loading */
+.avail-cal-loading { padding: 32px 20px; text-align: center; font-size: .875rem; color: var(--text-2); }
+
+/* Footer */
+.avail-cal-footer {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.avail-cal-summary {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .875rem; font-weight: 600; color: var(--primary);
+}
+.avail-cal-footer-actions { display: flex; gap: 10px; }
+.avail-cal-btn-clear {
+  flex: 0 0 auto;
+  padding: 11px 18px; border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border); background: transparent;
+  font-size: .875rem; font-weight: 600; color: var(--text-2);
+  cursor: pointer; transition: var(--transition);
+}
+.avail-cal-btn-clear:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.avail-cal-btn-clear:disabled { opacity: .4; cursor: not-allowed; }
+.avail-cal-btn-confirm {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 24px; border-radius: var(--radius-lg);
+  background: var(--primary); color: #fff;
+  font-size: .9375rem; font-weight: 700; border: none;
+  cursor: pointer; transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb, 37,99,235),.25);
+}
+.avail-cal-btn-confirm:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 4px 16px rgba(var(--primary-rgb, 37,99,235),.35); }
+.avail-cal-btn-confirm:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 
 /* Légende + jours colorés — partagée entre calendrier propriétaire et locataire */
 .cal-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; font-size: .8125rem; color: var(--text-2); }

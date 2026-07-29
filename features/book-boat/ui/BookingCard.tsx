@@ -48,21 +48,18 @@ export default function BookingCard({
   const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
-  const [openRanges, setOpenRanges] = useState<DateSpan[]>([]);
+  const [blockedRanges, setBlockedRanges] = useState<DateSpan[]>([]);
   const [bookedRanges, setBookedRanges] = useState<DateSpan[]>([]);
   const [calLoading, setCalLoading] = useState(true);
 
   useEffect(() => {
-    // Le sous-endpoint /disponibilites renvoie une sérialisation incomplète
-    // côté backend (pas de dateFin) — on lit plutôt le tableau `disponibilites`
-    // embarqué dans la fiche bateau, qui est complet.
-    Promise.all([boatsApi.getOne(boatId), boatsApi.getReservations(boatId)])
-      .then(([boat, reservations]) => {
-        setOpenRanges(
-          (boat.disponibilites ?? [])
-            // Une disponibilité "bloque" est fermée par le propriétaire (ex. maintenance) —
-            // elle ne doit pas apparaître comme réservable côté locataire.
-            .filter((d) => d.statut !== "bloque")
+    Promise.all([boatsApi.getDisponibilitesParBateau(boatId), boatsApi.getReservations(boatId)])
+      .then(([disponibilites, reservations]) => {
+        // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
+        // Toutes les autres dates sont réservables par défaut.
+        setBlockedRanges(
+          disponibilites
+            .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
             .map((d) => ({
               from: new Date(d.dateDebut),
               to: new Date(d.dateFin ?? d.dateDebut),
@@ -70,7 +67,7 @@ export default function BookingCard({
         );
         setBookedRanges(
           reservations
-            .filter((r) => !isCancelled(r.statutReservation?.libelle))
+            .filter((r) => !isCancelled(r.statutReservation))
             .map((r) => ({ from: new Date(r.dateDebut), to: new Date(r.dateFin) }))
         );
       })
@@ -80,7 +77,7 @@ export default function BookingCard({
 
   const startDate = range?.from ? toIsoDay(range.from) : "";
   const endDate = range?.to ? toIsoDay(range.to) : "";
-  const hasAvailability = !calLoading && openRanges.length > 0;
+  const hasAvailability = !calLoading;
   const canBook = Boolean(startDate && endDate);
 
   const days = canBook ? daysBetween(startDate, endDate) : 0;
@@ -118,7 +115,7 @@ export default function BookingCard({
             <AvailabilityCalendar
               value={range}
               onChange={setRange}
-              openRanges={openRanges}
+              blockedRanges={blockedRanges}
               bookedRanges={bookedRanges}
               loading={calLoading}
             />
@@ -136,8 +133,8 @@ export default function BookingCard({
               {calLoading
                 ? "Vérification des disponibilités…"
                 : hasAvailability
-                ? "Cliquez sur le calendrier pour choisir vos dates parmi les périodes disponibles (en vert)."
-                : "Le propriétaire n'a pas encore ouvert de créneau de location pour ce bateau."}
+                ? "Cliquez sur le calendrier pour choisir vos dates de location."
+                : "Aucune date disponible pour ce bateau."}
             </span>
           </div>
 

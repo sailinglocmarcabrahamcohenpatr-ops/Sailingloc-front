@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { reservationsApi } from "@/shared/lib";
 import type { ReservationAPI } from "@/shared/lib";
+import { resolvePhotoUrl } from "@/shared/lib/boats-api";
 import { RatingForm } from "@/features/rate-boat";
 import "./reservations.css";
 
@@ -39,12 +40,19 @@ const BookingCard = ({
   onRated: (reservationId: number) => void;
   onCancelled: (reservationId: number) => void;
 }) => {
-  const key = libelleToKey(r.statutReservation?.libelle);
+  const key = libelleToKey(r.statutReservation);
   const st = STATUS[key];
-  const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
-  const imgSrc = `https://picsum.photos/seed/boat-${r.idBateau}/400/300`;
+  const boatId = r.bateau?.id;
+  const boatName = r.bateau?.nomBateau ?? `Bateau #${boatId ?? "?"}`;
+  const sortedPhotos = (r.bateau?.photos ?? [])
+    .slice()
+    .sort((a, b) => (a.ordreAffichage ?? 99) - (b.ordreAffichage ?? 99));
+  const imgSrc = sortedPhotos[0]
+    ? resolvePhotoUrl(sortedPhotos[0].url)
+    : `https://picsum.photos/seed/boat-${boatId ?? r.id}/400/300`;
   const alreadyRated = (r.avis?.length ?? 0) > 0;
   const [showRating, setShowRating] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
 
@@ -57,13 +65,14 @@ const BookingCard = ({
     } catch {
       setCancelError("Impossible d'annuler cette réservation.");
       setCancelling(false);
+      setShowCancelConfirm(false);
     }
   };
 
   return (
     <div className="booking-card">
       <div className="booking-card-img">
-        <Image src={imgSrc} alt={boatName} fill sizes="140px" style={{ objectFit: "cover" }} />
+        <Image src={imgSrc} alt={boatName} fill unoptimized sizes="140px" style={{ objectFit: "cover" }} />
       </div>
       <div className="booking-card-info">
         <div className="booking-card-hd">
@@ -72,18 +81,23 @@ const BookingCard = ({
               <i className={`fa-solid ${st.icon}`} /> {st.label}
             </span>
             <h3>{boatName}</h3>
-            <p><i className="fa-solid fa-location-dot" /> {r.statutReservation?.libelle ?? "—"}</p>
+            {r.bateau?.port?.ville && (
+              <p><i className="fa-solid fa-location-dot" /> {r.bateau.port.ville}</p>
+            )}
           </div>
-          <strong className="booking-price">{r.montantTotal.toLocaleString("fr-FR")} €</strong>
+          <strong className="booking-price">{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
         </div>
         <div className="booking-card-dates">
           <i className="fa-regular fa-calendar" />
           {fmt(r.dateDebut)} → {fmt(r.dateFin)}
         </div>
         <div className="booking-card-actions">
-          <Link href={`/bateaux/${r.idBateau}`} className="btn btn-ghost btn-sm">
-            <i className="fa-solid fa-eye" /> Voir le bateau
+          <Link href={`/profil/reservations/${r.id}`} className="btn btn-primary btn-sm">
+            <i className="fa-solid fa-receipt" /> Voir en détail
           </Link>
+          {/* <Link href={`/bateaux/${boatId}`} className="btn btn-ghost btn-sm">
+            <i className="fa-solid fa-eye" /> Voir le bateau
+          </Link> */}
           {key === "completed" && (
             alreadyRated ? (
               <span className="btn btn-ghost btn-sm" style={{ color: "var(--text-3)", cursor: "default" }}>
@@ -95,16 +109,16 @@ const BookingCard = ({
               </button>
             )
           )}
-          {(key === "confirmed" || key === "pending") && (
+          {/* {(key === "confirmed" || key === "pending") && (
             <button className="btn btn-ghost btn-sm">
               <i className="fa-solid fa-envelope" /> Contacter
             </button>
-          )}
+          )} */}
           {key === "confirmed" && (
             <button
               className="btn btn-ghost btn-sm"
               style={{ color: "var(--red)" }}
-              onClick={handleCancel}
+              onClick={() => setShowCancelConfirm(true)}
               disabled={cancelling}
             >
               {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler
@@ -127,6 +141,76 @@ const BookingCard = ({
           }}
         />
       )}
+
+      {showCancelConfirm && (
+        <div className="cancel-modal-overlay" onClick={() => !cancelling && setShowCancelConfirm(false)}>
+          <div className="cancel-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-modal-icon">
+              <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            </div>
+            <h2>Annuler cette réservation ?</h2>
+            <p>
+              Cette action est définitive et impossible à annuler. La réservation de{" "}
+              <strong>{boatName}</strong> du {fmt(r.dateDebut)} au {fmt(r.dateFin)} sera supprimée.
+            </p>
+            <div className="cancel-modal-actions">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={cancelling}
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ background: "var(--red)", borderColor: "var(--red)" }}
+                onClick={handleCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? (
+                  <i className="fa-solid fa-circle-notch fa-spin" />
+                ) : (
+                  <i className="fa-solid fa-xmark" />
+                )}{" "}
+                Oui, annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AccordionSection = ({
+  title,
+  count,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  count: number;
+  defaultOpen: boolean;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="res-accordion">
+      <button
+        type="button"
+        className={`res-accordion-btn${open ? " open" : ""}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="dash-section-title" style={{ margin: 0 }}>
+          {title} <span>({count})</span>
+        </span>
+        <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+      </button>
+      {open && <div className="res-accordion-body-inner">{children}</div>}
     </div>
   );
 };
@@ -186,24 +270,22 @@ export default function UserReservationsPage() {
       </div>
 
       {upcoming.length > 0 && (
-        <div>
-          <h3 className="dash-section-title">À venir</h3>
+        <AccordionSection title="À venir" count={upcoming.length} defaultOpen>
           <div className="bookings-list">
             {upcoming.map((r) => (
               <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
             ))}
           </div>
-        </div>
+        </AccordionSection>
       )}
       {past.length > 0 && (
-        <div>
-          <h3 className="dash-section-title">Historique</h3>
+        <AccordionSection title="Historique" count={past.length} defaultOpen={false}>
           <div className="bookings-list">
             {past.map((r) => (
               <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
             ))}
           </div>
-        </div>
+        </AccordionSection>
       )}
     </div>
   );

@@ -15,9 +15,9 @@ export interface PortAPI {
   longitude?: number;
 }
 
+/** Enum backend sérialisé en simple string — pas de table référentielle avec id/libelle. */
 export interface StatutReservationAPI {
-  id: number;
-  libelle: string;
+  value: string;
 }
 
 export interface ModePaiementAPI {
@@ -25,9 +25,9 @@ export interface ModePaiementAPI {
   libelle: string;
 }
 
+/** Enum backend sérialisé en simple string — pas de table référentielle avec id/libelle. */
 export interface StatutPaiementAPI {
-  id: number;
-  libelle: string;
+  value: string;
 }
 
 export interface AssuranceAPI {
@@ -48,7 +48,7 @@ export interface UtilisateurAPI {
   prenom: string;
   nom: string;
   telephone?: string;
-  statutCompte?: boolean;
+  statutCompte?: string;
   roles: string[];
 }
 
@@ -84,9 +84,9 @@ export const utilisateursApi = {
     api.get<UtilisateurAPI[]>("/api/utilisateurs"),
   getOne: (id: number | string) =>
     api.get<UtilisateurAPI>(`/api/utilisateurs/${id}`),
-  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">>) =>
+  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">> & { statut_compte?: string }) =>
     api.put<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
-  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">>) =>
+  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id">> & { statut_compte?: string; roles?: string[] }) =>
     api.patch<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
   delete: (id: number | string) =>
     api.delete<void>(`/api/utilisateurs/${id}`),

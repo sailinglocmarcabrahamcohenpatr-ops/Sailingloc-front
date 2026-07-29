@@ -193,21 +193,38 @@ export default function AdminMessagesPage() {
     selectConversation(partner.id, partner);
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    if (!reply.trim() || !selectedId || sendingRef.current) return;
+  async function sendMessage() {
+    const text = reply.trim();
+    if (!text || !selectedId || sendingRef.current) return;
     sendingRef.current = true;
     setSending(true);
+    setReply(""); // vidé tout de suite — restauré seulement si l'envoi échoue
     try {
-      const sent = await messagesApi.send({ contenu: reply.trim(), id_destinataire: selectedId });
+      const sent = await messagesApi.send({ contenu: text, id_destinataire: selectedId });
       setMessages((prev) => [...prev, sent]);
       setDraftPartner(null);
-      setReply("");
-    } catch { /* silent */ } finally {
+    } catch {
+      setReply(text);
+    } finally {
       sendingRef.current = false;
       setSending(false);
     }
   }
+
+  function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    sendMessage();
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Empêche la soumission implicite du <form> pour Enter : sans ce
+    // preventDefault ici, le navigateur peut aussi déclencher onSubmit
+    // juste après, provoquant un envoi en double.
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   return (
     <>
@@ -328,7 +345,7 @@ export default function AdminMessagesPage() {
                 <div className="messages-reply-input-wrap">
                   <input ref={inputRef} type="text" className="messages-reply-input" placeholder={`Message à ${activePartner.prenom}…`}
                     value={reply} onChange={(e) => setReply(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) handleSend(e as unknown as React.FormEvent); }}
+                    onKeyDown={handleKeyDown}
                     autoComplete="off" disabled={sending} />
                 </div>
                 <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title="Envoyer (Entrée)"

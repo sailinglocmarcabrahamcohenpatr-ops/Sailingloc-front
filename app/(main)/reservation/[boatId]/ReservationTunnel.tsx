@@ -4,11 +4,17 @@ import { useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth, reservationsApi, referentielsApi } from "@/shared/lib";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { useAuth, reservationsApi } from "@/shared/lib";
+import { getToken } from "@/shared/lib/api-client";
 import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
 import type { Boat } from "@/entities/boat";
 import { getBoatImageUrl } from "@/entities/boat";
+import StripePaymentForm from "./StripePaymentForm";
 import "./reservation.css";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 function daysBetween(start: string, end: string): number {
   const diff = Math.ceil(
@@ -59,6 +65,12 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
 
+  // Stripe
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [intentLoading, setIntentLoading] = useState(false);
+  const [intentError, setIntentError] = useState("");
+  const [reservationId, setReservationId] = useState<number | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -72,6 +84,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
       const parts = user.name.split(" ");
       setFirstName(parts[0] ?? "");
       setLastName(parts.slice(1).join(" ") ?? "");
+      setPhone("+33 6 12 34 56 78");
     }
   }, [mounted, user, router]);
 
@@ -80,63 +93,49 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const imgSrc = getBoatImageUrl(boat, 800, 500, "main");
 
   const handlePay = async () => {
+    // Kept for compatibility — payment is now handled by StripePaymentForm
+  };
+
+  /** Appelé quand l'utilisateur clique "Continuer vers le paiement" à l'étape 2.
+   *  Crée la réservation en DB, puis récupère le client_secret Stripe. */
+  const handleProceedToPayment = async () => {
     if (!user?.id) {
-      setPayError("Impossible d'identifier votre compte. Reconnectez-vous et réessayez.");
+      setIntentError("Votre profil n'est pas encore chargé. Rafraîchissez la page et réessayez.");
       return;
     }
-    setPaying(true);
-    setPayError("");
-    const ref = "SL-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
+    setIntentLoading(true);
+    setIntentError("");
     try {
-      // Enregistre réellement la réservation côté API pour qu'elle apparaisse
-      // dans les calendriers et tableaux de bord propriétaire/locataire.
-      const statuts = await referentielsApi.getStatutsReservations();
-      const pendingStatus =
-        statuts.find((s) => s.libelle.toLowerCase().includes("attente")) ?? statuts[0];
-      if (!pendingStatus) throw new Error("Statut de réservation indisponible");
-
-      await reservationsApi.create({
+      // 1. Créer la réservation (le backend l'initialise à "en_attente" par défaut)
+      const reservation = await reservationsApi.create({
         date_debut: initialStartDate,
         date_fin: initialEndDate,
         montant_total: total,
         id_bateau: Number(boat.id),
         id_utilisateur: user.id,
-        id_statut_reservation: pendingStatus.id,
       });
-    } catch {
-      setPaying(false);
-      setPayError("La réservation n'a pas pu être enregistrée. Réessayez dans un instant.");
-      return;
+      setReservationId(reservation.id);
+      // 2. Créer le PaymentIntent Stripe
+      const token = getToken();
+      const res = await fetch("/api/paiements/stripe/create-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ id_reservation: reservation.id }),
+      });
+      if (!res.ok) throw new Error("Impossible de créer l'intention de paiement");
+      const { client_secret } = await res.json() as { client_secret: string };
+      setClientSecret(client_secret);
+      setStep(3);
+    } catch (err) {
+      setIntentError(
+        err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer."
+      );
+    } finally {
+      setIntentLoading(false);
     }
-
-    // Envoi email de confirmation (fire-and-forget — ne bloque pas la redirection)
-    fetch("/api/reservation/confirm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: user!.email,
-        firstName,
-        lastName,
-        phone,
-        boatName: boat.name,
-        boatLocation: boat.location,
-        startDate: initialStartDate,
-        endDate: initialEndDate,
-        guests: initialGuests,
-        days,
-        pricePerDay: boat.pricePerDay,
-        subtotal,
-        serviceFee,
-        total,
-        ref,
-      }),
-    }).catch(() => {});
-
-    await new Promise((r) => setTimeout(r, 1200));
-    router.push(
-      `/reservation/${boat.id}/confirmation?ref=${ref}&total=${total}&startDate=${initialStartDate}&endDate=${initialEndDate}&guests=${initialGuests}&boat=${encodeURIComponent(boat.name)}`
-    );
   };
 
   if (!mounted || !user) {
@@ -148,6 +147,11 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   }
 
   const canProceedStep2 = firstName.trim() !== "" && lastName.trim() !== "" && phone.trim() !== "";
+  const step2Blockers = [
+    !firstName.trim() && "Prénom",
+    !lastName.trim() && "Nom",
+    !phone.trim() && "Téléphone",
+  ].filter(Boolean) as string[];
   const canPay = agreed && cardNumber.trim() !== "" && expiry.trim() !== "" && cvv.trim() !== "" && cardName.trim() !== "";
 
   const payBlockers = [
@@ -332,181 +336,59 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
                   <button
                     className="btn btn-primary btn-lg"
                     type="button"
-                    onClick={() => setStep(3)}
-                    disabled={!canProceedStep2}
+                    onClick={() => {
+                      if (!canProceedStep2) {
+                        setIntentError(`Champ(s) requis manquant(s) : ${step2Blockers.join(", ")}`);
+                        return;
+                      }
+                      handleProceedToPayment();
+                    }}
+                    disabled={intentLoading}
                   >
-                    Continuer vers le paiement
-                    <i className="fa-solid fa-arrow-right" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="res-card">
-                <h1 className="res-card-title">Paiement sécurisé</h1>
-                <p className="res-card-sub">Vos données bancaires sont chiffrées et protégées par SSL 256 bits</p>
-
-                <div className="payment-cards" aria-label="Moyens de paiement acceptés">
-                  <div className="payment-card-icon payment-card-visa">VISA</div>
-                  <div className="payment-card-icon payment-card-mc">MC</div>
-                  <div className="payment-card-icon">AMEX</div>
-                  <div className="payment-card-icon">CB</div>
-                  <div className="payment-card-icon">
-                    <i className="fa-brands fa-apple-pay" aria-hidden="true" />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="res-cardname">
-                    Titulaire de la carte <span className="res-required">*</span>
-                  </label>
-                  <input
-                    id="res-cardname"
-                    type="text"
-                    className="form-input"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    placeholder="NOM PRÉNOM (tel qu'il apparaît sur la carte)"
-                    autoComplete="cc-name"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label" htmlFor="res-cardnum">
-                    Numéro de carte <span className="res-required">*</span>
-                  </label>
-                  <div className="res-card-number-wrap">
-                    <input
-                      id="res-cardnum"
-                      type="text"
-                      className="form-input"
-                      value={cardNumber}
-                      onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, "").slice(0, 16);
-                        setCardNumber(v.replace(/(.{4})/g, "$1 ").trim());
-                      }}
-                      placeholder="0000 0000 0000 0000"
-                      maxLength={19}
-                      autoComplete="cc-number"
-                      inputMode="numeric"
-                      required
-                    />
-                    <i className="fa-regular fa-credit-card card-brand-icon" aria-hidden="true" />
-                  </div>
-                </div>
-
-                <div className="res-form-row">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="res-expiry">
-                      Date d&apos;expiration <span className="res-required">*</span>
-                    </label>
-                    <input
-                      id="res-expiry"
-                      type="text"
-                      className="form-input"
-                      value={expiry}
-                      onChange={(e) => {
-                        let v = e.target.value.replace(/\D/g, "").slice(0, 4);
-                        if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
-                        setExpiry(v);
-                      }}
-                      placeholder="MM/AA"
-                      maxLength={5}
-                      autoComplete="cc-exp"
-                      inputMode="numeric"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="res-cvv">
-                      Code de sécurité <span className="res-required">*</span>{" "}
-                      <span className="res-optional">CVV</span>
-                    </label>
-                    <input
-                      id="res-cvv"
-                      type="text"
-                      className="form-input"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                      placeholder="•••"
-                      maxLength={4}
-                      autoComplete="cc-csc"
-                      inputMode="numeric"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="res-caution-box">
-                  <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
-                  <div>
-                    <strong>Caution de 5 000 €</strong>
-                    <span>
-                      Une empreinte bancaire sera prise à titre de caution. Aucun montant ne sera débité si le bateau est rendu en bon état dans les délais convenus.
-                    </span>
-                  </div>
-                </div>
-
-                <label className="res-terms">
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                  />
-                  <span>
-                    J&apos;ai lu et j&apos;accepte les{" "}
-                    <a href="#" onClick={(e) => e.preventDefault()}>conditions générales de location</a>{" "}
-                    et la{" "}
-                    <a href="#" onClick={(e) => e.preventDefault()}>politique d&apos;annulation</a>{" "}
-                    de SailingLoc.
-                  </span>
-                </label>
-
-                <div className="res-cta-row">
-                  <button className="res-back-btn" type="button" onClick={() => setStep(2)}>
-                    <i className="fa-solid fa-arrow-left" aria-hidden="true" /> Retour
-                  </button>
-                  <button
-                    className="btn btn-primary btn-lg"
-                    type="button"
-                    onClick={handlePay}
-                    disabled={paying || !canPay}
-                    style={paying || !canPay ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
-                  >
-                    {paying ? (
+                    {intentLoading ? (
                       <>
                         <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
-                        Traitement en cours…
+                        Préparation du paiement…
                       </>
                     ) : (
                       <>
-                        <i className="fa-solid fa-lock" aria-hidden="true" />
-                        Confirmer et payer {formatPrice(total)}
+                        Continuer vers le paiement
+                        <i className="fa-solid fa-arrow-right" aria-hidden="true" />
                       </>
                     )}
                   </button>
                 </div>
-
-                {!canPay && payBlockers.length > 0 && (
+                {intentError && (
                   <div style={{ marginTop: "12px", padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", fontSize: ".8125rem", color: "#DC2626" }}>
                     <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "7px" }} aria-hidden="true" />
-                    Champ{payBlockers.length > 1 ? "s" : ""} manquant{payBlockers.length > 1 ? "s" : ""} : {payBlockers.join(", ")}
+                    {intentError}
                   </div>
                 )}
+              </div>
+            )}
 
-                {payError && (
-                  <div style={{ marginTop: "12px", padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", fontSize: ".8125rem", color: "#DC2626" }}>
-                    <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "7px" }} aria-hidden="true" />
-                    {payError}
-                  </div>
-                )}
+            {step === 3 && clientSecret && (
+              <div className="res-card">
+                <h1 className="res-card-title">Paiement sécurisé</h1>
+                <p className="res-card-sub">Vos données bancaires sont chiffrées et protégées par Stripe</p>
 
-                <p className="res-ssl-note">
-                  <i className="fa-solid fa-shield-halved" aria-hidden="true" />
-                  Paiement sécurisé par chiffrement SSL 256 bits
-                </p>
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: { theme: "stripe" },
+                    locale: "fr",
+                  }}
+                >
+                  <StripePaymentForm
+                    total={total}
+                    returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/reservation/${boat.id}/confirmation?reservationId=${reservationId}&total=${total}&startDate=${initialStartDate}&endDate=${initialEndDate}&guests=${initialGuests}&boat=${encodeURIComponent(boat.name)}`}
+                    agreed={agreed}
+                    onAgreedChange={setAgreed}
+                    onBack={() => setStep(2)}
+                    formatPrice={formatPrice}
+                  />
+                </Elements>
               </div>
             )}
           </div>

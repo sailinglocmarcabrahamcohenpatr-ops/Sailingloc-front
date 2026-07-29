@@ -68,7 +68,7 @@ export default function OwnerBoatCalendarPage() {
   const bookedRanges = useMemo(
     () =>
       reservations
-        .filter((r) => !isCancelled(r.statutReservation?.libelle))
+        .filter((r) => !isCancelled(r.statutReservation))
         .map((r) => ({ from: toDate(r.dateDebut), to: toDate(r.dateFin) })),
     [reservations],
   );
@@ -315,7 +315,7 @@ export default function OwnerBoatCalendarPage() {
                     <span>
                       <i className="fa-solid fa-user" />
                       {fmtFR(r.dateDebut)} → {fmtFR(r.dateFin)}
-                      {r.statutReservation?.libelle ? ` · ${r.statutReservation.libelle}` : ""}
+                      {r.statutReservation ? ` · ${r.statutReservation}` : ""}
                     </span>
                   </li>
                 ))}

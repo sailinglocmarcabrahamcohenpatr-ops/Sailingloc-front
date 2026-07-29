@@ -138,6 +138,8 @@ export const boatsApi = {
    */
   getDisponibilites: (id: number | string) =>
     api.get<DisponibiliteAPI[]>(`/api/bateaux/${id}/disponibilites`),
+  getDisponibilitesParBateau: (id: number | string) =>
+    api.get<DisponibiliteAPI[]>(`/api/disponibilites/bateau/${id}`),
   getReservations: (id: number | string) =>
     api.get<ReservationAPI[]>(`/api/bateaux/${id}/reservations`),
   getDocuments: (id: number | string) =>

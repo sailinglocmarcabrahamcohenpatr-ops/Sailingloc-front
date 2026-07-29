@@ -40,7 +40,7 @@ function initials(r: ReservationAPI): string {
 
 function renterName(r: ReservationAPI): string {
   const u = r.utilisateur;
-  if (!u) return `Locataire #${r.idUtilisateur}`;
+  if (!u) return `Réservation #${r.id}`;
   return `${u.prenom} ${u.nom}`.trim();
 }
 
@@ -66,10 +66,10 @@ const Section = ({
       </h3>
       <div className="reservations-list">
         {items.map((r) => {
-          const key = libelleToKey(r.statutReservation?.libelle);
+          const key = libelleToKey(r.statutReservation);
           const st = STATUS[key];
           const days = daysBetween(r.dateDebut, r.dateFin);
-          const boatName = r.bateau?.nomBateau ?? `Bateau #${r.idBateau}`;
+          const boatName = r.bateau?.nomBateau ?? `Bateau #${r.bateau?.id ?? r.id}`;
           const busy = actioningId === r.id;
 
           return (
@@ -86,7 +86,7 @@ const Section = ({
                 {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
               </div>
               <div className="reservation-amount">
-                <strong>{r.montantTotal.toLocaleString("fr-FR")} €</strong>
+                <strong>{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
                 <span className={st.cls}>{st.label}</span>
               </div>
               <div className="reservation-actions">
@@ -145,7 +145,7 @@ export default function OwnerReservationsPage() {
   }, []);
 
   const handleConfirm = async (r: ReservationAPI) => {
-    const confirme = statuts.find((s) => s.libelle.toLowerCase().includes("confirm"));
+    const confirme = statuts.find((s) => s.value.toLowerCase().includes("confirm"));
     if (!confirme) {
       setActionError((prev) => ({ ...prev, [r.id]: "Statut « confirmée » introuvable." }));
       return;
@@ -153,7 +153,7 @@ export default function OwnerReservationsPage() {
     setActioningId(r.id);
     setActionError((prev) => ({ ...prev, [r.id]: "" }));
     try {
-      const updated = await reservationsApi.update(r.id, { id_statut_reservation: confirme.id });
+      const updated = await reservationsApi.update(r.id, { id_statut_reservation: confirme.value });
       setReservations((prev) => prev.map((x) => (x.id === r.id ? { ...x, ...updated } : x)));
     } catch {
       setActionError((prev) => ({ ...prev, [r.id]: "Impossible de confirmer cette réservation." }));
@@ -189,13 +189,13 @@ export default function OwnerReservationsPage() {
     );
 
   const pending = reservations.filter(
-    (r) => libelleToKey(r.statutReservation?.libelle) === "pending"
+    (r) => libelleToKey(r.statutReservation) === "pending"
   );
   const active = reservations.filter(
-    (r) => libelleToKey(r.statutReservation?.libelle) === "confirmed"
+    (r) => libelleToKey(r.statutReservation) === "confirmed"
   );
   const past = reservations.filter((r) => {
-    const k = libelleToKey(r.statutReservation?.libelle);
+    const k = libelleToKey(r.statutReservation);
     return k === "completed" || k === "cancelled";
   });
 

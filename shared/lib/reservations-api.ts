@@ -1,16 +1,25 @@
 import { api } from "./api-client";
+import type { PhotoAPI } from "./boats-api";
 
 export interface ReservationAPI {
   id: number;
+  dateReservation?: string;
   dateDebut: string;
   dateFin: string;
-  montantTotal: number;
-  idBateau: number;
-  idUtilisateur: number;
+  /** L'API renvoie un decimal Doctrine sérialisé en string (ex: "374.00") */
+  montantTotal: number | string;
   idContrat?: number;
-  idStatutReservation: number;
-  statutReservation?: { id: number; libelle: string };
-  bateau?: { id: number; nomBateau: string; prixJour: number | string };
+  /** Valeur de l'enum backend : "en_attente" | "confirmée" | "annulée" | "refusée" | "terminée" */
+  statutReservation?: string;
+  bateau?: {
+    id: number;
+    nomBateau: string;
+    prixJour?: number | string;
+    photos?: PhotoAPI[];
+    port?: { id: number; nom: string; ville: string };
+    typeBateau?: { id?: number; labelTypeBateau: string };
+    proprietaire?: { id: number; prenom: string; nom: string; email?: string; telephone?: string };
+  };
   utilisateur?: { id: number; prenom: string; nom: string; email: string };
   paiements?: unknown[];
   avis?: unknown[];
@@ -23,7 +32,10 @@ export interface CreateReservationPayload {
   id_bateau: number;
   id_utilisateur: number;
   id_contrat?: number;
-  id_statut_reservation: number;
+  /** Optionnel à la création (défaut backend : "en_attente"). Nom de champ historique
+   *  côté backend, mais la valeur attendue est bien la string de l'enum, pas un id. */
+  statut_reservation?: string;
+  id_statut_reservation?: string;
 }
 
 export interface AvisAPI {
@@ -51,6 +63,15 @@ export interface CreateAvisPayload {
   id_reservation: number;
 }
 
+export interface PaiementAPI {
+  id: number;
+  datePaiement: string;
+  montant: number | string;
+  /** Valeur de l'enum backend : "en_attente" | "paye" | "echoue" | "rembourse" */
+  statutPaiement: string;
+  stripePaymentIntentId?: string | null;
+}
+
 export const reservationsApi = {
   getAll: () =>
     api.get<ReservationAPI[]>("/api/reservations"),
@@ -63,7 +84,7 @@ export const reservationsApi = {
   cancel: (id: number | string) =>
     api.delete<void>(`/api/reservations/${id}`),
   getPaiements: (id: number | string) =>
-    api.get<unknown[]>(`/api/reservations/${id}/paiements`),
+    api.get<PaiementAPI[]>(`/api/reservations/${id}/paiements`),
   getAvis: (id: number | string) =>
     api.get<AvisAPI[]>(`/api/reservations/${id}/avis`),
 };

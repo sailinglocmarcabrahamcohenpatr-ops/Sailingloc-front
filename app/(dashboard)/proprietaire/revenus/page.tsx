@@ -29,7 +29,7 @@ function libelleToKey(libelle?: string): BadgeKey {
 
 function renterName(r: ReservationAPI): string {
   const u = r.utilisateur;
-  if (!u) return `Locataire #${r.idUtilisateur}`;
+  if (!u) return `Réservation #${r.id}`;
   return `${u.prenom} ${u.nom}`.trim();
 }
 
@@ -66,16 +66,16 @@ export default function OwnerRevenuePage() {
   const boatNameById = useMemo(() => new Map(boats.map((b) => [b.id, b.nomBateau])), [boats]);
 
   const myReservations = useMemo(
-    () => reservations.filter((r) => ownedBoatIds.has(r.idBateau)),
+    () => reservations.filter((r) => r.bateau?.id != null && ownedBoatIds.has(r.bateau.id)),
     [reservations, ownedBoatIds]
   );
 
   const revenueReservations = useMemo(
-    () => myReservations.filter((r) => libelleToKey(r.statutReservation?.libelle) !== "cancelled"),
+    () => myReservations.filter((r) => libelleToKey(r.statutReservation) !== "cancelled"),
     [myReservations]
   );
 
-  const totalGross = revenueReservations.reduce((a, r) => a + r.montantTotal, 0);
+  const totalGross = revenueReservations.reduce((a, r) => a + Number(r.montantTotal), 0);
   const totalCommission = Math.round(totalGross * COMMISSION_RATE);
   const totalNet = totalGross - totalCommission;
   const netPct = totalGross > 0 ? Math.round((totalNet / totalGross) * 100) : 0;
@@ -98,7 +98,7 @@ export default function OwnerRevenuePage() {
       const d = new Date(r.dateDebut);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const bucket = byKey.get(key);
-      if (bucket) bucket.amount += Math.round(r.montantTotal * (1 - COMMISSION_RATE));
+      if (bucket) bucket.amount += Math.round(Number(r.montantTotal) * (1 - COMMISSION_RATE));
     }
     return buckets;
   }, [revenueReservations]);
@@ -232,10 +232,10 @@ export default function OwnerRevenuePage() {
           ) : (
             <div>
               {recentTransactions.map((r) => {
-                const key = libelleToKey(r.statutReservation?.libelle);
+                const key = libelleToKey(r.statutReservation);
                 const st = STATUS_LABEL[key];
-                const net = Math.round(r.montantTotal * (1 - COMMISSION_RATE));
-                const boatName = r.bateau?.nomBateau ?? boatNameById.get(r.idBateau) ?? `Bateau #${r.idBateau}`;
+                const net = Math.round(Number(r.montantTotal) * (1 - COMMISSION_RATE));
+                const boatName = r.bateau?.nomBateau ?? (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ?? `Bateau #${r.bateau?.id ?? r.id}`;
                 return (
                   <div key={r.id} className="rv-tx-row">
                     <div className="rv-tx-avatar">{initials(r)}</div>
