@@ -88,7 +88,7 @@ export default function Navbar() {
               <>
                 {!isAdmin && (
                   <Link
-                    href={isOwnerSection ? "/proprietaire/messages" : "/profil/messages"}
+                    href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
                     className="navbar-icon-btn"
                     aria-label="Messages"
                   >
@@ -114,7 +114,11 @@ export default function Navbar() {
                       <div className="navbar-dropdown-user">
                         <span className="navbar-dropdown-name">{user.name}</span>
                         <span className="navbar-dropdown-role">
-                          {isAdmin ? "Administrateur" : isOwnerSection ? "Propriétaire" : "Locataire"}
+                          {isAdmin
+                            ? "Administrateur"
+                            : isOwnerSection || user.role === "proprietaire"
+                            ? "Propriétaire"
+                            : "Locataire"}
                         </span>
                       </div>
                       <div className="navbar-dropdown-sep" />
@@ -125,7 +129,7 @@ export default function Navbar() {
                       ) : !isOwnerSection ? (
                         <>
                           {user.role === "proprietaire" ? (
-                            <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
+                            <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("proprietaire"); setUserMenuOpen(false); }} role="menuitem">
                               <i className="fa-solid fa-sailboat" /> Espace propriétaire
                             </Link>
                           ) : (
@@ -134,19 +138,34 @@ export default function Navbar() {
                             </Link>
                           )}
                           <div className="navbar-dropdown-sep" />
-                          <Link href="/profil" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/dashboard" : "/profil"}
+                            className="navbar-dropdown-item"
+                            onClick={() => { if (user.role === "proprietaire") switchRole("proprietaire"); setUserMenuOpen(false); }}
+                            role="menuitem"
+                          >
                             <i className="fa-solid fa-user" /> Mon profil
                           </Link>
-                          <Link href="/profil/reservations" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-calendar-check" /> Mes réservations
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/reservations" : "/profil/reservations"}
+                            className="navbar-dropdown-item"
+                            onClick={() => setUserMenuOpen(false)}
+                            role="menuitem"
+                          >
+                            <i className="fa-solid fa-calendar-check" /> {user.role === "proprietaire" ? "Réservations" : "Mes réservations"}
                           </Link>
-                          <Link href="/profil/messages" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                            className="navbar-dropdown-item"
+                            onClick={() => setUserMenuOpen(false)}
+                            role="menuitem"
+                          >
                             <i className="fa-solid fa-envelope" /> Messages
                           </Link>
                         </>
                       ) : (
                         <>
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole(); setUserMenuOpen(false); }} role="menuitem">
+                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("locataire"); setUserMenuOpen(false); }} role="menuitem">
                             <i className="fa-solid fa-user" /> Espace locataire
                           </Link>
                           <div className="navbar-dropdown-sep" />

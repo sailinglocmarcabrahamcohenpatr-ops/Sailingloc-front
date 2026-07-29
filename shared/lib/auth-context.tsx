@@ -28,7 +28,7 @@ interface AuthContextType {
   checking: boolean;
   login: (params: LoginParams) => void;
   logout: () => void;
-  switchRole: () => void;
+  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -38,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   switchRole: () => {},
 });
+
 
 function buildUser(params: LoginParams): AuthUser {
   const initials = params.name
@@ -149,14 +150,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     root.removeAttribute("data-motion");
   }, []);
 
-  const switchRole = useCallback(() => {
+  const switchRole = useCallback((role: UserRole) => {
     setUser((prev) => {
       if (!prev || prev.role === "admin") return prev;
-      const nextRole = prev.role === "locataire" ? "proprietaire" : "locataire";
       // Le middleware lit le cookie de rôle côté serveur : sans cette mise à
       // jour, la redirection vers /proprietaire ou /profil est refusée.
-      setRoleCookie(nextRole);
-      return { ...prev, role: nextRole };
+      // On fixe explicitement le rôle cible (plutôt que de basculer sur
+      // l'ancien rôle) car la section affichée (isOwnerSection) est déduite
+      // de l'URL et peut être désynchronisée du rôle stocké — un simple
+      // toggle renverrait alors vers le mauvais espace.
+      setRoleCookie(role);
+      return { ...prev, role };
     });
   }, []);
 
