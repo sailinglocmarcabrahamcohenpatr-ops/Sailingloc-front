@@ -7,6 +7,7 @@ import { useAuth } from "@/shared/lib";
 import "./navbar.css";
 
 const navLinks = [
+  { href: "/", label: "Accueil", icon: "fa-house" },
   { href: "/bateaux", label: "Bateaux", icon: "fa-sailboat" },
   { href: "/destinations", label: "Destinations", icon: "fa-map-location-dot" },
   { href: "/comment-ca-marche", label: "Comment ça marche", icon: "fa-circle-question" },

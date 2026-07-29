@@ -35,11 +35,8 @@ const adminLinks: NavLink[] = [
 
 const renterLinks: NavLink[] = [
   { href: "/profil", icon: "fa-user", label: "Mon profil", exact: true },
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Mes réservations" },
   { href: "/profil/notations", icon: "fa-star", label: "Mes notations" },
   { href: "/profil/messages", icon: "fa-envelope", label: "Messages" },
-  { href: "/profil/documents", icon: "fa-id-card", label: "Documents" },
-  { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements" },
   { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres" },
   { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire" },
 ];
