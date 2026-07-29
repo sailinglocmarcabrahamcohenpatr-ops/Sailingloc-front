@@ -31,6 +31,7 @@ export default function ListBoatForm() {
   const [draftRestored, setDraftRestored] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [cgvAccepted, setCgvAccepted] = useState(false);
   const submittingRef = useRef(false);
 
   /* ── Données API ── */
@@ -251,6 +252,11 @@ export default function ListBoatForm() {
     setSubmitError("");
 
     try {
+      if (!cgvAccepted) {
+        setSubmitError("Veuillez accepter les conditions pour les propriétaires avant de publier.");
+        return;
+      }
+
       if (!typeId || !portId || !name || !pricePerDay || !length) {
         setSubmitError("Veuillez remplir tous les champs obligatoires.");
         return;
@@ -822,7 +828,12 @@ export default function ListBoatForm() {
 
             <div className="list-boat-cgv">
               <label className="checkbox-label">
-                <input type="checkbox" required />
+                <input
+                  type="checkbox"
+                  checked={cgvAccepted}
+                  onChange={(e) => { setCgvAccepted(e.target.checked); setSubmitError(""); }}
+                  required
+                />
                 <span>
                   J&apos;accepte les <a href="#" className="auth-link">conditions pour les propriétaires</a> et je certifie être le propriétaire ou le représentant légal de ce bateau.
                 </span>
@@ -859,7 +870,12 @@ export default function ListBoatForm() {
               Continuer <i className="fa-solid fa-arrow-right" />
             </button>
           ) : (
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || !cgvAccepted}
+              title={!cgvAccepted ? "Veuillez accepter les conditions pour continuer" : undefined}
+            >
               {submitLabel()}
             </button>
           )}
