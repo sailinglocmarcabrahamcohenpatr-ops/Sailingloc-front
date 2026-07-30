@@ -7,6 +7,15 @@ export class ApiError extends Error {
   }
 }
 
+/** Message unique pour « appel authentifié sans JWT ».
+ *  Sans ce garde-fou, la requête partait sans en-tête Authorization et le
+ *  backend répondait 500 « Une erreur est survenue. » (au lieu d'un 401) :
+ *  l'utilisateur voyait un message opaque et restait bloqué. Le cas se produit
+ *  quand le cookie sailingloc_auth survit au token du localStorage — proxy.ts
+ *  n'inspecte que le cookie, l'interface croit donc la session active. */
+export const SESSION_EXPIREE =
+  "Votre session a expiré. Reconnectez-vous pour continuer.";
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("sailingloc_token");
@@ -43,6 +52,12 @@ async function request<T>(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     const token = getToken();
+    /* Garde-fou limité aux ÉCRITURES. Plusieurs GET (référentiels, /api/ports)
+       répondent 200 sans JWT et alimentent des pages publiques : les bloquer
+       ici viderait ces listes. Une écriture sans token, elle, ne peut pas
+       aboutir — autant échouer tout de suite avec un message clair plutôt que
+       de laisser le backend répondre 500 « Une erreur est survenue. ». */
+    if (!token && method !== "GET") throw new ApiError(401, SESSION_EXPIREE);
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
@@ -76,7 +91,8 @@ export const api = {
   postMultipart: async <T>(path: string, formData: FormData): Promise<T> => {
     const headers: Record<string, string> = {};
     const token = getToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (!token) throw new ApiError(401, SESSION_EXPIREE);
+    headers["Authorization"] = `Bearer ${token}`;
 
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",

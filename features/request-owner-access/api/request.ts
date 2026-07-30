@@ -31,6 +31,17 @@ export async function sendOwnerRequest(values: OwnerRequestFormValues): Promise<
       if (err.status === 409) {
         return { success: false, error: "Une demande est déjà en cours de traitement pour votre compte." };
       }
+      if (err.status === 401) {
+        return { success: false, error: err.message };
+      }
+      /* Le backend renvoie 500 « Une erreur est survenue. » dans des cas très
+         différents : on n'affiche pas ce message brut, il n'aide personne. */
+      if (err.status >= 500) {
+        return {
+          success: false,
+          error: "Le serveur n'a pas pu traiter votre demande. Réessayez dans un instant ; si le problème persiste, contactez le support.",
+        };
+      }
       return { success: false, error: err.message || "Une erreur est survenue. Veuillez réessayer." };
     }
     return { success: false, error: "Impossible d'envoyer la demande. Vérifiez votre connexion." };
