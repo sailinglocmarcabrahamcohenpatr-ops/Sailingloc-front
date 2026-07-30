@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { reservationsApi, referentielsApi } from "@/shared/lib";
 import type { ReservationAPI, StatutReservationAPI } from "@/shared/lib";
+import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
 
@@ -46,6 +47,7 @@ function renterName(r: ReservationAPI): string {
 
 const Section = ({
   title,
+  icon,
   items,
   actioningId,
   actionError,
@@ -53,6 +55,7 @@ const Section = ({
   onRefuse,
 }: {
   title: string;
+  icon: string;
   items: ReservationAPI[];
   actioningId: number | null;
   actionError: Record<number, string>;
@@ -60,11 +63,13 @@ const Section = ({
   onRefuse: (r: ReservationAPI) => void;
 }) =>
   items.length > 0 ? (
-    <div>
-      <h3 className="dash-section-title">
-        {title} <span>({items.length})</span>
-      </h3>
-      <div className="reservations-list">
+    <div className="rsv-section">
+      <div className="rsv-section-hd">
+        <i className={`fa-solid ${icon}`} />
+        <h3>{title}</h3>
+        <span className="rsv-section-count">{items.length}</span>
+      </div>
+      <div className="rsv-list">
         {items.map((r) => {
           const key = libelleToKey(r.statutReservation);
           const st = STATUS[key];
@@ -73,34 +78,34 @@ const Section = ({
           const busy = actioningId === r.id;
 
           return (
-            <div key={r.id} className="reservation-row">
-              <div className="reservation-renter">
-                <div className="reservation-avatar">{initials(r)}</div>
+            <div key={r.id} className={`rsv-row ${key}`}>
+              <div className="rsv-renter">
+                <div className="rsv-avatar">{initials(r)}</div>
                 <div>
                   <strong>{renterName(r)}</strong>
                   <span>{boatName}</span>
                 </div>
               </div>
-              <div className="reservation-dates">
+              <div className="rsv-dates">
                 <i className="fa-regular fa-calendar" />
                 {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
               </div>
-              <div className="reservation-amount">
+              <div className="rsv-amount">
                 <strong>{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
                 <span className={st.cls}>{st.label}</span>
               </div>
-              <div className="reservation-actions">
+              <div className="rsv-actions">
                 {key === "pending" && (
                   <>
                     <button
-                      className="btn btn-primary btn-sm"
+                      className="rsv-btn rsv-btn-confirm"
                       onClick={() => onConfirm(r)}
                       disabled={busy}
                     >
                       {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-check" />} Confirmer
                     </button>
                     <button
-                      className="btn btn-outline btn-sm"
+                      className="rsv-btn rsv-btn-refuse"
                       onClick={() => onRefuse(r)}
                       disabled={busy}
                     >
@@ -109,16 +114,12 @@ const Section = ({
                   </>
                 )}
                 {key === "confirmed" && (
-                  <button className="btn btn-ghost btn-sm">
+                  <button className="rsv-btn-ghost">
                     <i className="fa-solid fa-ellipsis" />
                   </button>
                 )}
               </div>
-              {actionError[r.id] && (
-                <p style={{ color: "var(--red)", fontSize: ".8125rem", gridColumn: "1 / -1", margin: "4px 0 0" }}>
-                  {actionError[r.id]}
-                </p>
-              )}
+              {actionError[r.id] && <p className="rsv-error">{actionError[r.id]}</p>}
             </div>
           );
         })}
@@ -200,39 +201,72 @@ export default function OwnerReservationsPage() {
   });
 
   return (
-    <div className="dash-page">
-      <div className="dash-page-hd">
-        <div>
-          <h1 className="dash-title">Réservations</h1>
-          <p className="dash-sub">
-            {reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total
-          </p>
+    <div className="rsv-page">
+      <div className="rsv-header">
+        <h1>Réservations</h1>
+        <p>{reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total</p>
+      </div>
+
+      <div className="rsv-stats-grid">
+        <div className="rsv-stat-card pending">
+          <div className="rsv-stat-icon"><i className="fa-solid fa-hourglass-half" /></div>
+          <div>
+            <div className="rsv-stat-value">{pending.length}</div>
+            <div className="rsv-stat-label">En attente</div>
+          </div>
+        </div>
+        <div className="rsv-stat-card confirmed">
+          <div className="rsv-stat-icon"><i className="fa-solid fa-calendar-check" /></div>
+          <div>
+            <div className="rsv-stat-value">{active.length}</div>
+            <div className="rsv-stat-label">Confirmées</div>
+          </div>
+        </div>
+        <div className="rsv-stat-card history">
+          <div className="rsv-stat-icon"><i className="fa-solid fa-clock-rotate-left" /></div>
+          <div>
+            <div className="rsv-stat-value">{past.length}</div>
+            <div className="rsv-stat-label">Historique</div>
+          </div>
         </div>
       </div>
-      <Section
-        title="En attente de confirmation"
-        items={pending}
-        actioningId={actioningId}
-        actionError={actionError}
-        onConfirm={handleConfirm}
-        onRefuse={handleRefuse}
-      />
-      <Section
-        title="Réservations confirmées"
-        items={active}
-        actioningId={actioningId}
-        actionError={actionError}
-        onConfirm={handleConfirm}
-        onRefuse={handleRefuse}
-      />
-      <Section
-        title="Historique"
-        items={past}
-        actioningId={actioningId}
-        actionError={actionError}
-        onConfirm={handleConfirm}
-        onRefuse={handleRefuse}
-      />
+
+      {reservations.length === 0 ? (
+        <div className="rsv-empty">
+          <i className="fa-solid fa-calendar-xmark" />
+          Aucune réservation pour l'instant.
+        </div>
+      ) : (
+        <>
+          <Section
+            title="En attente de confirmation"
+            icon="fa-hourglass-half"
+            items={pending}
+            actioningId={actioningId}
+            actionError={actionError}
+            onConfirm={handleConfirm}
+            onRefuse={handleRefuse}
+          />
+          <Section
+            title="Réservations confirmées"
+            icon="fa-calendar-check"
+            items={active}
+            actioningId={actioningId}
+            actionError={actionError}
+            onConfirm={handleConfirm}
+            onRefuse={handleRefuse}
+          />
+          <Section
+            title="Historique"
+            icon="fa-clock-rotate-left"
+            items={past}
+            actioningId={actioningId}
+            actionError={actionError}
+            onConfirm={handleConfirm}
+            onRefuse={handleRefuse}
+          />
+        </>
+      )}
     </div>
   );
 }
