@@ -338,6 +338,86 @@
 .ss-option-sub             { font-size: .75rem; color: var(--text-3); white-space: nowrap; }
 .ss-option-check           { color: var(--primary); font-size: .75rem; flex-shrink: 0; }
 .ss-no-result              { padding: 12px; text-align: center; font-size: .875rem; color: var(--text-3); }
+.ss-no-result-text         { display: block; margin-bottom: 10px; }
+
+/* ── Action « Ajouter un port » (pied de liste + état vide) ── */
+.ss-footer {
+  border-top: 1px solid var(--border);
+  padding: 8px;
+}
+.ss-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 45%, var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--primary);
+  font-size: .8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.ss-create-btn:hover {
+  background: var(--primary-light);
+  border-style: solid;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AJOUT D'UN PORT D'ATTACHE (PortCreateForm)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.port-create {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border-radius: var(--radius-lg);
+  background: var(--primary-light);
+}
+.port-create-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: .8125rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.port-create-intro i { color: var(--primary); margin-top: 2px; flex-shrink: 0; }
+
+.port-create-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.port-create-grid .form-group { margin-bottom: 0; }
+
+.port-create-warn,
+.port-create-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+.port-create-warn  { color: #92660A; }
+.port-create-warn i  { color: var(--star); margin-top: 2px; flex-shrink: 0; }
+.port-create-error { color: var(--red); }
+.port-create-error i { margin-top: 2px; flex-shrink: 0; }
+
+.port-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .port-create-grid { grid-template-columns: 1fr; }
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    FORM ROW / NAV

@@ -11,8 +11,24 @@ export interface PortAPI {
   nom: string;
   ville: string;
   pays?: string;
-  latitude?: number;
-  longitude?: number;
+  /** Renvoyé par GET /api/ports, absent de l'ancienne définition du type. */
+  codePostal?: string;
+  /** L'API sérialise les coordonnées en STRING ("43.2952790"), pas en number. */
+  latitude?: number | string;
+  longitude?: number | string;
+}
+
+/** Champs acceptés à la création d'un port.
+ *  Convention camelCase, alignée sur la forme renvoyée par GET /api/ports.
+ *  À confirmer avec un JWT propriétaire : certains POST de cette API utilisent
+ *  du snake_case (cf. disponibilitesApi.create → date_debut / id_bateau). */
+export interface CreatePortPayload {
+  nom: string;
+  ville: string;
+  pays?: string;
+  codePostal?: string;
+  latitude?: number | string;
+  longitude?: number | string;
 }
 
 /** Enum backend sérialisé en simple string — pas de table référentielle avec id/libelle. */
@@ -75,7 +91,7 @@ export const portsApi = {
     api.get<PortAPI[]>("/api/ports"),
   getOne: (id: number | string) =>
     api.get<PortAPI>(`/api/ports/${id}`),
-  create: (data: Omit<PortAPI, "id">) =>
+  create: (data: CreatePortPayload) =>
     api.post<PortAPI>("/api/ports", data, true),
 };
 

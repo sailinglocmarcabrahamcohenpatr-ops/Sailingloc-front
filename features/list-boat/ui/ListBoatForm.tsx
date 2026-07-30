@@ -17,6 +17,7 @@ import { loadDraft, clearDraft, useFormDraft } from "../lib/useFormDraft";
 import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/filesDraft";
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
+import PortCreateForm from "./PortCreateForm";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
 
@@ -75,6 +76,9 @@ export default function ListBoatForm() {
   const [motorisation,    setMotorisation]    = useState<Motorisation>("voile");
   const [name,            setName]            = useState("");
   const [portId,          setPortId]          = useState<number | null>(null);
+  /** null = formulaire d'ajout de port fermé ; string = ouvert, pré-rempli
+   *  avec le texte tapé dans la recherche. */
+  const [portDraftName,   setPortDraftName]   = useState<string | null>(null);
   const [geocodeStatus,   setGeocodeStatus]   = useState<GeocodeStatus>("idle");
   const [geocodeResult,   setGeocodeResult]   = useState<GeocodeResult | null>(null);
   const [length,          setLength]          = useState("");
@@ -221,9 +225,25 @@ export default function ListBoatForm() {
     });
   };
 
-  const handleLocatePort = async (id: number) => {
-    const port = ports.find((p) => p.id === id);
-    if (!port?.ville) return;
+  /** Prend le port en objet (et non par id) : un port fraîchement créé n'est
+   *  pas encore dans l'état `ports` au moment où on veut le localiser. */
+  const locatePort = async (port: PortAPI) => {
+    /* L'API stocke déjà les coordonnées du port (en string). Quand elles sont
+       présentes, on les utilise : plus précis que le centre de la ville, et
+       cela évite un appel réseau à Nominatim. */
+    const lat = port.latitude != null ? Number(port.latitude) : NaN;
+    const lng = port.longitude != null ? Number(port.longitude) : NaN;
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setGeocodeResult({
+        lat,
+        lng,
+        label: [port.nom, port.ville].filter(Boolean).join(", "),
+      });
+      setGeocodeStatus("success");
+      return;
+    }
+
+    if (!port.ville) return;
     setGeocodeStatus("loading");
     try {
       const result = await geocodeCity(port.ville);
@@ -232,6 +252,23 @@ export default function ListBoatForm() {
     } catch {
       setGeocodeResult(null); setGeocodeStatus("error");
     }
+  };
+
+  const handleLocatePort = (id: number) => {
+    const port = ports.find((p) => p.id === id);
+    if (port) locatePort(port);
+  };
+
+  /** Port créé depuis le formulaire : on l'ajoute à la liste locale, on le
+   *  sélectionne et on centre la carte — sans recharger tout le référentiel. */
+  const handlePortCreated = (port: PortAPI) => {
+    setPorts((prev) =>
+      [...prev, port].sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
+    );
+    setPortId(port.id);
+    setPortDraftName(null);
+    setStepError("");
+    locatePort(port);
   };
 
   /* ── Recherche du type document par mots-clés ── */
@@ -475,8 +512,18 @@ export default function ListBoatForm() {
                     placeholder="Sélectionner un port…"
                     searchPlaceholder="Rechercher par nom ou ville…"
                     required
+                    onCreate={(q) => setPortDraftName(q)}
+                    createLabel="Ajouter un port"
                   />
                 </div>
+                {portDraftName !== null && (
+                  <PortCreateForm
+                    initialName={portDraftName}
+                    existingPorts={ports}
+                    onCreated={handlePortCreated}
+                    onCancel={() => setPortDraftName(null)}
+                  />
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="lb-length">Taille *</label>
