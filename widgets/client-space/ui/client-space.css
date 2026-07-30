@@ -1,0 +1,188 @@
+/* ──────────────────────────────────────────────────────────────
+   Espace client (locataire) — coquille dédiée, distincte du
+   dashboard admin/propriétaire : carte profil + navigation en
+   boxes regroupées dans la colonne de gauche.
+   ────────────────────────────────────────────────────────────── */
+.client-space {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 32px;
+}
+
+/* ── Colonne gauche : identité ── */
+.client-space-side {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.client-space-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.client-profile-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.client-profile-banner {
+  height: 64px;
+  background: linear-gradient(120deg, var(--navy) 0%, var(--navy-3) 55%, var(--primary) 130%);
+}
+.client-profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.375rem;
+  border: 4px solid var(--card-bg);
+  margin: -36px auto 0;
+}
+.client-profile-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 20px 20px;
+}
+.client-profile-name { font-size: 1rem; margin-top: 4px; }
+.client-profile-role {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-top: 6px;
+}
+.client-profile-verified {
+  font-size: .75rem;
+  color: var(--green);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.client-profile-edit { width: 100%; margin-top: 16px; justify-content: center; }
+.client-profile-switch {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.client-profile-switch:hover { border-color: var(--primary); color: var(--primary); }
+
+.client-profile-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--red);
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.client-profile-logout:hover { background: #FEF2F2; border-color: #FCA5A5; }
+
+/* ── Navigation : liste unifiée sous la carte profil ── */
+.client-space-nav {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.client-nav-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: .8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.client-nav-box:last-child { border-bottom: none; }
+.client-nav-box i { font-size: .875rem; width: 18px; text-align: center; color: inherit; }
+.client-nav-box:hover { background: var(--bg); color: var(--text); }
+.client-nav-box.active {
+  background: var(--primary);
+  color: var(--white);
+}
+.client-nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: var(--white);
+  font-size: .6875rem;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.client-nav-box.active .client-nav-badge { background: var(--white); color: var(--primary); }
+
+/* ── Colonne principale : contenu ── */
+.client-space-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.client-space-content { min-width: 0; }
+
+@media (max-width: 960px) {
+  .client-space { flex-direction: column; padding: 20px 16px; gap: 20px; }
+  .client-space-side { width: 100%; position: static; }
+  .client-profile-card { display: flex; flex-direction: row; align-items: center; text-align: left; }
+  .client-profile-banner { display: none; }
+  .client-profile-avatar { margin: 16px 0 16px 16px; flex-shrink: 0; }
+  .client-profile-body { align-items: flex-start; text-align: left; padding: 12px 16px 16px 12px; }
+}

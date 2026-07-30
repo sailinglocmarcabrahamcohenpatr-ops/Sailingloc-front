@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────
-   Page "Mes réservations" (app/(dashboard)/profil/reservations).
+   Page "Mes réservations" (app/(client)/profil/reservations).
    Isolée hors de app/globals.css pour éviter les conflits de merge.
    Note : .booking-card lui-même reste global (fiche bateau + dashboard) ;
    ici on ne cible que les sélecteurs propres à la liste des réservations.

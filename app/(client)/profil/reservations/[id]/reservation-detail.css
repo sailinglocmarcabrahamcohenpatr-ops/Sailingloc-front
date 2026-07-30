@@ -1,6 +1,6 @@
 /* ──────────────────────────────────────────────────────────────
    Page de détail d'une réservation
-   (app/(dashboard)/profil/reservations/[id]).
+   (app/(client)/profil/reservations/[id]).
    ────────────────────────────────────────────────────────────── */
 .res-detail-back {
   display: inline-flex;

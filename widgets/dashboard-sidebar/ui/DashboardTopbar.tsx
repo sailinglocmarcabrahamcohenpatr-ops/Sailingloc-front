@@ -4,7 +4,7 @@ import "./DashboardTopbar.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { useAuth, usePreferences } from "@/shared/lib";
+import { useAuth, usePreferences, useMessages } from "@/shared/lib";
 
 const PAGE_TITLES: Record<string, string> = {
   "/proprietaire/dashboard":          "Dashboard",
@@ -55,6 +55,7 @@ export default function DashboardTopbar() {
   const title = getPageTitle(pathname);
   const { user, logout } = useAuth();
   const { theme, setTheme } = usePreferences();
+  const { unreadCount } = useMessages();
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs]       = useState<Notif[]>(MOCK_NOTIFS);
@@ -178,7 +179,7 @@ export default function DashboardTopbar() {
               title="Messages"
             >
               <i className="fa-solid fa-envelope" aria-hidden="true" />
-              <span className="topbar-badge">3</span>
+              {unreadCount > 0 && <span className="topbar-badge">{unreadCount}</span>}
             </Link>
           );
         })()}

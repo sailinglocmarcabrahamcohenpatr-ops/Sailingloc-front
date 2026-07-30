@@ -2461,7 +2461,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 /* -- Systeme de notation (avis locataire) -- */
 /* .notation-card / .notation-empty restent globaux : utilises a la fois par
-   app/(dashboard)/profil/notations/page.tsx et app/(dashboard)/admin/avis/page.tsx.
+   app/(client)/profil/notations/page.tsx et app/(dashboard)/admin/avis/page.tsx.
    .rating-modal-* / .star-picker-* sont co-localises dans
    features/rate-boat/ui/rating-form.css (utilises uniquement par ce module). */
 .notation-card {

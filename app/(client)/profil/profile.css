@@ -1,0 +1,74 @@
+/* ──────────────────────────────────────────────────────────────
+   Page "Mon profil" (app/(client)/profil/ProfileContent) — hub de
+   l'espace client. L'identité (avatar/nom/rôle) vit désormais dans
+   la carte persistante de widgets/client-space ; cette page se
+   concentre sur les menus (boxes) et les infos/activité.
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.profile-page-v2 { display: flex; flex-direction: column; gap: 24px; }
+
+.profile-welcome h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+.profile-welcome p { color: var(--text-2); font-size: .9375rem; }
+
+/* Menu grid — remplace l'ancienne quick-row : chaque section de
+   l'espace client devient une box cliquable, avec description. */
+.profile-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.profile-menu-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  color: var(--text);
+  text-decoration: none;
+  transition: var(--transition);
+}
+.profile-menu-box:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+.profile-menu-box-icon {
+  width: 46px; height: 46px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 1.25rem;
+}
+.profile-menu-box-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.profile-menu-box-text strong { font-size: .9375rem; }
+.profile-menu-box-text span { font-size: .8125rem; color: var(--text-2); }
+.profile-menu-box-chevron { margin-left: auto; color: var(--text-3); font-size: .75rem; flex-shrink: 0; }
+.profile-menu-box-badge {
+  position: absolute; top: 14px; right: 14px;
+  background: var(--red); color: var(--white);
+  font-size: .6875rem; font-weight: 700;
+  min-width: 18px; height: 18px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center; padding: 0 5px;
+}
+
+/* Two-column layout */
+.profile-columns { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .profile-columns { grid-template-columns: 1fr; } }
+.profile-col-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.profile-col-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+/* Activity timeline */
+.profile-activity-list { display: flex; flex-direction: column; }
+.profile-activity-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.profile-activity-item:last-child { border-bottom: none; }
+.profile-activity-icon {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: .8125rem;
+}
+.profile-activity-content { flex: 1; min-width: 0; }
+.profile-activity-content strong { display: block; font-size: .875rem; }
+.profile-activity-content span { font-size: .8125rem; color: var(--text-2); }
+.profile-activity-time { font-size: .75rem; color: var(--text-3); white-space: nowrap; flex-shrink: 0; }
+
+.profile-form { display: flex; flex-direction: column; gap: 16px; }

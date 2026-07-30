@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/shared/lib";
+import { useAuth, useMessages } from "@/shared/lib";
 import "./profile.css";
 
-const QUICK_LINKS = [
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", color: "#1866F2", bg: "#EEF3FE" },
-  { href: "/profil/messages", icon: "fa-envelope", label: "Messages", badge: 1, color: "#10B981", bg: "#D1FAE5" },
-  { href: "/profil/documents", icon: "fa-id-card", label: "Documents", color: "#8B5CF6", bg: "#F5F3FF" },
-  { href: "/profil/paiements", icon: "fa-credit-card", label: "Paiements", color: "#D97706", bg: "#FEF3C7" },
-  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres", color: "#0284C7", bg: "#E0F2FE" },
-  { href: "/contact", icon: "fa-headset", label: "Support", color: "#DB2777", bg: "#FCE7F3" },
+const MENU_BOXES = [
+  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", desc: "Vos voyages en cours et passés", color: "#1866F2", bg: "#EEF3FE" },
+  { href: "/profil/messages", icon: "fa-envelope", label: "Messages", desc: "Vos échanges avec les propriétaires", color: "#10B981", bg: "#D1FAE5" },
+  { href: "/profil/notations", icon: "fa-star", label: "Notations", desc: "Les avis que vous avez laissés", color: "#EAB308", bg: "#FEF9C3" },
+  { href: "/profil/favoris", icon: "fa-heart", label: "Favoris", desc: "Les bateaux que vous avez sauvegardés", color: "#DB2777", bg: "#FCE7F3" },
+  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres", desc: "Notifications et confidentialité", color: "#0284C7", bg: "#E0F2FE" },
+  { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire", desc: "Publiez votre bateau à la location", color: "#059669", bg: "#D1FAE5" },
 ];
 
 const ACTIVITY = [
@@ -22,62 +22,37 @@ const ACTIVITY = [
 
 export default function ProfileContent() {
   const { user } = useAuth();
+  const { unreadCount } = useMessages();
 
   const displayName = user?.name ?? "Mon compte";
   const displayEmail = user?.email ?? "";
-  const displayRole = user?.role === "proprietaire" ? "Propriétaire" : "Locataire";
-  const nameParts = displayName.split(" ");
-  const firstName = nameParts[0] ?? "";
-  const lastName = nameParts.slice(1).join(" ");
-  const initials = user?.initials ?? displayName.slice(0, 2).toUpperCase();
+  const firstName = displayName.split(" ")[0] ?? "";
+  const lastName = displayName.split(" ").slice(1).join(" ");
 
   return (
     <div className="profile-page-v2">
-      <div className="profile-hero">
-        <div className="profile-hero-banner" />
-        <div className="profile-hero-body">
-          <div className="profile-avatar-wrap">
-            <div
-              className="dash-sidebar-avatar"
-              style={{ width: 88, height: 88, fontSize: "1.75rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--primary)", color: "#fff", fontWeight: 700 }}
-              aria-hidden="true"
-            >
-              {initials}
-            </div>
-            <button className="profile-avatar-edit" aria-label="Changer la photo">
-              <i className="fa-solid fa-camera" />
-            </button>
-          </div>
-          <div className="profile-hero-info">
-            <h2>{displayName}</h2>
-            <p><i className="fa-solid fa-sailboat" /> {displayRole} · Membre depuis 2024</p>
-            <span className="profile-verified">
-              <i className="fa-solid fa-circle-check" style={{ color: "var(--green)" }} /> Identité vérifiée
-            </span>
-          </div>
-          <button className="btn btn-outline btn-sm profile-hero-edit-btn">
-            <i className="fa-solid fa-pen" /> Modifier le profil
-          </button>
-        </div>
-        <div className="profile-hero-stats">
-          <div className="profile-hero-stat"><strong>8</strong><span>Voyages</span></div>
-          <div className="profile-hero-stat"><strong>4.9 <i className="fa-solid fa-star" style={{ color: "var(--star)", fontSize: ".9em" }} aria-hidden="true" /></strong><span>Note</span></div>
-          <div className="profile-hero-stat"><strong>1 an</strong><span>Membre</span></div>
-        </div>
+      <div className="profile-welcome">
+        <h1>Bonjour {firstName || "à vous"}</h1>
+        <p>Retrouvez ici toutes vos réservations, messages et informations personnelles.</p>
       </div>
 
-      <nav className="profile-quick-row" aria-label="Accès rapide">
-        {QUICK_LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="profile-quick-item">
-            <span className="profile-quick-icon-wrap">
-              <span className="profile-quick-icon" style={{ background: l.bg, color: l.color }}>
-                <i className={`fa-solid ${l.icon}`} aria-hidden="true" />
+      <nav className="profile-menu-grid" aria-label="Accès rapide">
+        {MENU_BOXES.filter((m) => user?.role === "proprietaire" ? m.href !== "/profil/devenir-proprietaire" : true).map((m) => {
+          const badge = m.href === "/profil/messages" ? unreadCount : 0;
+          return (
+            <Link key={m.href} href={m.href} className="profile-menu-box">
+              <span className="profile-menu-box-icon" style={{ background: m.bg, color: m.color }}>
+                <i className={`fa-solid ${m.icon}`} aria-hidden="true" />
               </span>
-              {l.badge ? <span className="profile-quick-badge">{l.badge}</span> : null}
-            </span>
-            <span>{l.label}</span>
-          </Link>
-        ))}
+              <span className="profile-menu-box-text">
+                <strong>{m.label}</strong>
+                <span>{m.desc}</span>
+              </span>
+              {badge > 0 && <span className="profile-menu-box-badge">{badge}</span>}
+              <i className="fa-solid fa-chevron-right profile-menu-box-chevron" aria-hidden="true" />
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="profile-columns">
@@ -129,7 +104,7 @@ export default function ProfileContent() {
                 <button className="btn btn-outline btn-sm">Activer</button>
               </div>
               <div className="security-item">
-                <div><strong>Identité vérifiée</strong><span>Pièce d'identité validée</span></div>
+                <div><strong>Identité vérifiée</strong><span>Pièce d&apos;identité validée</span></div>
                 <span className="badge-status green"><i className="fa-solid fa-check" /> Vérifié</span>
               </div>
             </div>
@@ -153,20 +128,6 @@ export default function ProfileContent() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="dash-card">
-            <div className="dash-card-hd"><h3>Paiement</h3></div>
-            <div className="payment-items">
-              <div className="payment-method">
-                <i className="fa-brands fa-cc-visa" style={{ fontSize: "1.5rem", color: "#1A1F71" }} />
-                <div><strong>Visa •••• 4242</strong><span>Expire 09/2027</span></div>
-                <button className="btn btn-ghost btn-sm">Supprimer</button>
-              </div>
-            </div>
-            <button className="btn btn-outline btn-sm" style={{ marginTop: "12px" }}>
-              <i className="fa-solid fa-plus" /> Ajouter un moyen de paiement
-            </button>
           </div>
         </div>
       </div>

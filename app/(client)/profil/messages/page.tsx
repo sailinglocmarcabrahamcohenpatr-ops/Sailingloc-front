@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { messagesApi, boatsApi, useAuth } from "@/shared/lib";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { messagesApi, boatsApi, useAuth, useMessages } from "@/shared/lib";
 import type { MessageAPI } from "@/shared/lib";
 
 const PALETTE = ["#F97316", "#8B5CF6", "#EC4899", "#0EA5E9", "#22C55E", "#EAB308"];
@@ -121,9 +121,8 @@ export default function UserMessagesPage() {
   const myId    = user?.id ?? 0;
   const myEmail = user?.email ?? "";
 
-  const [messages, setMessages]         = useState<MessageAPI[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState("");
+  const { messages, setMessages, loading } = useMessages();
+  const error = "";
   const [selectedId, setSelectedId]     = useState<number | null>(null);
   const [draftPartner, setDraftPartner] = useState<Partner | null>(null);
   const [reply, setReply]               = useState("");
@@ -138,23 +137,6 @@ export default function UserMessagesPage() {
   const messagesRef = useRef(messages);
   const sendingRef  = useRef(false); // verrou synchrone anti-doublon (Entrée/clic rapides)
   messagesRef.current = messages;
-
-  /* ── Chargement (initial + polling) ── */
-  const fetchMessages = useCallback(() => {
-    messagesApi.getAll().then(setMessages).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    messagesApi.getAll()
-      .then(setMessages)
-      .catch(() => setError("Impossible de charger les messages."))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(fetchMessages, 5000);
-    return () => clearInterval(id);
-  }, [fetchMessages]);
 
   useEffect(() => {
     // /api/utilisateurs (annuaire complet) est réservé aux comptes admin côté

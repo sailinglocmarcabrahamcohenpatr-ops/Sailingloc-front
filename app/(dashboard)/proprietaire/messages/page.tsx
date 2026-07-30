@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { messagesApi, utilisateursApi, useAuth } from "@/shared/lib";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { messagesApi, utilisateursApi, useAuth, useMessages } from "@/shared/lib";
 import type { MessageAPI, UtilisateurAPI } from "@/shared/lib";
 import "./messages.css";
 
@@ -127,9 +127,8 @@ export default function OwnerMessagesPage() {
   const myId    = user?.id ?? 0;
   const myEmail = user?.email ?? "";
 
-  const [messages, setMessages]         = useState<MessageAPI[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState("");
+  const { messages, setMessages, loading } = useMessages();
+  const error = "";
   const [selectedId, setSelectedId]     = useState<number | null>(null);
   const [draftPartner, setDraftPartner] = useState<Partner | null>(null);
   const [reply, setReply]               = useState("");
@@ -142,25 +141,6 @@ export default function OwnerMessagesPage() {
   const messagesRef = useRef(messages);
   const sendingRef  = useRef(false); // synchronous lock — prevents duplicate sends on rapid Enter/click
   messagesRef.current = messages;
-
-  /* ── Fetch (initial + polling) ── */
-  const fetchMessages = useCallback(() => {
-    messagesApi.getAll().then(setMessages).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    // Initial load with spinner
-    messagesApi.getAll()
-      .then(setMessages)
-      .catch(() => setError("Impossible de charger les messages."))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    // Poll every 5 s (skip while loading to avoid race)
-    const id = setInterval(fetchMessages, 5000);
-    return () => clearInterval(id);
-  }, [fetchMessages]);
 
   const conversations = useMemo(() => buildConversations(messages, myEmail), [messages, myEmail]);
 

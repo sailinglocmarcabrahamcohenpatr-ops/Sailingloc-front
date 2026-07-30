@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/shared/lib";
+import { useAuth, useMessages } from "@/shared/lib";
 import "./navbar.css";
 
 const navLinks = [
@@ -28,6 +28,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
+  const { unreadCount } = useMessages();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
@@ -94,7 +95,7 @@ export default function Navbar() {
                     aria-label="Messages"
                   >
                     <i className="fa-solid fa-envelope" />
-                    <span className="navbar-badge">1</span>
+                    {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
                   </Link>
                 )}
 
