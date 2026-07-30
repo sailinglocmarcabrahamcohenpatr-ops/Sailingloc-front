@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useAuth, useMessages } from "@/shared/lib";
+import { useAuth, useMessages, utilisateursApi, ApiError } from "@/shared/lib";
 import "./profile.css";
 
 const MENU_BOXES = [
@@ -21,13 +22,46 @@ const ACTIVITY = [
 ];
 
 export default function ProfileContent() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { unreadCount } = useMessages();
 
   const displayName = user?.name ?? "Mon compte";
-  const displayEmail = user?.email ?? "";
   const firstName = displayName.split(" ")[0] ?? "";
-  const lastName = displayName.split(" ").slice(1).join(" ");
+
+  // Le layout (client) bloque le rendu tant que `user` n'est pas chargé —
+  // à ce stade il est donc déjà disponible, d'où les initialiseurs directs.
+  const [prenom, setPrenom] = useState(() => user?.name.split(" ")[0] ?? "");
+  const [nom, setNom] = useState(() => user?.name.split(" ").slice(1).join(" ") ?? "");
+  const [email, setEmail] = useState(() => user?.email ?? "");
+  const [telephone, setTelephone] = useState(() => user?.telephone ?? "");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user?.id) return;
+    setSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
+    try {
+      await utilisateursApi.update(user.id, {
+        prenom,
+        nom,
+        email,
+        telephone: telephone || undefined,
+        ...(password ? { password } : {}),
+      });
+      updateUser({ name: `${prenom} ${nom}`.trim(), email, telephone });
+      setPassword("");
+      setSaveSuccess(true);
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : "Impossible d'enregistrer les modifications.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="profile-page-v2">
@@ -59,35 +93,45 @@ export default function ProfileContent() {
         <div className="profile-col-main">
           <div className="dash-card">
             <div className="dash-card-hd"><h3>Informations personnelles</h3></div>
-            <form className="profile-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="profile-form" onSubmit={handleSave}>
+              {saveError && (
+                <div className="profile-form-alert" role="alert">
+                  <i className="fa-solid fa-circle-exclamation" aria-hidden="true" /> {saveError}
+                </div>
+              )}
+              {saveSuccess && (
+                <div className="profile-form-alert success" role="status">
+                  <i className="fa-solid fa-circle-check" aria-hidden="true" /> Informations mises à jour.
+                </div>
+              )}
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="pf-fn">Prénom</label>
-                  <input id="pf-fn" type="text" defaultValue={firstName} />
+                  <input id="pf-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="pf-ln">Nom</label>
-                  <input id="pf-ln" type="text" defaultValue={lastName} />
+                  <input id="pf-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required />
                 </div>
               </div>
               <div className="form-group">
                 <label htmlFor="pf-email">E-mail</label>
-                <input id="pf-email" type="email" defaultValue={displayEmail} />
+                <input id="pf-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="form-group">
                 <label htmlFor="pf-phone">Téléphone</label>
-                <input id="pf-phone" type="tel" defaultValue="+33 6 12 34 56 78" />
+                <input id="pf-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
               </div>
               <div className="form-group">
-                <label htmlFor="pf-location">Ville</label>
-                <input id="pf-location" type="text" placeholder="Paris, France" />
+                <label htmlFor="pf-password">
+                  Nouveau mot de passe <span className="form-optional">(laisser vide pour ne pas changer)</span>
+                </label>
+                <input id="pf-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="8 caractères minimum" />
               </div>
-              <div className="form-group">
-                <label htmlFor="pf-bio">Bio <span className="form-optional">(optionnel)</span></label>
-                <textarea id="pf-bio" rows={3} placeholder="Parlez-vous aux propriétaires : expérience en voile, habitudes, etc." />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                <i className="fa-solid fa-floppy-disk" /> Enregistrer
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving
+                  ? <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
+                  : <><i className="fa-solid fa-floppy-disk" /> Enregistrer</>}
               </button>
             </form>
           </div>

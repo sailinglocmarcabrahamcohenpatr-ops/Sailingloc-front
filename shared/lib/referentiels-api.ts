@@ -84,9 +84,10 @@ export const utilisateursApi = {
     api.get<UtilisateurAPI[]>("/api/utilisateurs"),
   getOne: (id: number | string) =>
     api.get<UtilisateurAPI>(`/api/utilisateurs/${id}`),
-  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">> & { statut_compte?: string }) =>
+  /** password optionnel : à n'envoyer que si l'utilisateur souhaite le changer. */
+  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">> & { password?: string; statut_compte?: string }) =>
     api.put<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
-  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id">> & { statut_compte?: string; roles?: string[] }) =>
+  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id">> & { password?: string; statut_compte?: string; roles?: string[] }) =>
     api.patch<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
   delete: (id: number | string) =>
     api.delete<void>(`/api/utilisateurs/${id}`),
