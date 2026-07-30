@@ -91,7 +91,7 @@ export default async function HomePage() {
       {/* ── Destinations populaires ── */}
       <section className="home-section" aria-labelledby="dest-title">
         <div className="container">
-          <div className="home-section-hd fade-in">
+          <div className="home-section-hd">
             <div>
               <h2 id="dest-title">Destinations populaires</h2>
               <p>Trouvez le bateau idéal en Méditerranée, Atlantique et au-delà</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { FullDestination } from "@/entities/destination";
@@ -15,37 +15,11 @@ export default function DestinationsHome({
 }) {
   const items = destinations.slice(0, 6);
   const [active, setActive] = useState<number | null>(null);
-  const [armed, setArmed] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // JS actif : on "arme" le reveal (les cartes partent masquées).
-    setArmed(true);
-    const el = gridRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setRevealed(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div
-      ref={gridRef}
       className={
-        "destinations-home-grid" +
-        (armed ? " dest-armed" : "") +
-        (revealed ? " dest-revealed" : "") +
-        (active !== null ? " is-zooming" : "")
+        "destinations-home-grid" + (active !== null ? " is-zooming" : "")
       }
       onMouseLeave={() => setActive(null)}
     >
@@ -57,7 +31,6 @@ export default function DestinationsHome({
             `dest-home-card${i === 0 ? " dest-home-card--large" : ""}` +
             (active === i ? " is-active" : "")
           }
-          style={{ "--pop-i": i } as CSSProperties}
           onMouseEnter={() => setActive(i)}
           onFocus={() => setActive(i)}
           onBlur={() => setActive(null)}
