@@ -754,7 +754,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .view-btn { padding: 7px 12px; font-size: .875rem; color: var(--text-2); background: var(--card-bg); cursor: pointer; transition: var(--transition); border: none; }
 .view-btn.active { background: var(--primary); color: var(--white); }
 .sort-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .8125rem; font-weight: 600; color: var(--text); background: var(--card-bg); cursor: pointer; outline: none; }
-.boats-result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+/* auto-fill : la carte compacte tient à ~290px, la grille passe donc de 2 à
+   3 colonnes sur large écran sans jamais descendre sous une largeur lisible. */
+.boats-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
 
 /* Sidebar */
 .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 140px; }
