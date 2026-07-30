@@ -49,6 +49,9 @@
   --card-bg:       var(--white);
   --star:          #F59E0B;
   --green:         #10B981;
+  --sand:          #D9C7A3;
+  --sand-dark:     #C9B489;
+  --sand-ink:      #2E2A20;
   --red:           #EF4444;
   --shadow-sm:     0 1px 2px rgba(0,0,0,.06);
   --shadow:        0 2px 8px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
@@ -641,7 +644,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .view-btn { padding: 7px 12px; font-size: .875rem; color: var(--text-2); background: var(--card-bg); cursor: pointer; transition: var(--transition); border: none; }
 .view-btn.active { background: var(--primary); color: var(--white); }
 .sort-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .8125rem; font-weight: 600; color: var(--text); background: var(--card-bg); cursor: pointer; outline: none; }
-.boats-result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+/* auto-fill : la carte compacte tient à ~290px, la grille passe donc de 2 à
+   3 colonnes sur large écran sans jamais descendre sous une largeur lisible. */
+.boats-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
 
 /* Sidebar */
 .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 140px; }
@@ -1303,6 +1308,35 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .owner-cta-home-list li { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.88); font-size: .9375rem; }
 .owner-cta-home-list i { color: #60D5A4; }
 .owner-cta-home-actions { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+
+/* ── Boutons beige sable : home page + barre de recherche du hero ──
+   Scopé à .home-shell / .search-btn pour ne pas toucher la navbar (partagée)
+   ni les boutons des autres pages. */
+.home-shell .btn,
+.search-btn {
+  background: var(--sand);
+  color: var(--white);
+  border-color: var(--sand);
+}
+.home-shell .btn:hover,
+.search-btn:hover {
+  background: var(--sand-dark);
+  border-color: var(--sand-dark);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(160,138,96,.38);
+}
+/* CTA propriétaires : blanc sur texte noir (contraste sur le fond navy) */
+.home-shell .owner-cta-home-actions .btn {
+  background: var(--white);
+  color: var(--text);
+  border-color: var(--white);
+}
+.home-shell .owner-cta-home-actions .btn:hover {
+  background: var(--bg);
+  border-color: var(--bg);
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0,0,0,.22);
+}
 .btn-ghost-white { background: transparent; color: rgba(255,255,255,.85); border: 2px solid rgba(255,255,255,.25); }
 .btn-ghost-white:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.5); color: var(--white); }
 .owner-cta-home-card {

@@ -88,11 +88,12 @@
 .home-shell .category-card {
   gap: 14px;
   padding: 26px 16px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 20px;
   background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(15, 30, 55, .06), 0 8px 20px rgba(15, 30, 55, .05);
   transition: transform .22s ease, box-shadow .22s ease,
-    border-color .22s ease, background-color .22s ease;
+    background-color .22s ease;
 }
 
 /* Couleur sémantique par type (ordre de BOAT_CATEGORIES) */
@@ -118,7 +119,6 @@
 
 .home-shell .category-card:hover {
   transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   background: color-mix(in srgb, var(--accent) 6%, var(--card-bg));
   box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 18%, transparent);
   color: var(--text); /* neutralise le color:primary de globals */
@@ -152,12 +152,10 @@
 /* Section stats : NOIR SUR BLANC + bloc arrondi (cohérence avec les autres) */
 .home-shell .stats-dark-section {
   background: var(--white);
-  border: 1px solid var(--border);
   border-radius: 28px;
   margin: 14px 0;
   overflow: hidden;
 }
-.home-shell .stats-dark-item { border-color: var(--border); }
 .home-shell .stats-dark-icon { color: var(--primary); }
 .home-shell .stats-dark-item strong { color: var(--text); }
 .home-shell .stats-dark-item span { color: var(--text-2); }
