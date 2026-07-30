@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { boatsApi, reservationsApi, useAuth } from "@/shared/lib";
 import type { BoatAPI, ReservationAPI } from "@/shared/lib";
 import "./revenue.css";
@@ -60,8 +63,13 @@ export default function OwnerRevenuePage() {
   }, []);
 
   const ownedBoatIds = useMemo(
-    () => new Set(boats.filter((b) => user?.id != null && b.id_utilisateur === user.id).map((b) => b.id)),
-    [boats, user?.id]
+    () =>
+      new Set(
+        boats
+          .filter((b) => user?.email != null && (b.proprietaire?.email ?? b.utilisateur?.email) === user.email)
+          .map((b) => b.id)
+      ),
+    [boats, user]
   );
   const boatNameById = useMemo(() => new Map(boats.map((b) => [b.id, b.nomBateau])), [boats]);
 
@@ -71,7 +79,11 @@ export default function OwnerRevenuePage() {
   );
 
   const revenueReservations = useMemo(
-    () => myReservations.filter((r) => libelleToKey(r.statutReservation) !== "cancelled"),
+    () =>
+      myReservations.filter((r) => {
+        const key = libelleToKey(r.statutReservation);
+        return key === "confirmed" || key === "completed";
+      }),
     [myReservations]
   );
 
@@ -124,6 +136,110 @@ export default function OwnerRevenuePage() {
     [revenueReservations]
   );
 
+  const handleExportPdf = useCallback(() => {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const marginX = 40;
+    let y = 50;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(14, 59, 46);
+    doc.text("SailingLoc — Rapport de revenus", marginX, y);
+
+    y += 20;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const ownerName = user?.name?.trim();
+    const generatedAt = new Date().toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    doc.text(
+      `${ownerName ? `Propriétaire : ${ownerName} — ` : ""}Généré le ${generatedAt}`,
+      marginX,
+      y
+    );
+    y += 24;
+
+    autoTable(doc, {
+      startY: y,
+      theme: "plain",
+      styles: { fontSize: 10, cellPadding: 4 },
+      columnStyles: {
+        0: { fontStyle: "bold", textColor: [60, 60, 60] },
+        1: { halign: "right" },
+      },
+      body: [
+        ["Revenus nets cumulés", `${totalNet.toLocaleString("fr-FR")} €`],
+        ["Chiffre d'affaires brut", `${totalGross.toLocaleString("fr-FR")} €`],
+        [
+          "Commission SailingLoc",
+          `${totalCommission.toLocaleString("fr-FR")} € (${Math.round(COMMISSION_RATE * 100)}%)`,
+        ],
+        ["Locations réalisées (hors annulées)", `${count}`],
+        ["Revenu moyen / location", `${avgNet.toLocaleString("fr-FR")} €`],
+        ["Bateaux concernés", `${ownedBoatIds.size}`],
+      ],
+      margin: { left: marginX, right: marginX },
+    });
+
+    const afterSummaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(14, 59, 46);
+    doc.text("Détail des transactions", marginX, afterSummaryY);
+
+    const rows = revenueReservations
+      .slice()
+      .sort((a, b) => new Date(b.dateDebut).getTime() - new Date(a.dateDebut).getTime())
+      .map((r) => {
+        const key = libelleToKey(r.statutReservation);
+        const boatName =
+          r.bateau?.nomBateau ??
+          (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ??
+          `Bateau #${r.bateau?.id ?? r.id}`;
+        const gross = Number(r.montantTotal);
+        const net = Math.round(gross * (1 - COMMISSION_RATE));
+        return [
+          renterName(r),
+          boatName,
+          `${fmtDate(r.dateDebut)} – ${fmtDate(r.dateFin)}`,
+          STATUS_LABEL[key].label,
+          `${gross.toLocaleString("fr-FR")} €`,
+          `${net.toLocaleString("fr-FR")} €`,
+        ];
+      });
+
+    autoTable(doc, {
+      startY: afterSummaryY + 10,
+      head: [["Locataire", "Bateau", "Période", "Statut", "Brut", "Net"]],
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [14, 59, 46], textColor: 255 },
+      alternateRowStyles: { fillColor: [243, 246, 244] },
+      columnStyles: { 4: { halign: "right" }, 5: { halign: "right" } },
+      margin: { left: marginX, right: marginX },
+      didDrawPage: () => {
+        const pageCount = doc.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Page ${doc.getCurrentPageInfo().pageNumber} / ${pageCount}`,
+          pageWidth - marginX,
+          pageHeight - 20,
+          { align: "right" }
+        );
+      },
+    });
+
+    doc.save(`sailingloc-revenus-${new Date().toISOString().slice(0, 10)}.pdf`);
+  }, [avgNet, boatNameById, count, ownedBoatIds.size, revenueReservations, totalCommission, totalGross, totalNet, user?.name]);
+
   if (loading)
     return (
       <div className="dash-page">
@@ -144,7 +260,7 @@ export default function OwnerRevenuePage() {
           <h1>Revenus</h1>
           <p>Suivi de vos gains sur SailingLoc</p>
         </div>
-        <button className="btn-rv-outline">
+        <button className="btn-rv-outline" onClick={handleExportPdf} disabled={count === 0}>
           <i className="fa-solid fa-download" /> Exporter PDF
         </button>
       </div>
@@ -195,7 +311,7 @@ export default function OwnerRevenuePage() {
         <div className="dash-card">
           <div className="dash-card-hd"><h3>Évolution des {MONTHS_BACK} derniers mois</h3></div>
           {count === 0 ? (
-            <p style={{ color: "var(--text-2)", padding: "20px 0" }}>Aucune location enregistrée sur vos bateaux pour l'instant.</p>
+            <p style={{ color: "var(--text-2)", padding: "20px 0" }}>Aucune location enregistrée sur vos bateaux pour l&apos;instant.</p>
           ) : (
             <div className="rv-chart">
               {monthly.map((m, i) => (
@@ -220,7 +336,9 @@ export default function OwnerRevenuePage() {
           <h4>Revenu net cumulé</h4>
           <div className="rv-dark-amount">{totalNet.toLocaleString("fr-FR")} €</div>
           <p>Sur {count} location{count !== 1 ? "s" : ""} au total</p>
-          <button className="rv-dark-btn"><i className="fa-solid fa-arrow-right" /> Voir le détail</button>
+          <Link href="/proprietaire/reservations" className="rv-dark-btn">
+            <i className="fa-solid fa-arrow-right" /> Voir le détail
+          </Link>
         </div>
       </div>
 
@@ -228,7 +346,7 @@ export default function OwnerRevenuePage() {
         <div className="dash-card">
           <div className="dash-card-hd"><h3>Transactions récentes</h3></div>
           {recentTransactions.length === 0 ? (
-            <p style={{ color: "var(--text-2)" }}>Aucune transaction pour l'instant.</p>
+            <p style={{ color: "var(--text-2)" }}>Aucune transaction pour l&apos;instant.</p>
           ) : (
             <div>
               {recentTransactions.map((r) => {
@@ -279,7 +397,7 @@ export default function OwnerRevenuePage() {
 
         <div className="rv-dark-card">
           <div className="rv-dark-icon"><i className="fa-solid fa-piggy-bank" /></div>
-          <h4>Chiffre d'affaires brut</h4>
+          <h4>Chiffre d&apos;affaires brut</h4>
           <div className="rv-dark-amount">{totalGross.toLocaleString("fr-FR")} €</div>
           <p>Avant commission SailingLoc</p>
           <button className="rv-dark-btn"><i className="fa-solid fa-money-bill-transfer" /> Demander un virement</button>
