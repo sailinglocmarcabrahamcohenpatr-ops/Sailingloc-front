@@ -29,9 +29,9 @@
      sous le seuil lisible. */
   background: linear-gradient(
     180deg,
-    rgba(6, 15, 30, .58) 0%,
-    rgba(6, 15, 30, .50) 50%,
-    rgba(6, 15, 30, .62) 100%
+    rgba(6, 15, 30, .42) 0%,
+    rgba(6, 15, 30, .34) 50%,
+    rgba(6, 15, 30, .46) 100%
   );
 }
 
