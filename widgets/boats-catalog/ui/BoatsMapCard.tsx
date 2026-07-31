@@ -16,9 +16,10 @@ const BoatsMap = dynamic(() => import("./BoatsMap"), {
 
 interface BoatsMapCardProps {
   boats: Boat[];
+  className?: string;
 }
 
-export default function BoatsMapCard({ boats: serverBoats }: BoatsMapCardProps) {
+export default function BoatsMapCard({ boats: serverBoats, className }: BoatsMapCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [userBoats, setUserBoats] = useState<Boat[]>([]);
 
@@ -38,14 +39,14 @@ export default function BoatsMapCard({ boats: serverBoats }: BoatsMapCardProps) 
 
   return (
     <>
-      <div className="map-card" role="region" aria-label="Carte des bateaux disponibles">
+      <div className={`map-card${className ? ` ${className}` : ""}`} role="region" aria-label="Carte des bateaux disponibles">
         <div className="map-embed-wrap">
           <BoatsMap boats={boats} />
         </div>
         <div className="map-card-foot">
           <span>
             <i className="fa-solid fa-map-pin" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-            {locatedCount} bateaux
+            {locatedCount} bateau{locatedCount !== 1 ? "x" : ""} localisé{locatedCount !== 1 ? "s" : ""} sur {boats.length}
           </span>
           <button type="button" className="btn btn-primary btn-sm" onClick={() => setExpanded(true)}>
             <i className="fa-solid fa-expand" aria-hidden="true" /> Agrandir

@@ -743,6 +743,13 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .map-card-foot { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
 .map-card-foot span { font-size: .875rem; font-weight: 600; color: var(--text); }
 
+.map-card--catalog .map-embed-wrap,
+.map-card--catalog .boats-map-loading { height: 560px; }
+@media (max-width: 640px) {
+  .map-card--catalog .map-embed-wrap,
+  .map-card--catalog .boats-map-loading { height: 420px; }
+}
+
 .boat-map-marker-pin { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(45deg); background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
 .boat-map-marker-pin i { transform: rotate(-45deg); font-size: .8rem; }
 .boat-map-marker-pin--sm { width: 30px; height: 30px; }
