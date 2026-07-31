@@ -10,15 +10,12 @@ export interface OwnerRequestResult {
 
 function toPayload(values: OwnerRequestFormValues): CreateOwnerRequestPayload {
   return {
-    owner_type: values.ownerType,
+    owner_type: "particulier",
     phone: values.phone,
     address: values.address,
     city: values.city,
     postal_code: values.postalCode,
     country: values.country || undefined,
-    company_name: values.companyName || undefined,
-    siret: values.siret || undefined,
-    vat_number: values.vatNumber || undefined,
   };
 }
 

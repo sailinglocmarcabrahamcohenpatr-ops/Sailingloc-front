@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, useMessages } from "@/shared/lib";
+import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./navbar.css";
 
 const navLinks = [
@@ -89,14 +90,17 @@ export default function Navbar() {
             {user ? (
               <>
                 {!isAdmin && (
-                  <Link
-                    href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
-                    className="navbar-icon-btn"
-                    aria-label="Messages"
-                  >
-                    <i className="fa-solid fa-envelope" />
-                    {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
-                  </Link>
+                  <>
+                    <NotificationsBell />
+                    <Link
+                      href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                      className="navbar-icon-btn"
+                      aria-label="Messages"
+                    >
+                      <i className="fa-solid fa-envelope" />
+                      {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
+                    </Link>
+                  </>
                 )}
 
                 <div className="navbar-user-menu" ref={userMenuRef}>

@@ -23,6 +23,19 @@ const VARIANT_INDEX: Record<string, number> = { main: 0, cockpit: 1, cabin: 2 };
 
 /** Builds a realistic, boat-type-matched stock photo URL (LoremFlickr, keyword-tagged Flickr photos),
  *  or returns the owner's own uploaded photo when the boat has one. */
+const GALLERY_VARIANTS = ["main", "cockpit", "cabin"] as const;
+
+/** Photo set used by the card carousel: the owner's own photos when they exist,
+ *  otherwise one stock shot per variant (extérieur / cockpit / cabine). */
+export function getBoatImageUrls(
+  boat: Pick<Boat, "imageSeed" | "type" | "imageQuery" | "photos">,
+  width: number,
+  height: number
+): string[] {
+  if (boat.photos && boat.photos.length > 0) return boat.photos;
+  return GALLERY_VARIANTS.map((v) => getBoatImageUrl(boat, width, height, v));
+}
+
 export function getBoatImageUrl(
   boat: Pick<Boat, "imageSeed" | "type" | "imageQuery" | "photos">,
   width: number,

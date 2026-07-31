@@ -6,6 +6,8 @@ export type { Theme, TextSize } from "./preferences-context";
 
 export { MessagesProvider, useMessages } from "./messages-context";
 
+export { NotificationsProvider, useNotifications } from "./notifications-context";
+
 export { api, getToken, setToken, removeToken, setRoleCookie, ApiError } from "./api-client";
 
 export { apiLogin, apiRegister, apiLogout, apiForgotPassword } from "./auth-api";
@@ -19,6 +21,9 @@ export type { ReservationAPI, CreateReservationPayload, AvisAPI, CreateAvisPaylo
 
 export { messagesApi } from "./messages-api";
 export type { MessageAPI, SendMessagePayload } from "./messages-api";
+
+export { notificationsApi } from "./notifications-api";
+export type { NotificationAPI, NotificationType } from "./notifications-api";
 
 export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi } from "./referentiels-api";
 export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI, TypeDocumentAPI } from "./referentiels-api";

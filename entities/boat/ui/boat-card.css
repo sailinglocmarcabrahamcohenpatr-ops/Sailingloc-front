@@ -1,136 +1,242 @@
 /* ──────────────────────────────────────────────────────────────
-   Carte bateau — panneau "frosted glass" clair en bas (inspiration
-   carte voyage). Photo plein cadre + panneau translucide clair avec
-   titre, sous-titre, ligne d'infos et bouton CTA.
+   Carte bateau — format compact, aligné sur le langage visuel du
+   site (rayon 20px, bordure 1px, typo .8-1rem) plutôt que sur
+   l'ancien panneau « frosted » plein cadre (aspect 10/13, rayon
+   52px, cadre blanc 8px) qui doublait la hauteur utile.
+   Photo en carrousel + bloc d'infos structuré dessous.
    Co-localisé (surcharge globals.css, intact) → anti-conflit.
    ────────────────────────────────────────────────────────────── */
 
 .boat-card {
   position: relative;
-  display: block;
-  aspect-ratio: 10 / 13;
-  border-radius: 52px;
-  border: 8px solid #fff;
-  overflow: hidden;
-  background: var(--card-bg);
-  box-shadow: 0 14px 38px color-mix(in srgb, var(--navy) 14%, transparent);
-  transition: transform .35s cubic-bezier(.22, 1, .36, 1), box-shadow .35s ease;
-}
-/* Photo plein cadre */
-.boat-card-img {
-  position: absolute;
-  inset: 0;
-  aspect-ratio: auto;
-  border-radius: 0;
-}
-
-/* Neutralise le lift + le zoom au survol hérités de globals.css */
-.boat-card:hover {
-  transform: none;
-  box-shadow: 0 14px 38px color-mix(in srgb, var(--navy) 14%, transparent);
-}
-.boat-card:hover .boat-card-img img { transform: none; }
-
-/* Badge (haut gauche) + cœur (haut droit) */
-.boat-badge { z-index: 3; }
-.btn-heart {
-  z-index: 3;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, .14);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, .45);
-  color: #fff;
-  box-shadow: none;
-}
-.btn-heart:hover { background: rgba(255, 255, 255, .3); color: #fff; }
-.btn-heart.liked { color: var(--red); }
-
-/* Panneau frosted clair en bas */
-.boat-card-body {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  color: #fff;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(15, 30, 55, .06), 0 8px 20px rgba(15, 30, 55, .05);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.boat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(15, 30, 55, .10), 0 16px 32px rgba(15, 30, 55, .08);
 }
 
-/* Voile sombre + flou léger, ESTOMPÉS progressivement vers le haut
-   (masque en dégradé) → pas de bord net entre flou et net. */
-.boat-card-body::before {
-  content: "";
+/* ── Zone photo : ratio fixe, c'est elle qui pilote la hauteur ── */
+.boat-card-img {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg);
+  border-radius: 0;
+}
+/* Le zoom au survol de globals.css entrerait en conflit avec le
+   défilement du carrousel → neutralisé. */
+.boat-card:hover .boat-card-img img { transform: none; }
+
+/* ── Carrousel ── */
+.boat-gallery-track {
+  display: flex;
+  height: 100%;
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+.boat-gallery-slide {
+  position: relative;
+  flex: 0 0 100%;
+  height: 100%;
+}
+
+.boat-gallery-nav {
   position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .88);
+  color: var(--text);
+  font-size: .7rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .2s ease, background-color .2s ease;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.boat-gallery-nav--prev { left: 8px; }
+.boat-gallery-nav--next { right: 8px; }
+.boat-card:hover .boat-gallery-nav,
+.boat-gallery-nav:focus-visible { opacity: 1; }
+.boat-gallery-nav:hover { background: #fff; }
+
+/* Tactile : pas de survol → flèches toujours visibles */
+@media (hover: none) {
+  .boat-gallery-nav { opacity: 1; }
+}
+
+.boat-gallery-dots {
+  position: absolute;
+  bottom: 8px;
   left: 0;
   right: 0;
-  bottom: 0;
-  top: -55px;
-  z-index: -1;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
   pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(6, 15, 30, .58) 0%,
-    rgba(6, 15, 30, .2) 55%,
-    transparent 100%
-  );
-  -webkit-backdrop-filter: blur(3px) saturate(1.05);
-  backdrop-filter: blur(3px) saturate(1.05);
-  -webkit-mask-image: linear-gradient(to top, #000 42%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 42%, transparent 100%);
+}
+.boat-gallery-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .55);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: background-color .2s ease, width .2s ease;
+}
+.boat-gallery-dot.is-active {
+  width: 14px;
+  border-radius: 3px;
+  background: #fff;
 }
 
-/* Réf : pas de badge, seulement le cœur en haut à droite */
-.boat-card .boat-badge { display: none; }
+/* ── Badge + favori ── */
+.boat-card .boat-badge {
+  display: flex;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  font-size: .6875rem;
+}
+.boat-card .btn-heart {
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  font-size: .8rem;
+  background: rgba(255, 255, 255, .9);
+  border: none;
+  color: var(--text-2);
+  box-shadow: none;
+}
+.boat-card .btn-heart:hover { background: #fff; color: var(--red); }
+.boat-card .btn-heart.liked { color: var(--red); }
 
+/* ── Corps ── */
+.boat-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 14px;
+  flex: 1;
+}
+
+.boat-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
 .boat-card-name {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -.5px;
-  line-height: 1.1;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, .45);
+  font-size: .9375rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  letter-spacing: -.2px;
+  /* Titre sur 1 ligne max → hauteur de carte constante dans la grille */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+.boat-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.boat-card-rating i { color: var(--star); font-size: .75rem; }
+
 .boat-card-sub {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: .95rem;
-  color: rgba(255, 255, 255, .85);
-  margin-bottom: 12px;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
+  font-size: .8125rem;
+  color: var(--text-2);
 }
+.boat-card-sub i { font-size: .875rem; }
 
-.boat-card-info {
+/* Port d'attache */
+.boat-card-port {
   display: flex;
   align-items: center;
-  gap: 20px;
-  font-size: .95rem;
-  color: #fff;
-  margin-bottom: 16px;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, .4);
+  gap: 6px;
+  font-size: .8125rem;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.boat-card-info i { color: rgba(255, 255, 255, .78); margin-right: 5px; }
-.boat-card-price { color: #fff; }
-.boat-card-price strong { font-weight: 800; color: #fff; }
-.boat-card-rating { font-weight: 600; }
-.boat-card-rating i { color: var(--star); }
+.boat-card-port i { color: var(--primary); font-size: .8rem; flex-shrink: 0; }
 
-/* Bouton CTA (pilule blanche flottante) */
-.boat-card-cta {
-  display: block;
-  text-align: center;
-  padding: 14px;
-  border-radius: 999px;
-  background: var(--card-bg);
-  color: var(--text);
-  font-weight: 700;
-  font-size: .95rem;
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--navy) 14%, transparent);
-  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+/* Capacité / cabines */
+.boat-card-specs {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
+.boat-card-specs li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--bg);
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.boat-card-specs i { color: var(--text-3); font-size: .7rem; }
+
+/* ── Pied : prix + CTA ── */
+.boat-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+.boat-card-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+}
+.boat-card-price span {
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.boat-card-cta {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--sand);
+  color: var(--white);
+  font-size: .8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color .2s ease;
+}
+.boat-card:hover .boat-card-cta { background: var(--sand-dark); }

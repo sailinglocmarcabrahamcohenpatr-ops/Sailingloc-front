@@ -23,6 +23,12 @@
   gap: 16px;
 }
 
+.client-space-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .client-space-logo {
   display: flex;
   align-items: center;
