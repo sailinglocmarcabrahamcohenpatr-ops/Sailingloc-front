@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { reservationsApi, boatsApi, resolvePhotoUrl } from "@/shared/lib";
+import { reservationsApi, boatsApi, resolvePhotoUrl, canCancelReservation, CANCELLATION_MIN_HOURS } from "@/shared/lib";
 import type { ReservationAPI, BoatAPI, PaiementAPI } from "@/shared/lib";
 import { RatingForm } from "@/features/rate-boat";
 import "../reservations.css";
@@ -113,6 +113,7 @@ export default function ReservationDetailPage() {
 
   const key = cancelled ? "cancelled" : libelleToKey(reservation.statutReservation);
   const st = STATUS[key];
+  const cancellable = canCancelReservation(reservation.dateDebut);
   const boatId = boat?.id ?? reservation.bateau?.id;
   const boatName = boat?.nomBateau ?? reservation.bateau?.nomBateau ?? `Bateau #${boatId ?? "?"}`;
 
@@ -126,6 +127,7 @@ export default function ReservationDetailPage() {
   const typeBateau = boat?.typeBateau?.labelTypeBateau ?? reservation.bateau?.typeBateau?.labelTypeBateau;
 
   const handleCancel = async () => {
+    if (!cancellable) return;
     setCancelling(true);
     setCancelError("");
     try {
@@ -306,16 +308,31 @@ export default function ReservationDetailPage() {
           )
         )}
         {(key === "confirmed" || key === "pending") && (
-          <button
-            className="btn btn-ghost"
-            style={{ color: "var(--red)" }}
-            onClick={handleCancel}
-            disabled={cancelling}
-          >
-            {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler la réservation
-          </button>
+          cancellable ? (
+            <button
+              className="btn btn-ghost"
+              style={{ color: "var(--red)" }}
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler la réservation
+            </button>
+          ) : (
+            <span
+              className="btn btn-ghost"
+              style={{ color: "var(--text-3)", cursor: "default" }}
+              title={`Annulation impossible à moins de ${CANCELLATION_MIN_HOURS}h du départ`}
+            >
+              <i className="fa-solid fa-lock" /> Annulation indisponible
+            </span>
+          )
         )}
       </div>
+      {(key === "confirmed" || key === "pending") && !cancellable && (
+        <p style={{ color: "var(--text-3)", fontSize: ".8125rem" }}>
+          Le départ est dans moins de {CANCELLATION_MIN_HOURS}h, l&apos;annulation n&apos;est plus possible.
+        </p>
+      )}
       {cancelError && <p style={{ color: "var(--red)", fontSize: ".8125rem" }}>{cancelError}</p>}
 
       {showRating && (

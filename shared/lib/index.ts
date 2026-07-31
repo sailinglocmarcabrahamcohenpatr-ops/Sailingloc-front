@@ -16,7 +16,7 @@ export type { LoginPayload, RegisterPayload } from "./auth-api";
 export { boatsApi, resolvePhotoUrl, StatutBateau } from "./boats-api";
 export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload, DocumentAPI, StatutBateauValue } from "./boats-api";
 
-export { reservationsApi, avisApi } from "./reservations-api";
+export { reservationsApi, avisApi, canCancelReservation, CANCELLATION_MIN_HOURS } from "./reservations-api";
 export type { ReservationAPI, CreateReservationPayload, AvisAPI, CreateAvisPayload, PaiementAPI } from "./reservations-api";
 
 export { messagesApi } from "./messages-api";
