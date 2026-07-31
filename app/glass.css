@@ -89,7 +89,11 @@
   background: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  border: none;
+  /* Le filet qui séparait les compteurs devient le contour de la section.
+     Rayon repris de l'échelle du site, sinon l'angle vif jurerait avec les
+     blocs voisins. */
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: var(--radius-2xl);
 }
 :root[data-scroll-video="on"] .home-shell .stats-dark-item strong {
   color: var(--white);
@@ -103,8 +107,9 @@
   color: rgba(255, 255, 255, .9);
   text-shadow: 0 1px 12px rgba(5, 14, 28, .7);
 }
+/* Plus de filet vertical entre les compteurs : il est devenu le contour. */
 :root[data-scroll-video="on"] .home-shell .stats-dark-item {
-  border-right-color: rgba(255, 255, 255, .14);
+  border-right: none;
 }
 
 /* ── 5. Chrome ───────────────────────────────────────────────── */
