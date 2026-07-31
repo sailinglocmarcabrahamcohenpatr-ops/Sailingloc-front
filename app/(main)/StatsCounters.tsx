@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { HomeStatsValues } from "./getHomeStats";
 
 interface Stat {
   target: number;
@@ -10,12 +11,14 @@ interface Stat {
   icon: string;
 }
 
-const STATS: Stat[] = [
-  { target: 3200, suffix: "+", label: "Bateaux disponibles", icon: "fa-sailboat" },
-  { target: 15, label: "Pays en Europe", icon: "fa-earth-europe" },
-  { target: 50000, suffix: "+", label: "Voyages réalisés", icon: "fa-anchor" },
-  { target: 4.9, decimals: 1, suffix: " / 5", label: "Note de satisfaction", icon: "fa-star" },
-];
+function buildStats(values: HomeStatsValues): Stat[] {
+  return [
+    { target: values.boatsAvailable, label: "Bateaux disponibles", icon: "fa-sailboat" },
+    { target: values.countries, label: "Pays en Europe", icon: "fa-earth-europe" },
+    { target: values.completedTrips, label: "Voyages réalisés", icon: "fa-anchor" },
+    { target: values.satisfaction, decimals: 1, suffix: " / 5", label: "Note de satisfaction", icon: "fa-star" },
+  ];
+}
 
 /** Espace fine comme séparateur de milliers (« 3 200 », « 50 000 »). */
 function formatNumber(n: number, decimals: number): string {
@@ -27,7 +30,8 @@ function formatNumber(n: number, decimals: number): string {
 
 /** Compteurs qui s'incrémentent de 0 jusqu'à leur valeur quand la section
  *  entre dans le viewport (une seule fois). */
-export default function StatsCounters() {
+export default function StatsCounters({ stats }: { stats: HomeStatsValues }) {
+  const STATS = buildStats(stats);
   const ref = useRef<HTMLDivElement>(null);
   const [values, setValues] = useState<number[]>(() => STATS.map(() => 0));
   const started = useRef(false);
@@ -55,6 +59,7 @@ export default function StatsCounters() {
     );
     io.observe(el);
     return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

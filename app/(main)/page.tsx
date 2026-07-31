@@ -7,8 +7,11 @@ import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
+import { getHomeStats } from "./getHomeStats";
 import "./home-shell.css";
 import "./home.css";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -47,7 +50,7 @@ const HOW_IT_WORKS = [
 ];
 
 export default async function HomePage() {
-  const destinations = await getDestinations();
+  const [destinations, homeStats] = await Promise.all([getDestinations(), getHomeStats()]);
 
   return (
     <div className="home-shell">
@@ -57,7 +60,7 @@ export default async function HomePage() {
       {/* ── Stats ── */}
       <section className="stats-dark-section" aria-label="Chiffres clés">
         <div className="container">
-          <StatsCounters />
+          <StatsCounters stats={homeStats} />
         </div>
       </section>
 
