@@ -146,7 +146,10 @@ html[data-text-size="large"] { font-size: 18px; }
 html  { scroll-behavior: smooth; font-size: 16px; }
 body  {
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: var(--text); line-height: 1.6; background: var(--card-bg);
+  color: var(--text); line-height: 1.6;
+  /* Transparent pour laisser voir le fond vidéo fixe (.scroll-video-bg, en
+     z-index -1). Un fond opaque ici le masquerait entièrement. */
+  background: transparent;
   -webkit-font-smoothing: antialiased;
 }
 img   { max-width: 100%; height: auto; display: block; }

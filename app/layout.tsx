@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
+import { ScrollVideoBackground } from "@/widgets/scroll-video";
 import { AuthProvider, PreferencesProvider, MessagesProvider } from "@/shared/lib";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
+        <ScrollVideoBackground />
         <AuthProvider>
           <PreferencesProvider>
             <MessagesProvider>
