@@ -41,7 +41,7 @@
    `order` ne fait qu'inverser le rendu visuel. */
 .hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
   align-items: center;
   gap: 56px;
 }
@@ -74,6 +74,32 @@
   margin-right: 0;
 }
 .hero-copy .hero-sub { margin-bottom: 0; }
+
+/* ── Popovers (type de bateau, calendriers) ───────────────────
+   En pleine largeur ils s'ouvraient vers le HAUT. Dans une colonne étroite
+   ce placement pose deux problèmes : la liste et le calendrier (292px) sont
+   plus larges que leur champ, et `.hero` porte overflow:hidden — un popover
+   remontant depuis un champ haut serait rogné.
+   On les ouvre donc sur le côté droit, dans l'espace libre du hero. */
+@media (min-width: 1001px) {
+  .hero-layout .sb-popover,
+  .hero-layout .sb-popover--right {
+    top: 0;
+    bottom: auto;
+    left: calc(100% + 18px);
+    right: auto;
+    /* Ombre reprojetée : elle pointait vers le haut. */
+    box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+  }
+  /* L'animation d'entrée glissait vers le haut ; elle glisse désormais
+     depuis la gauche, dans le sens d'ouverture. */
+  .hero-layout .sb-popover { animation: sb-pop-in-right .16s cubic-bezier(.22, 1, .36, 1); }
+}
+
+@keyframes sb-pop-in-right {
+  from { opacity: 0; transform: translateX(-6px) scale(.98); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
 
 /* Sous 1000px la colonne de recherche devient trop étroite : on repasse en
    pile, la recherche d'abord — c'est l'action principale. */
