@@ -18,7 +18,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/avis":                      "Avis",
   "/admin/reservations":              "Réservations",
   "/admin/utilisateurs":              "Utilisateurs",
-  "/admin/bateaux":                   "Ajouter un bateau",
   "/admin/demandes-proprio":          "Demandes propriétaire",
   "/profil":                          "Aperçu",
   "/profil/reservations":             "Réservations",
