@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, utilisateursApi, ownerRequestsApi } from "@/shared/lib";
-import "../../proprietaire/dashboard.css";
+import "./admin-dashboard-home.css";
 
 interface BoatListResponse {
   data: unknown[];
@@ -52,67 +52,101 @@ export default function AdminDashboardContent() {
   const fmt = (v: number | null) => (v === null ? "—" : v.toLocaleString("fr-FR"));
 
   return (
-    <div className="dash-page">
-      <div className="dash-page-hd">
-        <div>
-          <h1 className="dash-title">Tableau de bord</h1>
-          <p className="dash-sub">Bienvenue sur l&apos;espace administrateur.</p>
-        </div>
+    <div className="adh-page">
+      <div className="adh-header">
+        <h1>Tableau de bord</h1>
+        <p>Bienvenue sur l&apos;espace administrateur.</p>
       </div>
 
-      <div className="dash-stats-grid">
-        <div className="dash-stat-card">
-          <div className="dash-stat-icon">
-            <i className="fa-solid fa-users" />
+      <div className="adh-stats-grid">
+        <Link href="/admin/utilisateurs" className="adh-stat-card adh-hero">
+          <div className="adh-stat-top">
+            <div className="adh-stat-icon"><i className="fa-solid fa-users" /></div>
+            <div className="adh-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
-          <div className="dash-stat-body">
-            <span className="dash-stat-value">{fmt(stats.users)}</span>
-            <span className="dash-stat-label">Utilisateurs inscrits</span>
+          <div>
+            <div className="adh-stat-value">{fmt(stats.users)}</div>
+            <div className="adh-stat-label">Utilisateurs inscrits</div>
           </div>
-        </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-icon">
-            <i className="fa-solid fa-sailboat" />
+        </Link>
+
+        <Link href="/admin/publication" className="adh-stat-card">
+          <div className="adh-stat-top">
+            <div className="adh-stat-icon adh-icon-boats"><i className="fa-solid fa-sailboat" /></div>
           </div>
-          <div className="dash-stat-body">
-            <span className="dash-stat-value">{fmt(stats.boats)}</span>
-            <span className="dash-stat-label">Bateaux publiés</span>
+          <div>
+            <div className="adh-stat-value">{fmt(stats.boats)}</div>
+            <div className="adh-stat-label">Bateaux publiés</div>
           </div>
-        </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-icon">
-            <i className="fa-solid fa-calendar-check" />
+        </Link>
+
+        <Link href="/admin/reservations" className="adh-stat-card">
+          <div className="adh-stat-top">
+            <div className="adh-stat-icon adh-icon-reservations"><i className="fa-solid fa-calendar-check" /></div>
           </div>
-          <div className="dash-stat-body">
-            <span className="dash-stat-value">{fmt(stats.activeReservations)}</span>
-            <span className="dash-stat-label">Réservations en cours</span>
+          <div>
+            <div className="adh-stat-value">{fmt(stats.activeReservations)}</div>
+            <div className="adh-stat-label">Réservations en cours</div>
           </div>
-        </div>
-        <Link href="/admin/demandes-proprio" className="dash-stat-card" style={{ cursor: "pointer" }}>
-          <div className="dash-stat-icon">
-            <i className="fa-solid fa-user-check" />
+        </Link>
+
+        <Link href="/admin/demandes-proprio" className="adh-stat-card">
+          <div className="adh-stat-top">
+            <div className="adh-stat-icon adh-icon-requests"><i className="fa-solid fa-user-check" /></div>
           </div>
-          <div className="dash-stat-body">
-            <span className="dash-stat-value">{fmt(stats.pendingOwnerRequests)}</span>
-            <span className="dash-stat-label">Demandes propriétaire en attente</span>
+          <div>
+            <div className="adh-stat-value">{fmt(stats.pendingOwnerRequests)}</div>
+            <div className="adh-stat-label">Demandes propriétaire en attente</div>
           </div>
         </Link>
       </div>
 
-      <div className="dash-quick-actions">
-        <h2 className="dash-section-title">Actions rapides</h2>
-        <div className="dash-action-row">
-          <Link href="/admin/demandes-proprio" className="btn btn-primary">
-            <i className="fa-solid fa-user-check" /> Demandes propriétaire
-          </Link>
-          <Link href="/admin/utilisateurs" className="btn btn-outline">
-            <i className="fa-solid fa-users" /> Gérer les utilisateurs
-          </Link>
-          <Link href="/admin/avis" className="btn btn-outline">
-            <i className="fa-solid fa-star" /> Gérer les avis
-          </Link>
-          <Link href="/admin/reservations" className="btn btn-outline">
-            <i className="fa-solid fa-calendar-check" /> Voir les réservations
+      <div className="adh-row">
+        <div className="adh-card">
+          <div className="adh-card-hd"><h3>Actions rapides</h3></div>
+          <div className="adh-list">
+            <Link href="/admin/demandes-proprio" className="adh-list-row">
+              <div className="adh-list-icon"><i className="fa-solid fa-user-check" /></div>
+              <div className="adh-list-info">
+                <strong>Demandes propriétaire</strong>
+                <span>Valider ou refuser les demandes en attente</span>
+              </div>
+              <i className="fa-solid fa-chevron-right adh-list-arrow" />
+            </Link>
+            <Link href="/admin/utilisateurs" className="adh-list-row">
+              <div className="adh-list-icon"><i className="fa-solid fa-users" /></div>
+              <div className="adh-list-info">
+                <strong>Gérer les utilisateurs</strong>
+                <span>Voir et administrer les comptes de la plateforme</span>
+              </div>
+              <i className="fa-solid fa-chevron-right adh-list-arrow" />
+            </Link>
+            <Link href="/admin/avis" className="adh-list-row">
+              <div className="adh-list-icon"><i className="fa-solid fa-star" /></div>
+              <div className="adh-list-info">
+                <strong>Gérer les avis</strong>
+                <span>Modérer les avis laissés par les locataires</span>
+              </div>
+              <i className="fa-solid fa-chevron-right adh-list-arrow" />
+            </Link>
+            <Link href="/admin/reservations" className="adh-list-row">
+              <div className="adh-list-icon"><i className="fa-solid fa-calendar-check" /></div>
+              <div className="adh-list-info">
+                <strong>Voir les réservations</strong>
+                <span>Suivre l&apos;ensemble des réservations de la plateforme</span>
+              </div>
+              <i className="fa-solid fa-chevron-right adh-list-arrow" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="adh-dark-card">
+          <div className="adh-dark-icon"><i className="fa-solid fa-user-check" /></div>
+          <h4>Demandes en attente</h4>
+          <div className="adh-dark-amount">{fmt(stats.pendingOwnerRequests)}</div>
+          <p>Demande{stats.pendingOwnerRequests !== 1 ? "s" : ""} propriétaire à traiter</p>
+          <Link href="/admin/demandes-proprio" className="adh-dark-btn">
+            <i className="fa-solid fa-arrow-right" /> Voir les demandes
           </Link>
         </div>
       </div>
