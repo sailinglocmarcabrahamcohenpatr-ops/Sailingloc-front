@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { reservationsApi, referentielsApi } from "@/shared/lib";
-import type { ReservationAPI, StatutReservationAPI } from "@/shared/lib";
+import { useState, useEffect, type ReactNode } from "react";
+import { reservationsApi, referentielsApi, resolvePhotoUrl } from "@/shared/lib";
+import type { ReservationAPI, StatutReservationAPI, PaiementAPI } from "@/shared/lib";
 import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
@@ -26,6 +26,20 @@ function libelleToKey(libelle?: string): BadgeKey {
 
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+
+const fmtLong = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+const PAIEMENT_STATUS: Record<string, { label: string; cls: string; icon: string }> = {
+  paye: { label: "Payé", cls: "badge-status green", icon: "fa-circle-check" },
+  en_attente: { label: "En attente", cls: "badge-status orange", icon: "fa-hourglass-half" },
+  echoue: { label: "Échoué", cls: "badge-status red", icon: "fa-circle-xmark" },
+  rembourse: { label: "Remboursé", cls: "badge-status grey", icon: "fa-rotate-left" },
+};
+
+/** Normalise "Payé" / "PAYE" / "payé" → "paye" pour matcher les clés ci-dessus quelle que soit la casse/accentuation renvoyée par l'API */
+const normalizeKey = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function daysBetween(start: string, end: string) {
   return Math.round(
@@ -53,6 +67,7 @@ const Section = ({
   actionError,
   onConfirm,
   onRefuse,
+  onDetails,
 }: {
   title: string;
   icon: string;
@@ -61,6 +76,7 @@ const Section = ({
   actionError: Record<number, string>;
   onConfirm: (r: ReservationAPI) => void;
   onRefuse: (r: ReservationAPI) => void;
+  onDetails: (r: ReservationAPI) => void;
 }) =>
   items.length > 0 ? (
     <div className="rsv-section">
@@ -114,7 +130,11 @@ const Section = ({
                   </>
                 )}
                 {key === "confirmed" && (
-                  <button className="rsv-btn-ghost">
+                  <button
+                    className="rsv-btn-ghost"
+                    onClick={() => onDetails(r)}
+                    aria-label="Voir les détails de la réservation"
+                  >
                     <i className="fa-solid fa-ellipsis" />
                   </button>
                 )}
@@ -134,6 +154,7 @@ export default function OwnerReservationsPage() {
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<Record<number, string>>({});
+  const [detailsReservation, setDetailsReservation] = useState<ReservationAPI | null>(null);
 
   useEffect(() => {
     Promise.all([reservationsApi.getAll(), referentielsApi.getStatutsReservations()])
@@ -246,6 +267,7 @@ export default function OwnerReservationsPage() {
             actionError={actionError}
             onConfirm={handleConfirm}
             onRefuse={handleRefuse}
+            onDetails={setDetailsReservation}
           />
           <Section
             title="Réservations confirmées"
@@ -255,6 +277,7 @@ export default function OwnerReservationsPage() {
             actionError={actionError}
             onConfirm={handleConfirm}
             onRefuse={handleRefuse}
+            onDetails={setDetailsReservation}
           />
           <Section
             title="Historique"
@@ -264,9 +287,177 @@ export default function OwnerReservationsPage() {
             actionError={actionError}
             onConfirm={handleConfirm}
             onRefuse={handleRefuse}
+            onDetails={setDetailsReservation}
           />
         </>
       )}
+
+      {detailsReservation && (
+        <ReservationDetailsModal
+          reservation={detailsReservation}
+          onClose={() => setDetailsReservation(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+const ModalSection = ({
+  icon,
+  title,
+  children,
+}: {
+  icon: string;
+  title: string;
+  children: ReactNode;
+}) => (
+  <div className="rsv-modal-section">
+    <h4><i className={`fa-solid ${icon}`} />{title}</h4>
+    {children}
+  </div>
+);
+
+function ReservationDetailsModal({
+  reservation: r,
+  onClose,
+}: {
+  reservation: ReservationAPI;
+  onClose: () => void;
+}) {
+  const [paiements, setPaiements] = useState<PaiementAPI[]>([]);
+  const [paiementsLoading, setPaiementsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPaiementsLoading(true);
+    reservationsApi
+      .getPaiements(r.id)
+      .then((p) => !cancelled && setPaiements(p))
+      .catch(() => !cancelled && setPaiements([]))
+      .finally(() => !cancelled && setPaiementsLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [r.id]);
+
+  const key = libelleToKey(r.statutReservation);
+  const st = STATUS[key];
+  const days = daysBetween(r.dateDebut, r.dateFin);
+  const boat = r.bateau;
+  const boatName = boat?.nomBateau ?? `Bateau #${boat?.id ?? r.id}`;
+  const u = r.utilisateur;
+  const montantTotal = Number(r.montantTotal);
+  const prixJour = boat?.prixJour !== undefined ? Number(boat.prixJour) : null;
+  const mainPhoto = boat?.photos
+    ?.slice()
+    .sort((a, b) => (a.ordreAffichage ?? 0) - (b.ordreAffichage ?? 0))[0];
+
+  return (
+    <div className="rsv-modal-overlay" onClick={onClose}>
+      <div className="rsv-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="rsv-modal-hd">
+          <div className="rsv-modal-hd-icon">
+            <i className="fa-solid fa-calendar-check" />
+          </div>
+          <div className="rsv-modal-hd-text">
+            <h3>Réservation #{r.id}</h3>
+            {r.dateReservation && (
+              <span className="rsv-modal-muted">Réservée le {fmtLong(r.dateReservation)}</span>
+            )}
+          </div>
+          <button className="rsv-modal-close" onClick={onClose} aria-label="Fermer">
+            <i className="fa-solid fa-xmark" />
+          </button>
+        </div>
+
+        <div className="rsv-modal-status">
+          <span className={st.cls}>{st.label}</span>
+        </div>
+
+        <div className="rsv-modal-body">
+          <ModalSection icon="fa-user" title="Locataire">
+            <div className="rsv-modal-row">
+              <div className="rsv-avatar">{initials(r)}</div>
+              <div>
+                <strong>{renterName(r)}</strong>
+                {u?.email && <span>{u.email}</span>}
+              </div>
+            </div>
+          </ModalSection>
+
+          <ModalSection icon="fa-sailboat" title="Bateau">
+            <div className="rsv-modal-row">
+              {mainPhoto && (
+                <img
+                  className="rsv-modal-photo"
+                  src={resolvePhotoUrl(mainPhoto.url)}
+                  alt={boatName}
+                />
+              )}
+              <div>
+                <strong>{boatName}</strong>
+                {boat?.typeBateau?.labelTypeBateau && (
+                  <span><i className="fa-solid fa-ship" /> {boat.typeBateau.labelTypeBateau}</span>
+                )}
+                {boat?.port && (
+                  <span><i className="fa-solid fa-location-dot" /> {boat.port.nom}, {boat.port.ville}</span>
+                )}
+                {prixJour !== null && (
+                  <span><i className="fa-solid fa-tag" /> {prixJour.toLocaleString("fr-FR")} €/jour</span>
+                )}
+              </div>
+            </div>
+          </ModalSection>
+
+          <ModalSection icon="fa-calendar-days" title="Dates">
+            <p>
+              {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
+            </p>
+          </ModalSection>
+
+          <ModalSection icon="fa-sack-dollar" title="Montant">
+            <div className="rsv-modal-total">
+              <span className="rsv-modal-amount">{montantTotal.toLocaleString("fr-FR")} €</span>
+              {prixJour !== null && (
+                <span className="rsv-modal-muted">
+                  {prixJour.toLocaleString("fr-FR")} € × {days} jour{days !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          </ModalSection>
+
+          <ModalSection icon="fa-credit-card" title="Paiement">
+            {paiementsLoading ? (
+              <p className="rsv-modal-muted">Chargement…</p>
+            ) : paiements.length === 0 ? (
+              <p className="rsv-modal-muted">Aucun paiement enregistré.</p>
+            ) : (
+              <div className="rsv-modal-payments">
+                {paiements.map((p) => {
+                  const pst = PAIEMENT_STATUS[normalizeKey(p.statutPaiement)] ?? {
+                    label: p.statutPaiement,
+                    cls: "badge-status grey",
+                    icon: "fa-circle",
+                  };
+                  return (
+                    <div key={p.id} className="rsv-modal-payment-row">
+                      <span className="rsv-modal-payment-date">{fmtLong(p.datePaiement)}</span>
+                      <strong>{Number(p.montant).toLocaleString("fr-FR")} €</strong>
+                      <span className={pst.cls}><i className={`fa-solid ${pst.icon}`} /> {pst.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </ModalSection>
+
+          {r.idContrat && (
+            <ModalSection icon="fa-file-contract" title="Contrat">
+              <p className="rsv-modal-muted">Contrat #{r.idContrat}</p>
+            </ModalSection>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
