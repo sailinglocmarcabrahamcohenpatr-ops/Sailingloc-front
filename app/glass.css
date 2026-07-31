@@ -81,27 +81,70 @@
   border: 1px solid var(--glass-border);
 }
 
-/* ── 4. Compteurs : leur propre carte en verre ────────────────
-   Première tentative en texte blanc directement sur la vidéo, abandonnée :
-   sur un fond en mouvement, aucune ombre portée ne garantit le contraste. */
+/* ── 4. Compteurs : reprennent le fond que portait le hero ────
+   Le hero n'a plus de fond propre ; son voile en double dégradé est repris
+   ici. Panneau sombre → le texte y est blanc, et le contraste est garanti
+   par le voile lui-même, pas par une ombre portée sur image mouvante. */
 :root[data-scroll-video="on"] .home-shell .stats-dark-grid {
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background:
+    linear-gradient(180deg, rgba(5,14,28,.55) 0%, rgba(5,14,28,.2) 26%, rgba(5,14,28,.26) 58%, rgba(5,14,28,.58) 100%),
+    radial-gradient(ellipse at 50% 45%, rgba(4,12,26,.06) 0%, rgba(4,12,26,.3) 100%);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   border-radius: var(--radius-2xl);
   overflow: hidden;
 }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item strong { color: var(--text); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item span   { color: var(--text-2); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-icon        { color: var(--primary); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item        { border-right-color: var(--border); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item strong { color: var(--white); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item span   { color: rgba(255,255,255,.72); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-icon        { color: rgba(255,255,255,.85); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item        { border-right-color: rgba(255,255,255,.14); }
 
 /* ── 5. Chrome ───────────────────────────────────────────────── */
-:root[data-scroll-video="on"] .navbar {
-  background: var(--glass-strong);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
+/* Navbar sans fond : elle se pose directement sur la vidéo. Son texte est
+   sombre par défaut, il faut donc l'éclaircir sinon il disparaît. Un léger
+   voile en dégradé sous la barre garantit le contraste quel que soit le plan
+   de la vidéo — un simple text-shadow n'y suffirait pas. */
+:root[data-scroll-video="on"] .navbar,
+:root[data-scroll-video="on"] .navbar--scrolled {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+:root[data-scroll-video="on"] .navbar::before {
+  content: "";
+  position: absolute;
+  inset: -12px -16px auto -16px;
+  height: 140px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5,14,28,.62) 0%, rgba(5,14,28,.28) 55%, rgba(5,14,28,0) 100%);
+}
+/* La pilule de navigation a son propre fond clair opaque : sur la vidéo, le
+   texte blanc s'y noyait. Elle passe en verre sombre. */
+:root[data-scroll-video="on"] .navbar-nav {
+  background: rgba(5, 14, 28, .30);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, .16);
+}
+
+:root[data-scroll-video="on"] .navbar-logo,
+:root[data-scroll-video="on"] .navbar-nav a,
+:root[data-scroll-video="on"] .navbar-icon-btn,
+:root[data-scroll-video="on"] .mobile-menu-btn,
+:root[data-scroll-video="on"] .navbar .btn-ghost {
+  color: var(--white);
+}
+:root[data-scroll-video="on"] .navbar-nav a:hover,
+:root[data-scroll-video="on"] .navbar .btn-ghost:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, .16);
+}
+:root[data-scroll-video="on"] .navbar-nav a.active,
+:root[data-scroll-video="on"] .navbar-nav a.active:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, .22);
 }
 :root[data-scroll-video="on"] .footer {
   background: rgba(11, 25, 41, .82);

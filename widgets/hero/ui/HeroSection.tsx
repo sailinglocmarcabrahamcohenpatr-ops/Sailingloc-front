@@ -4,12 +4,8 @@ import "./hero.css";
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Bannière principale">
-      {/* Plus de vidéo propre au hero : le fond vidéo global (piloté par le
-          scroll) tient ce rôle. On conserve le voile, qui assure le contraste
-          du titre en haut de page. */}
-      <div className="hero-bg">
-        <div className="hero-overlay" aria-hidden="true" />
-      </div>
+      {/* Aucun fond propre au hero : ni image, ni vidéo, ni voile. Le fond
+          vidéo global (piloté par le scroll) est visible tel quel. */}
 
       <div className="hero-content">
         <div className="container" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
