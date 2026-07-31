@@ -197,7 +197,7 @@
   flex-shrink: 0;
   margin-top: 1px;
 }
-.notif-icon--blue   { background: #EEF3FE; color: var(--primary); }
+.notif-icon--blue   { background: #EAF0F4; color: var(--primary); }
 .notif-icon--green  { background: #D1FAE5; color: #065F46; }
 .notif-icon--yellow { background: #FEF3C7; color: #92400E; }
 .notif-icon--grey   { background: var(--bg); color: var(--text-3); border: 1px solid var(--border); }

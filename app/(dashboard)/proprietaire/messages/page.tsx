@@ -5,7 +5,7 @@ import { messagesApi, utilisateursApi, useAuth, useMessages } from "@/shared/lib
 import type { MessageAPI, UtilisateurAPI } from "@/shared/lib";
 import "./messages.css";
 
-const PALETTE = ["#1866F2", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
+const PALETTE = ["#114B6B", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
 const avatarColor = (id: number) => PALETTE[id % PALETTE.length];
 
 function fmtRelative(iso: string) {

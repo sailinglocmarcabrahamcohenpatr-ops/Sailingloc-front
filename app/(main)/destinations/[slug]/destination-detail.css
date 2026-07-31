@@ -94,7 +94,7 @@
 .dest-map-card::before {
   content: "";
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 85% -10%, rgba(24,102,242,.28) 0%, transparent 55%);
+  background: radial-gradient(circle at 85% -10%, rgba(17,75,107,.28) 0%, transparent 55%);
   pointer-events: none;
 }
 .dest-map-card-head {
@@ -141,7 +141,7 @@
   padding: 8px 14px;
   font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.85);
 }
-.dest-map-legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 3px rgba(24,102,242,.25); }
+.dest-map-legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 3px rgba(17,75,107,.25); }
 .dest-map-legend-dot--hub { background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); }
 
 @media (max-width: 640px) {
@@ -161,7 +161,7 @@
   transform: rotate(-45deg);
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,.45), 0 0 0 3px rgba(24,102,242,.25);
+  box-shadow: 0 3px 10px rgba(0,0,0,.45), 0 0 0 3px rgba(17,75,107,.25);
 }
 .dest-map-pin i { transform: rotate(45deg); font-size: .85rem; }
 
@@ -172,12 +172,12 @@
   width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: #fff; font-size: 1rem;
-  box-shadow: 0 4px 14px rgba(24,102,242,.55);
+  box-shadow: 0 4px 14px rgba(17,75,107,.55);
   border: 2px solid rgba(255,255,255,.85);
 }
 .dest-map-hub-ring {
   position: absolute; inset: 0; border-radius: 50%;
-  border: 2px solid rgba(24,102,242,.65);
+  border: 2px solid rgba(17,75,107,.65);
   animation: dest-map-pulse 2.4s ease-out infinite;
 }
 .dest-map-hub-ring--delay { animation-delay: 1.2s; }

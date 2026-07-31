@@ -34,9 +34,12 @@
 /* ── Variables ─────────────────────────────────── */
 :root {
   color-scheme: light;
-  --primary: #1866F2;
-  --primary-dark:  #1255D6;
-  --primary-light: #EEF3FE;
+  /* Bleu océan profond. L'ancien #114B6B était le bleu SaaS générique et ne
+     tenait que 4.33:1 sur son propre fond teinté — sous le seuil WCAG AA.
+     Celui-ci monte à 8.15:1 : gain d'identité ET d'accessibilité. */
+  --primary: #114B6B;
+  --primary-dark:  #0C3850;
+  --primary-light: #EAF0F4;
   --navy:          #0B1929;
   --navy-2:        #152438;
   --navy-3:        #1E3554;
@@ -142,7 +145,7 @@ html[data-text-size="large"] { font-size: 18px; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html  { scroll-behavior: smooth; font-size: 16px; }
 body  {
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text); line-height: 1.6; background: var(--card-bg);
   -webkit-font-smoothing: antialiased;
 }
@@ -161,10 +164,19 @@ ul    { list-style: none; }
   background-color: transparent;
 }
 
-/* ── Typographie ────────────────────────────────── */
-h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 800; line-height: 1.15; }
-h2 { font-size: clamp(1.4rem, 3vw, 1.875rem); font-weight: 700; line-height: 1.3;  }
-h3 { font-size: 1.375rem; font-weight: 700; line-height: 1.4; }
+/* ── Typographie ──────────────────────────────────
+   h1–h3 en police de titrage (serif). Un serif « pèse » plus qu'une
+   grotesque à poids égal : les graisses sont donc abaissées (800→600,
+   700→600) et l'approche resserrée, sinon les titres deviennent massifs.
+   h4/h5 restent en Geist : ce sont des libellés de structure, pas des
+   titres éditoriaux — les passer en serif brouillerait la hiérarchie. */
+h1, h2, h3 {
+  font-family: var(--font-display), Georgia, 'Times New Roman', serif;
+  letter-spacing: -.015em;
+}
+h1 { font-size: clamp(2rem, 4.4vw, 3.125rem); font-weight: 600; line-height: 1.1; }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.125rem); font-weight: 600; line-height: 1.22; }
+h3 { font-size: 1.4375rem; font-weight: 600; line-height: 1.35; }
 h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.45; }
 h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 
@@ -177,7 +189,7 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
   border: 2px solid transparent; white-space: nowrap; line-height: 1;
 }
 .btn-primary  { background: var(--primary); color: var(--white); border-color: var(--primary); }
-.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(24,102,242,.35); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(17,75,107,.35); }
 .btn-outline  { background: transparent; color: var(--primary); border-color: var(--primary); }
 .btn-outline:hover { background: var(--primary-light); }
 .btn-white    { background: var(--card-bg); color: var(--text); border-color: var(--white); }
@@ -368,7 +380,7 @@ footer {
   font-size: .9375rem; color: var(--text); background: var(--card-bg);
   transition: var(--transition); outline: none;
 }
-.form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(24,102,242,.12); }
+.form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(17,75,107,.12); }
 .form-input::placeholder { color: var(--text-3); }
 textarea.form-input { resize: vertical; min-height: 130px; }
 
@@ -662,7 +674,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 /* Sidebar */
 .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 140px; }
-.weather-card { background: linear-gradient(135deg, #1352B5 0%, #0D3D8A 100%); border-radius: var(--radius-xl); padding: 24px; color: var(--white); box-shadow: var(--shadow-md); }
+.weather-card { background: linear-gradient(135deg, var(--primary) 0%, var(--navy-3) 100%); border-radius: var(--radius-xl); padding: 24px; color: var(--white); box-shadow: var(--shadow-md); }
 .weather-location { font-size: .8125rem; opacity: .75; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
 .weather-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .weather-temp { font-size: 3.5rem; font-weight: 800; line-height: 1; }
@@ -824,7 +836,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .location-section { padding: 28px 0; border-top: 1px solid var(--border); }
 .location-section h3 { margin-bottom: 16px; }
 .location-map { background: linear-gradient(135deg, #E8F4FD, #B0D4F1); height: 260px; border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: var(--primary); position: relative; overflow: hidden; cursor: pointer; }
-.location-map::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(24,102,242,.08) 1px, transparent 1px); background-size: 20px 20px; }
+.location-map::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(17,75,107,.08) 1px, transparent 1px); background-size: 20px 20px; }
 .location-map i { font-size: 3rem; position: relative; z-index: 1; }
 .location-map span { font-weight: 600; font-size: 1rem; position: relative; z-index: 1; }
 .location-map--interactive { padding: 0; cursor: default; }
@@ -1031,7 +1043,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .contact-section { padding: 72px 0 80px; }
 .contact-grid { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
 .contact-form-card { background: var(--card-bg); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
-.contact-form-header { background: linear-gradient(135deg, #1352B5 0%, #0D3D8A 100%); padding: 28px 32px; }
+.contact-form-header { background: linear-gradient(135deg, var(--primary) 0%, var(--navy-3) 100%); padding: 28px 32px; }
 .contact-form-header h3 { color: var(--white); margin-bottom: 6px; }
 .contact-form-header p { color: rgba(255,255,255,.7); font-size: .875rem; }
 .contact-form-body { padding: 32px; display: flex; flex-direction: column; gap: 20px; }
@@ -1072,7 +1084,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .faq-header h2 { margin-bottom: 12px; }
 .faq-header p { color: var(--text-2); max-width: 480px; margin: 0 auto; }
 .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 48px; max-width: 900px; margin: 0 auto; }
-.cta-final { background: linear-gradient(135deg, var(--primary) 0%, #0D3D8A 100%); padding: 80px 0; text-align: center; }
+.cta-final { background: linear-gradient(135deg, var(--primary) 0%, var(--navy-3) 100%); padding: 80px 0; text-align: center; }
 .cta-final-tag { display: inline-block; background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); padding: 6px 16px; border-radius: var(--radius-pill); font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 20px; }
 .cta-final h2 { color: var(--white); margin-bottom: 16px; }
 .cta-final h2 em { color: #FFD700; font-style: normal; }
@@ -1293,7 +1305,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   background: var(--primary); color: var(--white);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.625rem;
-  box-shadow: 0 6px 20px rgba(24,102,242,.28);
+  box-shadow: 0 6px 20px rgba(17,75,107,.28);
 }
 .hiw-home-num {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
@@ -1372,7 +1384,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   display: flex; align-items: center; overflow: hidden;
 }
 .prop-hero-bg { position: absolute; inset: 0; }
-.prop-hero-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(6,18,40,.88) 0%, rgba(11,30,60,.65) 55%, rgba(24,102,242,.2) 100%); }
+.prop-hero-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(6,18,40,.88) 0%, rgba(11,30,60,.65) 55%, rgba(17,75,107,.2) 100%); }
 .prop-hero-content { position: relative; z-index: 1; color: var(--white); padding: 80px 0; max-width: 680px; }
 .prop-hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
@@ -1463,7 +1475,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   display: flex; align-items: center; overflow: hidden;
 }
 .hiw-page-hero-bg { position: absolute; inset: 0; }
-.hiw-page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(6,18,40,.82) 0%, rgba(11,30,60,.55) 60%, rgba(24,102,242,.12) 100%); }
+.hiw-page-hero-overlay { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(6,18,40,.82) 0%, rgba(11,30,60,.55) 60%, rgba(17,75,107,.12) 100%); }
 .hiw-page-hero-content { position: relative; z-index: 1; padding: 80px 0; max-width: 680px; }
 .hiw-page-hero-sub { font-size: 1.125rem; color: rgba(255,255,255,.82); line-height: 1.75; margin: 16px 0 32px; max-width: 560px; }
 .hiw-page-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -2210,7 +2222,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   transition: var(--transition);
 }
 .form-group input:focus,
-.form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(24,102,242,.1); }
+.form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(17,75,107,.1); }
 .form-optional { font-size: .75rem; font-weight: 400; color: var(--text-3); margin-left: auto; }
 .security-items { display: flex; flex-direction: column; gap: 0; }
 .security-item {
@@ -2265,7 +2277,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   background: var(--primary); color: var(--white);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.5rem; margin-bottom: 20px;
-  box-shadow: 0 4px 16px rgba(24,102,242,.3);
+  box-shadow: 0 4px 16px rgba(17,75,107,.3);
 }
 .hiw-step-connector {
   position: absolute;

@@ -5,7 +5,7 @@ import { useAuth, useMessages } from "@/shared/lib";
 import "./profile.css";
 
 const MENU_BOXES = [
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", desc: "Vos voyages en cours et passés", color: "#1866F2", bg: "#EEF3FE" },
+  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", desc: "Vos voyages en cours et passés", color: "#114B6B", bg: "#EAF0F4" },
   { href: "/profil/messages", icon: "fa-envelope", label: "Messages", desc: "Vos échanges avec les propriétaires", color: "#10B981", bg: "#D1FAE5" },
   { href: "/profil/notations", icon: "fa-star", label: "Notations", desc: "Les avis que vous avez laissés", color: "#EAB308", bg: "#FEF9C3" },
   { href: "/profil/favoris", icon: "fa-heart", label: "Favoris", desc: "Les bateaux que vous avez sauvegardés", color: "#DB2777", bg: "#FCE7F3" },
@@ -14,7 +14,7 @@ const MENU_BOXES = [
 ];
 
 const ACTIVITY = [
-  { icon: "fa-calendar-check", color: "#1866F2", bg: "#EEF3FE", title: "Réservation confirmée", detail: "Voilier Excellence · Marseille", time: "il y a 2 j" },
+  { icon: "fa-calendar-check", color: "#114B6B", bg: "#EAF0F4", title: "Réservation confirmée", detail: "Voilier Excellence · Marseille", time: "il y a 2 j" },
   { icon: "fa-envelope", color: "#10B981", bg: "#D1FAE5", title: "Nouveau message", detail: "Capitaine Léa vous a répondu", time: "il y a 4 j" },
   { icon: "fa-credit-card", color: "#D97706", bg: "#FEF3C7", title: "Paiement effectué", detail: "6 230 € · Location Sun Odyssey 440", time: "il y a 1 sem." },
   { icon: "fa-circle-check", color: "#8B5CF6", bg: "#F5F3FF", title: "Profil vérifié", detail: "Pièce d'identité validée", time: "il y a 1 mois" },

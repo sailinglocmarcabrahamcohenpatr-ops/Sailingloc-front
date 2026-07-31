@@ -12,8 +12,8 @@ const RENTER_STEPS = [
   {
     num: "01",
     icon: "fa-magnifying-glass",
-    color: "#1866F2",
-    bg: "#EEF3FE",
+    color: "#114B6B",
+    bg: "#EAF0F4",
     title: "Recherchez votre bateau",
     desc: "Filtrez par destination, type de bateau, dates et nombre de passagers. Comparez les annonces avec photos HD, équipements détaillés et avis vérifiés.",
     bullets: ["Destination, dates, capacité", "Types : voilier, catamaran, moteur…", "Options : avec ou sans permis, skipper"],
