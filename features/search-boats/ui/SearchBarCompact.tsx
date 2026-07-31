@@ -58,6 +58,24 @@ export default function SearchBarCompact() {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
+  /* Filtre les cards en direct pendant la frappe (debounce pour éviter une navigation par lettre) */
+  useEffect(() => {
+    const current = searchParams.get("destination") ?? "";
+    const next = dest.trim();
+    if (next === current) return;
+
+    const id = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (next) params.set("destination", next);
+      else params.delete("destination");
+      router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 350);
+
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dest]);
+
   /* Filtrage local instantané */
   const query = dest.trim().toLowerCase();
   const suggestions = query.length < 2 ? [] : ports.filter((p) =>
