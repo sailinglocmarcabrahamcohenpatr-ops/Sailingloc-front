@@ -1,12 +1,13 @@
 import { SearchBar } from "@/features/search-boats";
-import HeroVideo from "./HeroVideo";
 import "./hero.css";
 
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Bannière principale">
+      {/* Plus de vidéo propre au hero : le fond vidéo global (piloté par le
+          scroll) tient ce rôle. On conserve le voile, qui assure le contraste
+          du titre en haut de page. */}
       <div className="hero-bg">
-        <HeroVideo />
         <div className="hero-overlay" aria-hidden="true" />
       </div>
 

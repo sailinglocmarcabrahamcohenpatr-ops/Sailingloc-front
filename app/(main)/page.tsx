@@ -8,8 +8,12 @@ import { FEATURED_BOATS, getBoatImageUrl } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
+import { ScrollVideoBackground } from "@/widgets/scroll-video";
 import "./home-shell.css";
 import "./home.css";
+/* Refonte « verre sur vidéo », conditionnée à l'attribut que pose
+   ScrollVideoBackground → ne s'applique qu'ici. */
+import "../glass.css";
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -53,6 +57,8 @@ export default async function HomePage() {
 
   return (
     <div className="home-shell">
+      <ScrollVideoBackground />
+
       {/* ── Hero ── */}
       <HeroSection />
 

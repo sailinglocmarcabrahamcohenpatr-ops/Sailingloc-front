@@ -21,6 +21,16 @@ const POSTER = "/videos/scroll-bg-poster.jpg";
 export default function ScrollVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  /* Marque le document tant que ce fond est monté. TOUTE la refonte « verre »
+     (glass.css) est conditionnée à cet attribut : le composant n'étant rendu
+     que par l'accueil, les autres pages gardent leur apparence d'origine, y
+     compris après une navigation client. */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-scroll-video", "on");
+    return () => root.removeAttribute("data-scroll-video");
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;

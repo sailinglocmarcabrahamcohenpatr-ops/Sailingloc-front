@@ -24,11 +24,14 @@
   content: "";
   position: absolute;
   inset: 0;
+  /* Voile renforcé depuis que le contenu flotte directement dessus : les
+     plans clairs de la vidéo faisaient tomber le contraste du texte blanc
+     sous le seuil lisible. */
   background: linear-gradient(
     180deg,
-    rgba(6, 15, 30, .45) 0%,
-    rgba(6, 15, 30, .30) 50%,
-    rgba(6, 15, 30, .50) 100%
+    rgba(6, 15, 30, .58) 0%,
+    rgba(6, 15, 30, .50) 50%,
+    rgba(6, 15, 30, .62) 100%
   );
 }
 

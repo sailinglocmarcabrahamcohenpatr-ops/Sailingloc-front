@@ -1,0 +1,137 @@
+/* ──────────────────────────────────────────────────────────────
+   REFONTE « VERRE SUR VIDÉO » — ACCUEIL UNIQUEMENT
+
+   Toutes les règles sont conditionnées à :root[data-scroll-video="on"],
+   attribut posé par <ScrollVideoBackground> tant qu'il est monté. Ce
+   composant n'étant rendu que par l'accueil, les autres pages gardent
+   exactement leur apparence d'origine — y compris après une navigation
+   côté client, l'attribut étant retiré au démontage.
+
+   Principe : les SECTIONS cessent d'être des blocs opaques ; seules les
+   CARTES subsistent, en verre dépoli. La vidéo devient le fond réel.
+
+   Contrainte non négociable : la lisibilité. Le texte de contenu reste
+   sombre sur verre CLAIR — pas blanc sur vidéo, illisible dès qu'un plan
+   s'éclaircit. Seuls les titres de section passent en blanc.
+
+   Le CSS de page (home-shell.css) étant injecté APRÈS celui du layout,
+   le sélecteur d'attribut sert aussi à gagner en spécificité.
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  --glass:        rgba(255, 255, 255, .78);
+  --glass-strong: rgba(255, 255, 255, .90);
+  --glass-border: rgba(255, 255, 255, .55);
+  --glass-blur:   saturate(1.4) blur(18px);
+}
+
+:root[data-theme="dark"] {
+  --glass:        rgba(16, 26, 40, .74);
+  --glass-strong: rgba(16, 26, 40, .88);
+  --glass-border: rgba(255, 255, 255, .12);
+}
+
+/* Fond de page transparent : sans cela, le fond opaque du body masquerait
+   entièrement la vidéo fixe placée en z-index -1. */
+:root[data-scroll-video="on"] body {
+  background: transparent;
+}
+
+/* ── 1. Les sections cessent d'être des blocs opaques ────────── */
+:root[data-scroll-video="on"] .home-shell section[aria-labelledby="cat-title"],
+:root[data-scroll-video="on"] .home-shell section[aria-labelledby="featured-title"],
+:root[data-scroll-video="on"] .home-shell section[aria-labelledby="hiw-title"],
+:root[data-scroll-video="on"] .home-shell .stats-dark-section,
+:root[data-scroll-video="on"] .home-shell .testimonials-section,
+:root[data-scroll-video="on"] .home-section,
+:root[data-scroll-video="on"] .home-section.bg-surface,
+:root[data-scroll-video="on"] .home-hiw,
+:root[data-scroll-video="on"] .seo-section,
+:root[data-scroll-video="on"] .trust-section {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ── 2. Titres de section : posés sur la vidéo, donc en blanc ── */
+:root[data-scroll-video="on"] .home-shell .home-section-hd h2,
+:root[data-scroll-video="on"] .home-shell .section-title,
+:root[data-scroll-video="on"] .home-shell .home-eyebrow,
+:root[data-scroll-video="on"] .home-shell .seo-content h2 {
+  color: var(--white);
+  text-shadow: 0 2px 18px rgba(6, 15, 30, .55);
+}
+:root[data-scroll-video="on"] .home-shell .home-section-hd p,
+:root[data-scroll-video="on"] .home-shell .section-hd p,
+:root[data-scroll-video="on"] .home-shell .seo-content p {
+  color: rgba(255, 255, 255, .82);
+  text-shadow: 0 1px 12px rgba(6, 15, 30, .5);
+}
+
+/* ── 3. Les cartes deviennent le seul plan opaque ─────────────
+   .weather-card et .category-card sont exclues : la première a un
+   dégradé assumé, la seconde est une vignette photo pleine image. */
+:root[data-scroll-video="on"] .boat-card,
+:root[data-scroll-video="on"] .testimonial-card,
+:root[data-scroll-video="on"] .hiw-home-card,
+:root[data-scroll-video="on"] .trust-badge {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+/* ── 4. Compteurs : leur propre carte en verre ────────────────
+   Première tentative en texte blanc directement sur la vidéo, abandonnée :
+   sur un fond en mouvement, aucune ombre portée ne garantit le contraste. */
+:root[data-scroll-video="on"] .home-shell .stats-dark-grid {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+:root[data-scroll-video="on"] .home-shell .stats-dark-item strong { color: var(--text); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item span   { color: var(--text-2); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-icon        { color: var(--primary); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item        { border-right-color: var(--border); }
+
+/* ── 5. Chrome ───────────────────────────────────────────────── */
+:root[data-scroll-video="on"] .navbar {
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+:root[data-scroll-video="on"] .footer {
+  background: rgba(11, 25, 41, .82);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* ── 6. Repli sans backdrop-filter ───────────────────────────── */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-scroll-video="on"] .boat-card,
+  :root[data-scroll-video="on"] .testimonial-card,
+  :root[data-scroll-video="on"] .hiw-home-card,
+  :root[data-scroll-video="on"] .trust-badge,
+  :root[data-scroll-video="on"] .home-shell .stats-dark-grid,
+  :root[data-scroll-video="on"] .navbar {
+    background: var(--glass-strong);
+  }
+}
+
+/* ── 7. Économie de ressources ────────────────────────────────
+   backdrop-filter est coûteux : sur petit écran, fond plus opaque
+   et pas de flou. */
+@media (max-width: 640px) {
+  :root[data-scroll-video="on"] .boat-card,
+  :root[data-scroll-video="on"] .testimonial-card,
+  :root[data-scroll-video="on"] .hiw-home-card,
+  :root[data-scroll-video="on"] .trust-badge,
+  :root[data-scroll-video="on"] .home-shell .stats-dark-grid {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--glass-strong);
+  }
+}
