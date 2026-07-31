@@ -32,7 +32,9 @@ const bottomLinks: NavLink[] = [
   { href: "/contact", icon: "fa-headset", label: "Support" },
 ];
 
-export default function DashboardSidebar() {
+type Props = { open?: boolean; onClose?: () => void };
+
+export default function DashboardSidebar({ open = false, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
@@ -61,7 +63,12 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside className="dashboard-sidebar">
+    <>
+      {open && <div className="dash-sidebar-backdrop" onClick={onClose} />}
+      <aside className={`dashboard-sidebar${open ? " mobile-open" : ""}`}>
+      <button type="button" className="dash-sidebar-close" onClick={onClose} title="Fermer le menu" aria-label="Fermer le menu">
+        <i className="fa-solid fa-xmark" />
+      </button>
       <Link href="/" className="dash-sidebar-logo">
         <i className="fa-solid fa-anchor" aria-hidden="true" />
         SailingLoc
@@ -117,6 +124,7 @@ export default function DashboardSidebar() {
           <span>Déconnexion</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

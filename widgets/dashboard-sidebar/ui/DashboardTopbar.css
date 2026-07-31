@@ -20,6 +20,13 @@
   box-shadow: var(--shadow-sm);
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .topbar-title {
   font-size: 1.125rem;
   font-weight: 700;
@@ -84,6 +91,21 @@
 @media (max-width: 1024px) {
   .dashboard-topbar { padding: 0 20px; height: 56px; }
   .dashboard-main-wrapper .dashboard-main { padding: 24px 16px; }
+  .topbar-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-lg);
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 1.0625rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .topbar-menu-btn:hover { background: var(--bg); color: var(--text); }
 }
 @media (max-width: 600px) {
   .topbar-title { font-size: 1rem; }

@@ -177,45 +177,57 @@ export default function AdminPublicationPage() {
         </div>
       </div>
 
-      {/* ── Tabs ── */}
-      <div>
-        <div className="pub-tabs">
-          <button
-            className={`pub-tab${tab === "en-attente" ? " active" : ""}`}
-            onClick={() => setTab("en-attente")}
-          >
-            <i className="fa-solid fa-clock" />
-            En attente de validation
-            <span className="pub-tab-count">{pendingCount}</span>
-          </button>
-          <button
-            className={`pub-tab${tab === "disponible" ? " active" : ""}`}
-            onClick={() => setTab("disponible")}
-          >
-            <i className="fa-solid fa-circle-check" />
-            Bateaux disponibles
-            <span className="pub-tab-count">{availableCount}</span>
-          </button>
-          <button
-            className={`pub-tab${tab === "suspendu" ? " active" : ""}`}
-            onClick={() => setTab("suspendu")}
-          >
-            <i className="fa-solid fa-ban" />
-            Suspendus
-            <span className="pub-tab-count">{suspendedCount}</span>
-          </button>
-          <button
-            className={`pub-tab${tab === "refuse" ? " active" : ""}`}
-            onClick={() => setTab("refuse")}
-          >
-            <i className="fa-solid fa-xmark" />
-            Refusés
-            <span className="pub-tab-count">{refusedCount}</span>
-          </button>
-        </div>
+      {/* ── Status overview ── */}
+      <div className="pub-stats-grid">
+        <button
+          type="button"
+          className={`pub-stat-card pending${tab === "en-attente" ? " active" : ""}`}
+          onClick={() => setTab("en-attente")}
+        >
+          <div className="pub-stat-icon"><i className="fa-solid fa-clock" /></div>
+          <div className="pub-stat-body">
+            <span className="pub-stat-value">{pendingCount}</span>
+            <span className="pub-stat-label">En attente de validation</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          className={`pub-stat-card available${tab === "disponible" ? " active" : ""}`}
+          onClick={() => setTab("disponible")}
+        >
+          <div className="pub-stat-icon"><i className="fa-solid fa-circle-check" /></div>
+          <div className="pub-stat-body">
+            <span className="pub-stat-value">{availableCount}</span>
+            <span className="pub-stat-label">Bateaux disponibles</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          className={`pub-stat-card suspended${tab === "suspendu" ? " active" : ""}`}
+          onClick={() => setTab("suspendu")}
+        >
+          <div className="pub-stat-icon"><i className="fa-solid fa-ban" /></div>
+          <div className="pub-stat-body">
+            <span className="pub-stat-value">{suspendedCount}</span>
+            <span className="pub-stat-label">Suspendus</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          className={`pub-stat-card refused${tab === "refuse" ? " active" : ""}`}
+          onClick={() => setTab("refuse")}
+        >
+          <div className="pub-stat-icon"><i className="fa-solid fa-xmark" /></div>
+          <div className="pub-stat-body">
+            <span className="pub-stat-value">{refusedCount}</span>
+            <span className="pub-stat-label">Refusés</span>
+          </div>
+        </button>
+      </div>
 
+      <div>
         {/* ── Toolbar ── */}
-        <div style={{ marginTop: 20 }}>
+        <div className="pub-toolbar-card">
           <div className="pub-toolbar">
             <div className="pub-search-wrap">
               <i className="fa-solid fa-magnifying-glass pub-search-icon" />

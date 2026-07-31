@@ -1858,7 +1858,11 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  transition: transform .25s ease;
 }
+.dash-sidebar-close { display: none; }
+.dash-sidebar-backdrop { display: none; }
+.topbar-menu-btn { display: none; }
 .dash-sidebar-logo {
   display: flex;
   align-items: center;
@@ -1944,15 +1948,46 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   min-width: 0;
 }
 @media (max-width: 1024px) {
-  .dashboard-layout { flex-direction: column; }
+  /* La sidebar devient un tiroir hors-écran, ouvert via le bouton
+     hamburger de la topbar (voir .topbar-menu-btn) plutôt que repliée
+     en ligne au-dessus du contenu — l'ancien layout "wrap" produisait
+     un bloc de navigation géant et confus sur mobile. */
   .dashboard-sidebar {
-    width: 100%; height: auto; position: static;
-    flex-direction: row; flex-wrap: wrap;
-    border-right: none; border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(300px, 85vw);
+    height: 100vh;
+    transform: translateX(-100%);
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
   }
-  .dash-sidebar-nav { flex-direction: row; flex-wrap: wrap; padding: 8px; }
-  .dash-nav-link { padding: 8px 12px; font-size: .8125rem; }
-  .dash-sidebar-bottom { border-top: none; padding: 4px 8px 8px; }
+  .dashboard-sidebar.mobile-open { transform: translateX(0); }
+  .dash-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .dash-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 18, 34, .5);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+  }
   .dashboard-main { padding: 24px 16px; }
 }
 @media (max-width: 600px) {
@@ -2226,7 +2261,15 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   gap: 24px;
   min-height: 560px;
 }
-@media (max-width: 900px) { .messages-layout { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .messages-layout { grid-template-columns: 1fr; }
+  /* Vue mobile façon appli de chat : la liste des contacts et la conversation
+     ne s'affichent jamais en même temps — seule la sélection courante décide. */
+  .messages-layout:not(.conv-open) .messages-thread,
+  .messages-layout:not(.conv-open) .messages-empty { display: none; }
+  .messages-layout.conv-open .messages-list { display: none; }
+  .messages-thread-back { display: flex; }
+}
 .messages-list {
   background: var(--card-bg);
   border-radius: var(--radius-2xl);
@@ -2235,6 +2278,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .messages-list-search {
   padding: 16px 18px 10px;
@@ -2294,6 +2338,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   gap: 12px;
   color: var(--text-3);
   font-size: 1rem;
+  min-width: 0;
 }
 .messages-empty i { font-size: 2.5rem; }
 
@@ -2306,6 +2351,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 .messages-thread-hd {
   display: flex;
@@ -2326,6 +2372,17 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   transition: var(--transition);
 }
 .messages-thread-icon-btn:hover { background: var(--primary-light); color: var(--primary); }
+.messages-thread-back {
+  display: none;
+  width: 36px; height: 36px; border-radius: 50%;
+  align-items: center; justify-content: center;
+  background: transparent; color: var(--text-2);
+  transition: var(--transition);
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+}
+.messages-thread-back:hover { background: var(--primary-light); color: var(--primary); }
 .messages-thread-body {
   flex: 1;
   overflow-y: auto;
@@ -2346,6 +2403,8 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   padding: 10px 16px;
   font-size: .9rem;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .thread-msg--me .thread-msg-bubble {
   background: var(--primary);
@@ -2374,6 +2433,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   padding: 16px 22px;
   border-top: 1px solid var(--border);
   background: var(--card-bg);
+  min-width: 0;
 }
 .messages-reply-input-wrap {
   flex: 1;
@@ -2385,6 +2445,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   border-radius: 999px;
   background: var(--bg);
   transition: border-color .2s;
+  min-width: 0;
 }
 .messages-reply-input-wrap:focus-within { border-color: var(--primary); }
 .messages-reply-input-wrap.recording { background: #FEF2F2; border-color: #FCA5A5; gap: 10px; padding-left: 14px; }
@@ -2395,6 +2456,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .messages-reply-icon-btn.recording-cancel-btn:hover { background: #FEE2E2; }
 .messages-reply-input {
   flex: 1;
+  min-width: 0;
   padding: 8px 0;
   border: none;
   background: transparent;

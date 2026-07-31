@@ -38,7 +38,9 @@ function getPageTitle(pathname: string): string {
   return "Dashboard";
 }
 
-export default function DashboardTopbar() {
+type Props = { onToggleNav?: () => void };
+
+export default function DashboardTopbar({ onToggleNav }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const title = getPageTitle(pathname);
@@ -77,7 +79,12 @@ export default function DashboardTopbar() {
 
   return (
     <header className="dashboard-topbar">
-      <h2 className="topbar-title">{title}</h2>
+      <div className="topbar-left">
+        <button type="button" className="topbar-menu-btn" onClick={onToggleNav} aria-label="Ouvrir le menu" title="Menu">
+          <i className="fa-solid fa-bars" />
+        </button>
+        <h2 className="topbar-title">{title}</h2>
+      </div>
 
       <div className="topbar-actions">
 
