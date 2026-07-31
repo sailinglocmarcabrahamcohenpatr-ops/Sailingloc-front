@@ -11,7 +11,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: 20px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--card-bg);
@@ -160,7 +160,7 @@
   gap: 4px;
   flex-shrink: 0;
   font-size: .8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text);
 }
 .boat-card-rating i { color: var(--star); font-size: .75rem; }
@@ -201,10 +201,10 @@
   align-items: center;
   gap: 5px;
   padding: 3px 9px;
-  border-radius: 20px;
+  border-radius: var(--radius);
   background: var(--bg);
   font-size: .75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 .boat-card-specs i { color: var(--text-3); font-size: .7rem; }
@@ -231,11 +231,11 @@
 }
 .boat-card-cta {
   padding: 7px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--sand);
   color: var(--white);
   font-size: .8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   transition: background-color .2s ease;
 }

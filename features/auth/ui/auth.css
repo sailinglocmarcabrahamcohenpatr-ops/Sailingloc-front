@@ -260,7 +260,7 @@
   padding: 40px;
 }
 .auth-split-logo {
-  font-size: 1.375rem; font-weight: 900; color: var(--white);
+  font-size: 1.375rem; font-weight: 800; color: var(--white);
   display: inline-flex; align-items: center; gap: 10px;
   text-decoration: none; letter-spacing: -.3px;
 }
@@ -283,7 +283,7 @@
   padding: 0 0 32px;
 }
 .auth-split-headline {
-  font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 900; color: var(--white);
+  font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 800; color: var(--white);
   line-height: 1.22; margin-bottom: 28px; letter-spacing: -.4px;
 }
 .auth-split-sub {
@@ -357,7 +357,7 @@
 }
 .auth-split-right-logo a {
   display: inline-flex; align-items: center; gap: 10px;
-  font-size: 1.375rem; font-weight: 900; color: var(--text);
+  font-size: 1.375rem; font-weight: 800; color: var(--text);
   letter-spacing: -.3px; text-decoration: none;
 }
 .auth-split-right-logo i { color: var(--primary); }
