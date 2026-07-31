@@ -81,23 +81,31 @@
   border: 1px solid var(--glass-border);
 }
 
-/* ── 4. Compteurs : reprennent le fond que portait le hero ────
-   Le hero n'a plus de fond propre ; son voile en double dégradé est repris
-   ici. Panneau sombre → le texte y est blanc, et le contraste est garanti
-   par le voile lui-même, pas par une ombre portée sur image mouvante. */
+/* ── 4. Compteurs : aucun fond, posés à même la vidéo ─────────
+   Le contraste ne repose plus que sur l'ombre portée du texte. Sur un fond
+   en mouvement, la lisibilité n'est donc pas garantie sur tous les plans :
+   c'est un choix assumé de mise en scène. */
 :root[data-scroll-video="on"] .home-shell .stats-dark-grid {
-  background:
-    linear-gradient(180deg, rgba(5,14,28,.55) 0%, rgba(5,14,28,.2) 26%, rgba(5,14,28,.26) 58%, rgba(5,14,28,.58) 100%),
-    radial-gradient(ellipse at 50% 45%, rgba(4,12,26,.06) 0%, rgba(4,12,26,.3) 100%);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: none;
 }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item strong { color: var(--white); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item span   { color: rgba(255,255,255,.72); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-icon        { color: rgba(255,255,255,.85); }
-:root[data-scroll-video="on"] .home-shell .stats-dark-item        { border-right-color: rgba(255,255,255,.14); }
+:root[data-scroll-video="on"] .home-shell .stats-dark-item strong {
+  color: var(--white);
+  text-shadow: 0 2px 16px rgba(5, 14, 28, .75), 0 1px 3px rgba(5, 14, 28, .6);
+}
+:root[data-scroll-video="on"] .home-shell .stats-dark-item span {
+  color: rgba(255, 255, 255, .82);
+  text-shadow: 0 1px 12px rgba(5, 14, 28, .7);
+}
+:root[data-scroll-video="on"] .home-shell .stats-dark-icon {
+  color: rgba(255, 255, 255, .9);
+  text-shadow: 0 1px 12px rgba(5, 14, 28, .7);
+}
+:root[data-scroll-video="on"] .home-shell .stats-dark-item {
+  border-right-color: rgba(255, 255, 255, .14);
+}
 
 /* ── 5. Chrome ───────────────────────────────────────────────── */
 /* Navbar sans fond : elle se pose directement sur la vidéo. Son texte est
