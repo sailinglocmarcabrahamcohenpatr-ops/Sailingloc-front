@@ -57,10 +57,12 @@
 }
 .hero-title {
   color: var(--white);
+  font-family: var(--font-display), Georgia, 'Times New Roman', serif;
   font-size: clamp(2.4rem, 6vw, 4rem);
-  font-weight: 900;
+  /* 600 en serif équivaut visuellement au 800 de la grotesque précédente. */
+  font-weight: 600;
   line-height: 1.08;
-  letter-spacing: -.5px;
+  letter-spacing: -.02em;
   margin-bottom: 20px;
   text-shadow: 0 2px 20px rgba(0,0,0,.45);
   max-width: 780px;

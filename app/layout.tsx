@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Fraunces, Geist } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
 import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider, FavorisProvider, CookieConsentProvider } from "@/shared/lib";
@@ -24,9 +24,14 @@ const THEME_INIT_SCRIPT = `
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
-const inter = Inter({
+/* Police de titrage. Fraunces est un serif variable à fort caractère : il
+   donne une identité aux titres là où Geist (police par défaut de Next.js)
+   reste neutre. Le texte courant garde Geist — c'est le CONTRASTE entre les
+   deux qui produit l'effet haut de gamme, pas le serif seul.
+   Remplace Inter, qui était chargée mais jamais appliquée. */
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -65,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="fr" className={cn("font-sans", geist.variable, fraunces.variable)} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"

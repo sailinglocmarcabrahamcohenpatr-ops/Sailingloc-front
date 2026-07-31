@@ -19,7 +19,7 @@ const ACCOUNT_TYPES: {
   {
     type: "locataire",
     icon: "fa-sailboat",
-    bg: "#1866F2",
+    bg: "#114B6B",
     title: "Je loue un bateau",
     sub: "Trouvez le voilier idéal parmi 3 200+ annonces",
   },

@@ -92,7 +92,7 @@ export default function DestinationMap({ center, name, slug, boatCount, priceFro
           <Circle
             center={[center.lat, center.lng]}
             radius={28000}
-            pathOptions={{ color: "#1866F2", weight: 1, fillColor: "#1866F2", fillOpacity: 0.08 }}
+            pathOptions={{ color: "#114B6B", weight: 1, fillColor: "#114B6B", fillOpacity: 0.08 }}
           />
           <Marker position={[center.lat, center.lng]} icon={hubIcon}>
             <Popup>

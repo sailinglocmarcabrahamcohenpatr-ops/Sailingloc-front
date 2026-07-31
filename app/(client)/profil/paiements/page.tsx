@@ -25,7 +25,7 @@ export default function PaiementsPage() {
 
       <div className="dash-stats-grid">
         <div className="dash-stat-card">
-          <div className="dash-stat-icon" style={{ background: "#EEF3FE", color: "#1866F2" }}>
+          <div className="dash-stat-icon" style={{ background: "#EAF0F4", color: "#114B6B" }}>
             <i className="fa-solid fa-euro-sign" />
           </div>
           <div>
