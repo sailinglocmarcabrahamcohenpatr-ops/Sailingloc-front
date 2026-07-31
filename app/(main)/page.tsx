@@ -3,7 +3,8 @@ import Link from "next/link";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
-import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
+import Image from "next/image";
+import { FEATURED_BOATS, getBoatImageUrl } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
@@ -16,13 +17,14 @@ export const metadata: Metadata = {
     "Trouvez le bateau idéal pour vos vacances. Voiliers, catamarans, bateaux à moteur. Assurance incluse, paiement sécurisé, propriétaires vérifiés. France et Europe.",
 };
 
+/* Seules les 3 premières catégories sont mises en avant sur l'accueil, en
+   vignettes photo. Le lien « Voir tous les bateaux » donne accès au reste. */
+/* imageQuery explicite avec le suffixe /all : sans lui LoremFlickr traite les
+   mots-clés en OU et renvoyait des photos hors sujet (personnes, gros plans). */
 const BOAT_CATEGORIES = [
-  { type: "voilier", icon: "fa-sailboat", label: "Voilier", count: "1 240 annonces" },
-  { type: "catamaran", icon: "fa-ship", label: "Catamaran", count: "480 annonces" },
-  { type: "moteur", icon: "fa-gauge-high", label: "Moteur", count: "720 annonces" },
-  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide", count: "310 annonces" },
-  { type: "habitable", icon: "fa-house", label: "Habitable", count: "195 annonces" },
-  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis", count: "255 annonces" },
+  { type: "voilier" as const,   label: "Voilier",         imageQuery: "sailboat,sea/all" },
+  { type: "catamaran" as const, label: "Catamaran",       imageQuery: "catamaran,sea/all" },
+  { type: "moteur" as const,    label: "Bateau à moteur", imageQuery: "yacht,sea/all" },
 ];
 
 const HOW_IT_WORKS = [
@@ -77,12 +79,23 @@ export default async function HomePage() {
             {BOAT_CATEGORIES.map((cat) => (
               <Link
                 key={cat.type}
-                href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
+                href={`/bateaux?type=${cat.type}`}
                 className="category-card"
               >
-                <span className="category-icon" aria-hidden="true"><BoatTypeIcon type={cat.type} style={{ fontSize: "2.1rem" }} /></span>
-                <strong>{cat.label}</strong>
-                <span>{cat.count}</span>
+                <Image
+                  src={getBoatImageUrl(
+                    { imageSeed: cat.type, type: cat.type, imageQuery: cat.imageQuery },
+                    800,
+                    600
+                  )}
+                  alt=""
+                  fill
+                  sizes="(max-width: 700px) 100vw, 33vw"
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+                <span className="category-card-veil" aria-hidden="true" />
+                <strong className="category-card-label">{cat.label}</strong>
               </Link>
             ))}
           </div>
