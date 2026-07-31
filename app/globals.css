@@ -696,6 +696,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 /* auto-fill : la carte compacte tient à ~290px, la grille passe donc de 2 à
    3 colonnes sur large écran sans jamais descendre sous une largeur lisible. */
 .boats-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
+.boats-result-list { display: flex; flex-direction: column; gap: 14px; }
 
 /* Sidebar */
 .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 140px; }
@@ -776,6 +777,8 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 }
 @media (max-width: 768px) {
   .boats-result-grid { grid-template-columns: 1fr; }
+  .boats-result-list .boat-card { flex-direction: column; }
+  .boats-result-list .boat-card-img { width: 100%; aspect-ratio: 4 / 3; }
   .cat-search-bar { display: none; }
   .results-layout { padding: 20px 0 60px; }
 }

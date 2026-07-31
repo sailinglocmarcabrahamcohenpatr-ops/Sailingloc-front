@@ -29,11 +29,12 @@ interface PageProps {
     skipper?: string;
     arrivee?: string;
     depart?: string;
+    vue?: string;
   }>;
 }
 
 export default async function BoatsPage({ searchParams }: PageProps) {
-  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart } = await searchParams;
+  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue } = await searchParams;
 
   const types = (type?.split(",").filter((t) => t && t !== "tous") ?? []) as BoatType[];
 
@@ -116,7 +117,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
               Aucun bateau ne correspond à votre recherche.
             </p>
           ) : (
-            <div className="boats-result-grid">
+            <div className={vue === "liste" ? "boats-result-list" : "boats-result-grid"}>
               {boats.map((boat) => (
                 <FavoriteBoatCard key={boat.id} boat={boat} />
               ))}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type ViewMode = "grid" | "list";
 
@@ -12,7 +12,16 @@ interface ResultsControlsProps {
 }
 
 export default function ResultsControls({ count, dates, subtitle }: ResultsControlsProps) {
-  const [view, setView] = useState<ViewMode>("grid");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const view: ViewMode = searchParams.get("vue") === "liste" ? "list" : "grid";
+
+  const setView = (next: ViewMode) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "list") params.set("vue", "liste");
+    else params.delete("vue");
+    router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <div className="results-header">
