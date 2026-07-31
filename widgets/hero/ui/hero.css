@@ -82,6 +82,16 @@
    remontant depuis un champ haut serait rogné.
    On les ouvre donc sur le côté droit, dans l'espace libre du hero. */
 @media (min-width: 1001px) {
+  /* Les popovers s'alignent sur la CARTE de recherche, pas sur leur champ :
+     sans cela chacun s'ouvrait à la hauteur de son propre champ, donc à une
+     hauteur différente selon le champ cliqué.
+     .sb-select et .sb-date sont en position:relative et servaient de
+     référence ; les repasser en static fait remonter cette référence à
+     .search-card. */
+  .hero-layout .search-card { position: relative; }
+  .hero-layout .sb-select,
+  .hero-layout .sb-date { position: static; }
+
   .hero-layout .sb-popover,
   .hero-layout .sb-popover--right {
     top: 0;
