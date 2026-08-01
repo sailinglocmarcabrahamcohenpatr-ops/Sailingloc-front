@@ -105,7 +105,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
             rejoue son animation d'entrée (fondu + glissé + net) — le texte ne
             saute plus d'un coup pendant que le fond fait son fondu. */}
         <div className="dest-featured-text" key={current.slug}>
-          <div className="dest-featured-eyebrow">{current.flag} {current.country}</div>
+          <div className="dest-featured-eyebrow">{current.country} {current.flag}</div>
           <h2 className="dest-featured-title">{current.name}</h2>
           <p className="dest-featured-desc">{current.tagline}</p>
         </div>

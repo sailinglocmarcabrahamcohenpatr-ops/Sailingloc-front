@@ -102,7 +102,7 @@ export default async function DestinationsPage() {
                 <span className="dest-page-card-price">Dès {dest.priceFrom} € / j</span>
                 <div className="dest-page-card-content">
                   <div className="dest-page-card-country">
-                    <span className="dest-page-card-flag">{dest.flag}</span> {dest.country}
+                    {dest.country} <span className="dest-page-card-flag">{dest.flag}</span>
                   </div>
                   <h3>{dest.name}</h3>
                   <p>{dest.tagline}</p>
