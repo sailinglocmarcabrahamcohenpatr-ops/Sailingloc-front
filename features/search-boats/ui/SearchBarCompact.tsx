@@ -23,9 +23,6 @@ export default function SearchBarCompact() {
 
   const [dest,        setDest]        = useState(searchParams.get("destination") ?? "");
   const [range,       setRange]       = useState<DateRange | undefined>(undefined);
-  const [skipper,     setSkipper]     = useState<"avec" | "sans" | "">(
-    (searchParams.get("skipper") as "avec" | "sans") ?? ""
-  );
   const [calOpen,     setCalOpen]     = useState(false);
   const [ports,       setPorts]       = useState<PortAPI[]>([]);
   const [showSug,     setShowSug]     = useState(false);
@@ -76,13 +73,17 @@ export default function SearchBarCompact() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dest]);
 
-  /* Filtrage local instantané */
+  /* Filtrage local instantané — sans saisie : tous les ports disponibles */
   const query = dest.trim().toLowerCase();
-  const suggestions = query.length < 2 ? [] : ports.filter((p) =>
-    p.nom.toLowerCase().includes(query) ||
-    p.ville.toLowerCase().includes(query) ||
-    p.pays?.toLowerCase().includes(query)
-  ).slice(0, 6);
+  const suggestions = (
+    query.length < 2
+      ? ports
+      : ports.filter((p) =>
+          p.nom.toLowerCase().includes(query) ||
+          p.ville.toLowerCase().includes(query) ||
+          p.pays?.toLowerCase().includes(query)
+        )
+  ).slice(0, 8);
 
   const pickSuggestion = (p: PortAPI) => {
     setDest(p.ville);
@@ -101,11 +102,13 @@ export default function SearchBarCompact() {
 
   const handleSearch = () => {
     setShowSug(false);
-    const params = new URLSearchParams();
-    if (dest.trim())   params.set("destination", dest.trim());
-    if (skipper)       params.set("skipper", skipper);
-    if (range?.from)   params.set("arrivee", format(range.from, "yyyy-MM-dd"));
-    if (range?.to)     params.set("depart",  format(range.to,   "yyyy-MM-dd"));
+    const params = new URLSearchParams(searchParams.toString());
+    if (dest.trim()) params.set("destination", dest.trim());
+    else params.delete("destination");
+    if (range?.from) params.set("arrivee", format(range.from, "yyyy-MM-dd"));
+    else params.delete("arrivee");
+    if (range?.to)   params.set("depart",  format(range.to,   "yyyy-MM-dd"));
+    else params.delete("depart");
     const qs = params.toString();
     router.push(`/bateaux${qs ? "?" + qs : ""}`);
   };
@@ -124,7 +127,7 @@ export default function SearchBarCompact() {
               placeholder="Où souhaitez-vous naviguer ?"
               value={dest}
               onChange={e => { setDest(e.target.value); setShowSug(true); }}
-              onFocus={() => suggestions.length > 0 && setShowSug(true)}
+              onFocus={() => ports.length > 0 && setShowSug(true)}
               onKeyDown={e => {
                 if (e.key === "Enter")  handleSearch();
                 if (e.key === "Escape") setShowSug(false);
@@ -203,29 +206,6 @@ export default function SearchBarCompact() {
             </div>
           </PopoverContent>
         </Popover>
-      </div>
-
-      <div className={s.sep} />
-
-      {/* ── SKIPPER ── */}
-      <div className={s.section}>
-        <span className={s.label}>Skipper</span>
-        <div className={s.toggleGroup}>
-          <button
-            type="button"
-            onClick={() => setSkipper(skipper === "avec" ? "" : "avec")}
-            className={`${s.toggleBtn}${skipper === "avec" ? ` ${s["toggleBtn--active"]}` : ""}`}
-          >
-            Avec
-          </button>
-          <button
-            type="button"
-            onClick={() => setSkipper(skipper === "sans" ? "" : "sans")}
-            className={`${s.toggleBtn}${skipper === "sans" ? ` ${s["toggleBtn--active"]}` : ""}`}
-          >
-            Sans
-          </button>
-        </div>
       </div>
 
       {/* ── RECHERCHER ── */}
