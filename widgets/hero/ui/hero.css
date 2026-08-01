@@ -65,12 +65,14 @@
 .hero-layout .search-btn-wrap { padding: 6px; }
 .hero-layout .search-btn { width: 100%; justify-content: center; }
 
-/* Titre et sous-titre étaient centrés par marges automatiques (ancienne mise
-   en page empilée) : dans une colonne, ils doivent s'aligner à gauche. */
+/* Le texte est poussé contre le bord droit du conteneur. La carte de
+   recherche étant collée au bord gauche du même conteneur, les deux écarts
+   latéraux sont égaux par construction — sans valeur codée en dur. */
+.hero-copy { text-align: right; }
 .hero-copy .hero-title,
 .hero-copy .hero-sub {
   max-width: 640px;
-  margin-left: 0;
+  margin-left: auto;
   margin-right: 0;
 }
 .hero-copy .hero-sub { margin-bottom: 0; }
