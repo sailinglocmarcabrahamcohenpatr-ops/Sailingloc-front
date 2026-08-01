@@ -48,6 +48,23 @@ export default function OwnerBoatsPage() {
   const [error, setError] = useState("");
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [toggleError, setToggleError] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (openMenuId === null) return;
+    const closeOnOutsideClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".owner-boat-menu")) setOpenMenuId(null);
+    };
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenuId(null);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [openMenuId]);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -173,49 +190,77 @@ export default function OwnerBoatsPage() {
                 </div>
               </div>
               <div className="owner-boat-actions">
-                <Link
-                  href={`/bateaux/${boat.id}`}
-                  className="btn btn-ghost btn-sm"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <i className="fa-solid fa-eye" /> Voir
-                </Link>
-                {uiStatus !== "refused" && uiStatus !== "pending" && (
-                  <Link href={`/proprietaire/bateaux/${boat.id}/calendrier`} className="btn btn-outline btn-sm">
-                    <i className="fa-solid fa-calendar-days" /> Calendrier
-                  </Link>
-                )}
-                <Link href={`/proprietaire/bateaux/${boat.id}/modifier`} className="btn btn-outline btn-sm">
-                  <i className="fa-solid fa-pen-to-square" /> Modifier
-                </Link>
-                {uiStatus === "active" ? (
+                <div className="owner-boat-menu">
                   <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleToggleStatus(boat, false)}
-                    disabled={togglingId === boat.id}
+                    type="button"
+                    className="owner-boat-menu-btn"
+                    aria-label="Actions sur ce bateau"
+                    aria-haspopup="true"
+                    aria-expanded={openMenuId === boat.id}
+                    onClick={() => setOpenMenuId((id) => (id === boat.id ? null : boat.id))}
                   >
-                    {togglingId === boat.id ? (
-                      <i className="fa-solid fa-circle-notch fa-spin" />
-                    ) : (
-                      <i className="fa-solid fa-pause" />
-                    )}{" "}
-                    Désactiver
+                    <i className="fa-solid fa-ellipsis" />
                   </button>
-                ) : uiStatus === "inactive" ? (
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleToggleStatus(boat, true)}
-                    disabled={togglingId === boat.id}
-                  >
-                    {togglingId === boat.id ? (
-                      <i className="fa-solid fa-circle-notch fa-spin" />
-                    ) : (
-                      <i className="fa-solid fa-play" />
-                    )}{" "}
-                    Activer
-                  </button>
-                ) : null}
+                  {openMenuId === boat.id && (
+                    <div className="owner-boat-menu-dropdown" role="menu">
+                      <Link
+                        href={`/bateaux/${boat.id}`}
+                        className="owner-boat-menu-item"
+                        target="_blank"
+                        rel="noopener"
+                        role="menuitem"
+                        onClick={() => setOpenMenuId(null)}
+                      >
+                        <i className="fa-solid fa-eye" /> Voir
+                      </Link>
+                      {uiStatus !== "refused" && uiStatus !== "pending" && (
+                        <Link
+                          href={`/proprietaire/bateaux/${boat.id}/calendrier`}
+                          className="owner-boat-menu-item"
+                          role="menuitem"
+                          onClick={() => setOpenMenuId(null)}
+                        >
+                          <i className="fa-solid fa-calendar-days" /> Calendrier
+                        </Link>
+                      )}
+                      <Link
+                        href={`/proprietaire/bateaux/${boat.id}/modifier`}
+                        className="owner-boat-menu-item"
+                        role="menuitem"
+                        onClick={() => setOpenMenuId(null)}
+                      >
+                        <i className="fa-solid fa-pen-to-square" /> Modifier
+                      </Link>
+                      {uiStatus === "active" ? (
+                        <button
+                          type="button"
+                          className="owner-boat-menu-item"
+                          role="menuitem"
+                          disabled={togglingId === boat.id}
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleToggleStatus(boat, false);
+                          }}
+                        >
+                          <i className="fa-solid fa-pause" /> Désactiver
+                        </button>
+                      ) : uiStatus === "inactive" ? (
+                        <button
+                          type="button"
+                          className="owner-boat-menu-item"
+                          role="menuitem"
+                          disabled={togglingId === boat.id}
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleToggleStatus(boat, true);
+                          }}
+                        >
+                          <i className="fa-solid fa-play" /> Activer
+                        </button>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
