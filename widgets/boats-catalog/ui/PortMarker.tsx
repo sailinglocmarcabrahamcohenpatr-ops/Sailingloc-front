@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { divIcon, type Marker as LeafletMarker } from "leaflet";
+import { useMemo, useState } from "react";
+import { divIcon } from "leaflet";
 import { Marker, Popup } from "react-leaflet";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,45 +20,21 @@ function createPortIcon(count: number) {
   });
 }
 
-/** Délai avant fermeture du popup au survol : laisse le temps au curseur de
- *  passer de la balise au popup (deux éléments DOM distincts) sans clignoter. */
-const HOVER_CLOSE_DELAY = 200;
-
 interface PortMarkerProps {
   boats: (Boat & { coordinates: { lat: number; lng: number } })[];
 }
 
-/** Une balise = un port. Un seul bateau : popup classique. Plusieurs bateaux
- *  au même port : la balise affiche leur nombre et le survol ouvre un
- *  mini-carrousel pour parcourir chaque bateau avant d'ouvrir sa fiche. */
+/** Une balise = un port. Un seul bateau : popup classique au clic. Plusieurs
+ *  bateaux au même port : la balise affiche leur nombre et le clic ouvre un
+ *  mini-carrousel (flèches en dehors de la carte) pour les parcourir avant
+ *  d'ouvrir la fiche de l'un d'eux. */
 export default function PortMarker({ boats }: PortMarkerProps) {
-  const markerRef = useRef<LeafletMarker | null>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [index, setIndex] = useState(0);
 
   const count = boats.length;
   const position: [number, number] = [boats[0].coordinates.lat, boats[0].coordinates.lng];
   const icon = useMemo(() => createPortIcon(count), [count]);
   const current = boats[index] ?? boats[0];
-
-  const cancelClose = useCallback(() => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  }, []);
-
-  const scheduleClose = useCallback(() => {
-    cancelClose();
-    closeTimer.current = setTimeout(() => {
-      markerRef.current?.closePopup();
-    }, HOVER_CLOSE_DELAY);
-  }, [cancelClose]);
-
-  const open = useCallback(() => {
-    cancelClose();
-    markerRef.current?.openPopup();
-  }, [cancelClose]);
 
   const go = (e: React.MouseEvent, dir: number) => {
     e.preventDefault();
@@ -67,14 +43,20 @@ export default function PortMarker({ boats }: PortMarkerProps) {
   };
 
   return (
-    <Marker
-      ref={markerRef}
-      position={position}
-      icon={icon}
-      eventHandlers={{ mouseover: open, mouseout: scheduleClose }}
-    >
+    <Marker position={position} icon={icon}>
       <Popup className="boat-map-popup-wrap">
-        <div onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
+        <div className="boat-map-popup-shell">
+          {count > 1 && (
+            <button
+              type="button"
+              className="boat-map-popup-nav boat-map-popup-nav--prev"
+              onClick={(e) => go(e, -1)}
+              aria-label="Bateau précédent"
+            >
+              <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+            </button>
+          )}
+
           <div className="boat-map-popup-card">
             <div className="boat-map-popup-photo">
               <Image
@@ -94,22 +76,6 @@ export default function PortMarker({ boats }: PortMarkerProps) {
                   <span className="boat-map-popup-chip boat-map-popup-chip--index">
                     {index + 1}/{count}
                   </span>
-                  <button
-                    type="button"
-                    className="boat-map-popup-nav boat-map-popup-nav--prev"
-                    onClick={(e) => go(e, -1)}
-                    aria-label="Bateau précédent"
-                  >
-                    <i className="fa-solid fa-chevron-left" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    className="boat-map-popup-nav boat-map-popup-nav--next"
-                    onClick={(e) => go(e, 1)}
-                    aria-label="Bateau suivant"
-                  >
-                    <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-                  </button>
                 </>
               )}
             </div>
@@ -130,24 +96,35 @@ export default function PortMarker({ boats }: PortMarkerProps) {
                 Voir le bateau <i className="fa-solid fa-arrow-right" aria-hidden="true" />
               </Link>
             </div>
+
+            {count > 1 && (
+              <div className="boat-map-popup-dots">
+                {boats.map((b, i) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`boat-map-popup-dot${i === index ? " is-active" : ""}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIndex(i);
+                    }}
+                    aria-label={`Voir ${b.name}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {count > 1 && (
-            <div className="boat-map-popup-dots">
-              {boats.map((b, i) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  className={`boat-map-popup-dot${i === index ? " is-active" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIndex(i);
-                  }}
-                  aria-label={`Voir ${b.name}`}
-                />
-              ))}
-            </div>
+            <button
+              type="button"
+              className="boat-map-popup-nav boat-map-popup-nav--next"
+              onClick={(e) => go(e, 1)}
+              aria-label="Bateau suivant"
+            >
+              <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+            </button>
           )}
         </div>
       </Popup>
