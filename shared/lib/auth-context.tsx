@@ -105,6 +105,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       apiGetUserByEmail(email)
         .then((u) => {
+          if (u.statutCompte === "inactif") {
+            // Compte désactivé depuis la dernière session : on ne restaure
+            // pas la session malgré un JWT encore valide.
+            removeToken();
+            setUser(null);
+            return;
+          }
           const name = [u.prenom, u.nom].filter(Boolean).join(" ") || nameFromJwt;
           const userId = u.id;
           setUser(buildUser({ email, name, role, userId, telephone: u.telephone }));

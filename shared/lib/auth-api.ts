@@ -86,18 +86,28 @@ export async function apiLogin(payload: LoginPayload) {
   const role = extractRoleFromJwt(jwt);
 
   // Fetch real user data from DB — c'est aussi la seule source fiable de
-  // l'id numérique (le JWT n'embarque aucune claim `id`).
+  // l'id numérique (le JWT n'embarque aucune claim `id`) et du statut du
+  // compte (le JWT n'embarque pas non plus `statutCompte`).
   let name = extractNameFromJwt(jwt, email);
   let telephone: string | undefined;
   let userId = jwt.id ?? 0;
+  let user: UtilisateurAPI | undefined;
   try {
-    const user = await apiGetUserByEmail(email);
-    name = [user.prenom, user.nom].filter(Boolean).join(" ") || name;
-    telephone = user.telephone;
-    userId = user.id ?? userId;
+    user = await apiGetUserByEmail(email);
   } catch {
     // fallback to JWT data if fetch fails (ex: endpoint réservé aux admins
     // pour un compte propriétaire/locataire — userId reste 0 dans ce cas)
+  }
+
+  if (user?.statutCompte === "inactif") {
+    removeToken();
+    throw new ApiError(403, "Votre compte a été désactivé. Contactez le support pour plus d'informations.");
+  }
+
+  if (user) {
+    name = [user.prenom, user.nom].filter(Boolean).join(" ") || name;
+    telephone = user.telephone;
+    userId = user.id ?? userId;
   }
 
   return {
