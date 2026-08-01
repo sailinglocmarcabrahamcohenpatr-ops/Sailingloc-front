@@ -21,7 +21,9 @@
 }
 .dest-hero-content {
   position: relative; z-index: 1;
-  padding: 64px 0 72px;
+  /* padding bas augmenté (72 -> 104) : le contenu, ancré en bas via
+     align-items:flex-end, est remonté d'autant. */
+  padding: 64px 0 104px;
   color: var(--white);
   text-align: left;
 }
