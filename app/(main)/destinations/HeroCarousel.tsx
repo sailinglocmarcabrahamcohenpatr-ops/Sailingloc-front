@@ -6,36 +6,64 @@ import Link from "next/link";
 import type { FullDestination } from "@/entities/destination";
 
 const AUTOPLAY_MS = 5500;
+const SLIDE_MS = 700; // doit rester aligné sur la transition CSS de la piste
 
 type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
 
 export default function HeroCarousel({ destinations }: { destinations: DestinationWithPhotos[] }) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const count = destinations.length;
 
-  const goTo = useCallback(
-    (i: number) => setIndex(((i % count) + count) % count),
-    [count]
-  );
+  /* Carrousel INFINI, sans rembobinage. La piste de vignettes est rendue en
+     TROIS exemplaires ; `offset` indexe cette piste triplée et n'est jamais
+     ramené a 0 : il avance/recule librement, puis on le RECENTRE dans la copie
+     du milieu par un saut de ±count SANS transition. Le contenu se repetant
+     tous les `count`, ce saut est invisible → boucle continue dans les deux
+     sens, jamais de retour brusque au debut.
+     `offset` demarre a count+1 : copie du milieu, en montrant les destinations
+     a venir (index+1…). */
+  const [offset, setOffset] = useState(count + 1);
+  const [noAnim, setNoAnim] = useState(false); // coupe la transition le temps du recentrage
+  const [paused, setPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const index = (((offset - 1) % count) + count) % count;
+
+  const next = useCallback(() => setOffset((o) => o + 1), []);
+  const prev = useCallback(() => setOffset((o) => o - 1), []);
+  const goTo = useCallback((i: number) => setOffset(count + 1 + i), [count]);
 
   useEffect(() => {
     if (paused || count <= 1) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS);
+    const timer = setInterval(next, AUTOPLAY_MS);
     return () => clearInterval(timer);
-  }, [paused, count]);
+  }, [paused, count, next]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  /* Recentrage invisible : quand `offset` sort de la copie du milieu
+     [count, 2*count), on attend la fin du glissement puis on le decale de
+     ±count sans transition. */
+  useEffect(() => {
+    if (noAnim) {
+      const r = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setNoAnim(false))
+      );
+      return () => cancelAnimationFrame(r);
+    }
+    if (offset >= 2 * count || offset < count) {
+      const t = setTimeout(() => {
+        setNoAnim(true);
+        setOffset((o) => (o >= 2 * count ? o - count : o + count));
+      }, SLIDE_MS + 40);
+      return () => clearTimeout(t);
+    }
+  }, [offset, noAnim, count]);
 
   if (count === 0) return null;
 
   const current = destinations[index];
-  /* Piste de vignettes coulissante : on rend la liste DEUX fois, pour qu'il y
-     ait toujours des destinations à droite quel que soit l'index (pas de
-     fenêtre vide en fin de liste). Le décalage horizontal est piloté en CSS
-     par --thumb-i, avec une transition → défilement fluide. */
-  const track = [...destinations, ...destinations];
+  // Piste triplée : des vignettes existent toujours de part et d'autre de la
+  // fenêtre, dans les deux sens.
+  const track = [...destinations, ...destinations, ...destinations];
 
   return (
     <div
@@ -93,7 +121,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
                 type="button"
                 className="dest-featured-pager-btn"
                 aria-label="Destination précédente"
-                onClick={() => goTo(index - 1)}
+                onClick={prev}
               >
                 <i className="fa-solid fa-chevron-left" aria-hidden="true" />
               </button>
@@ -104,7 +132,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
                 type="button"
                 className="dest-featured-pager-btn"
                 aria-label="Destination suivante"
-                onClick={() => goTo(index + 1)}
+                onClick={next}
               >
                 <i className="fa-solid fa-chevron-right" aria-hidden="true" />
               </button>
@@ -116,8 +144,8 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       {count > 1 && (
         <div className="dest-featured-thumbs" aria-label="Autres destinations">
           <div
-            className="dest-featured-thumbs-track"
-            style={{ "--thumb-i": index + 1 } as React.CSSProperties}
+            className={`dest-featured-thumbs-track${noAnim ? " no-anim" : ""}`}
+            style={{ "--thumb-i": offset } as React.CSSProperties}
           >
             {track.map((dest, n) => (
               <button
