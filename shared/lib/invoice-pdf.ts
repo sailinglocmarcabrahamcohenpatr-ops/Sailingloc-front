@@ -39,14 +39,18 @@ function paymentStatusInfo(
   reservation: ReservationAPI,
   paiements: PaiementAPI[]
 ): { label: string; key: keyof typeof STATUS_STYLES } {
+  const key = (reservation.statutReservation ?? "").toLowerCase();
   if (paiements.length > 0) {
     const latest = paiements[paiements.length - 1];
     if (latest.statutPaiement === "paye") return { label: "Payée", key: "paid" };
     if (latest.statutPaiement === "rembourse") return { label: "Remboursée", key: "cancelled" };
     if (latest.statutPaiement === "echoue") return { label: "Paiement échoué", key: "failed" };
+    // La réservation confirmée/terminée par le propriétaire vaut encaissement pour le locataire,
+    // même si l'enregistrement de paiement lui-même est resté "en_attente" (webhook Stripe manqué,
+    // données antérieures au correctif backend).
+    if (key.includes("confirm") || key.includes("termin")) return { label: "Payée", key: "paid" };
     return { label: "En attente d'encaissement", key: "pending" };
   }
-  const key = (reservation.statutReservation ?? "").toLowerCase();
   if (key.includes("annul")) return { label: "Annulée", key: "cancelled" };
   if (key.includes("confirm") || key.includes("termin")) return { label: "Payée", key: "paid" };
   return { label: "En attente d'encaissement", key: "pending" };
