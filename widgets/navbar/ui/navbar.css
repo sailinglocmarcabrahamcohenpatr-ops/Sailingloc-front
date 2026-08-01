@@ -13,8 +13,11 @@
   top: 0; /* collée au haut de la page */
   z-index: 1000;
   height: auto; /* neutralise le height:64px fixe de globals → hauteur = contenu + padding (symétrique) */
-  width: auto; /* les marges latérales réduisent la largeur (pas de débordement) */
-  margin: 0 16px; /* collée en haut et en bas (espacement vertical égal), marges latérales */
+  width: auto;
+  /* Pleine largeur : le fond et le flou vont d'un bord à l'autre de l'écran.
+     Le contenu, lui, garde son retrait de 16px via .navbar-inner → il reste
+     aligné sur le contenu de la page. */
+  margin: 0;
   padding: 12px 0; /* haut/bas égaux — hauteur ≈ contenu (38px) + 24px ≈ 62px */
   border-radius: 0; /* angles droits */
   background: var(--card-bg);

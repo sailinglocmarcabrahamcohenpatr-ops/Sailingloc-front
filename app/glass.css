@@ -127,7 +127,10 @@
 :root[data-scroll-video="on"] .navbar::before {
   content: "";
   position: absolute;
-  inset: -12px -16px auto -16px;
+  /* La navbar est désormais pleine largeur : le voile va d'un bord à l'autre
+     (left/right 0) au lieu de déborder de 16px comme quand elle était en
+     retrait. */
+  inset: -12px 0 auto 0;
   height: 140px;
   z-index: -1;
   pointer-events: none;
