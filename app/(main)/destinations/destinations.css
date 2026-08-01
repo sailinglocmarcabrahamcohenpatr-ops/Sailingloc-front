@@ -66,7 +66,8 @@
 }
 @media (max-width: 640px) { .dest-detail-hero-scroll { display: none; } }
 
-.dest-featured-section { padding: 48px 0 0; }
+/* Padding vertical symétrique : autant au-dessous qu'au-dessus (48px). */
+.dest-featured-section { padding: 48px 0; }
 .dest-featured-carousel {
   position: relative;
   height: 620px;
