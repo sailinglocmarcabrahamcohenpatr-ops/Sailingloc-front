@@ -222,11 +222,12 @@
   .dest-featured-thumbs-track { transition: none; }
 }
 
-/* Sections élargies (carrousel vedette + grille « X destinations ») : le
-   .container global (95 % / max 1600px) est repoussé à 98 % / max 1920px pour
+/* Sections élargies (carrousel vedette + grille « X destinations » + bloc CTA) :
+   le .container global (95 % / max 1600px) est repoussé à 98 % / max 1920px pour
    ces sections seulement. Scopé → aucune autre page touchée. */
 .dest-featured-section > .container,
-.dest-grid-section > .container {
+.dest-grid-section > .container,
+.dest-cta-section > .container {
   width: 98%;
   max-width: 1920px;
 }
