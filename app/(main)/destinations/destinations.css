@@ -359,15 +359,15 @@
 .dest-cta-box h2 { color: var(--white); }
 .dest-cta-box p { color: rgba(255,255,255,.72); font-size: 1rem; line-height: 1.7; margin-top: 10px; }
 .dest-cta-btns { display: flex; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
-/* CTA primaire du bloc « Votre destination n'est pas listée » en beige sable
-   (comme l'accueil) ; « Nous contacter » reste en contour secondaire. */
-.dest-cta-btns .btn-primary {
+/* Beige sable sur « Nous contacter » (cohérence accueil) ; « Explorer tous les
+   bateaux » garde son style primaire par défaut. */
+.dest-cta-btns .btn-outline-white {
   background: var(--sand);
   border-color: var(--sand);
   color: var(--white);
   box-shadow: 0 6px 18px rgba(160,138,96,.35);
 }
-.dest-cta-btns .btn-primary:hover {
+.dest-cta-btns .btn-outline-white:hover {
   background: var(--sand-dark);
   border-color: var(--sand-dark);
   color: var(--white);
