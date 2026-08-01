@@ -261,7 +261,9 @@
 .dest-page-card:hover .dest-page-card-arrow { opacity: 1; transform: none; background: var(--white); color: var(--navy); }
 
 /* CTA de fin de page */
-.dest-cta-section { background: var(--navy); padding: 60px 0; }
+/* Bande de section sur fond blanc : la carte CTA (dégradé bleu) flotte dessus.
+   Seul le footer reste en bleu foncé, sans se fondre avec cette section. */
+.dest-cta-section { background: var(--white); padding: 60px 0; }
 .dest-cta-box {
   background: linear-gradient(135deg, var(--primary) 0%, var(--navy-2) 100%);
   border-radius: var(--radius-2xl);
