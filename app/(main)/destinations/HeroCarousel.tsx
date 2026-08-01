@@ -73,9 +73,14 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       </div>
 
       <div className="dest-featured-content">
-        <div className="dest-featured-eyebrow">{current.flag} {current.country}</div>
-        <h2 className="dest-featured-title">{current.name}</h2>
-        <p className="dest-featured-desc">{current.tagline}</p>
+        {/* Keyé sur la destination : à chaque changement, ce bloc se remonte et
+            rejoue son animation d'entrée (fondu + glissé + net) — le texte ne
+            saute plus d'un coup pendant que le fond fait son fondu. */}
+        <div className="dest-featured-text" key={current.slug}>
+          <div className="dest-featured-eyebrow">{current.flag} {current.country}</div>
+          <h2 className="dest-featured-title">{current.name}</h2>
+          <p className="dest-featured-desc">{current.tagline}</p>
+        </div>
 
         <div className="dest-featured-actions">
           <Link href={`/destinations/${current.slug}`} className="dest-featured-cta">
