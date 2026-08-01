@@ -21,10 +21,11 @@ const MessagesContext = createContext<MessagesContextType>({
   unreadCount: 0,
 });
 
-/** Source unique des messages pour toute l'app : un seul abonnement Mercure
- *  et un seul polling de secours, montés ici (racine de l'app) plutôt que
- *  dans chaque page — sans quoi la connexion SSE se referme et se rouvre à
- *  chaque fois qu'on entre/sort de l'onglet Messages. */
+/** Source unique des messages pour toute l'app : un seul abonnement Mercure,
+ *  monté ici (racine de l'app) plutôt que dans chaque page — sans quoi la
+ *  connexion SSE se referme et se rouvre à chaque fois qu'on entre/sort de
+ *  l'onglet Messages. Pas de polling de secours : le temps réel passe
+ *  entièrement par Mercure. */
 export function MessagesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -38,14 +39,6 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       .then(setMessages)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const id = setInterval(() => {
-      messagesApi.getAll().then(setMessages).catch(() => {});
-    }, 5000);
-    return () => clearInterval(id);
   }, [userId]);
 
   const handleRealtimeMessage = useCallback((msg: MessageAPI) => {

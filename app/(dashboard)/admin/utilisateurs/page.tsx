@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { utilisateursApi } from "@/shared/lib";
 import type { UtilisateurAPI } from "@/shared/lib";
 import "../../proprietaire/dashboard.css";
@@ -36,9 +37,11 @@ const ROLE_LABEL: Record<"admin" | "proprietaire" | "locataire", string> = {
 
 /* ── Composant ── */
 export default function AdminUtilisateursPage() {
+  const router = useRouter();
   const [users, setUsers]             = useState<UtilisateurAPI[]>([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState("");
+  const [search, setSearch]           = useState("");
   const [filterRole, setFilterRole]   = useState("all");
   const [filterStatut, setFilterStatut] = useState("all");
   const [selected, setSelected]       = useState<Set<number>>(new Set());
@@ -58,13 +61,15 @@ export default function AdminUtilisateursPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return users.filter((u) => {
       if (filterRole !== "all" && topRole(u.roles) !== filterRole) return false;
           if (filterStatut === "actif"   && u.statutCompte !== "actif")   return false;
           if (filterStatut === "inactif" && u.statutCompte !== "inactif") return false;
+      if (q && !`${u.prenom} ${u.nom} ${u.email}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [users, filterRole, filterStatut]);
+  }, [users, filterRole, filterStatut, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageUsers  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -287,6 +292,15 @@ export default function AdminUtilisateursPage() {
 
       <div className="users-toolbar">
         <div className="users-filters">
+          <div className="users-search-wrap">
+            <i className="fa-solid fa-magnifying-glass users-search-icon" />
+            <input
+              className="users-search-input"
+              placeholder="Nom, prénom, email…"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
           <select
             className="users-filter-select"
             value={filterRole}
@@ -343,8 +357,12 @@ export default function AdminUtilisateursPage() {
                   {pageUsers.map((u) => {
                     const role = topRole(u.roles);
                     return (
-                      <tr key={u.id}>
-                        <td className="col-check">
+                      <tr
+                        key={u.id}
+                        onClick={() => router.push(`/admin/utilisateurs/${u.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td className="col-check" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" className="users-checkbox" checked={selected.has(u.id)} onChange={() => toggleOne(u.id)} />
                         </td>
                         <td>
@@ -368,7 +386,7 @@ export default function AdminUtilisateursPage() {
                             {ROLE_LABEL[role]}
                           </span>
                         </td>
-                        <td>
+                        <td onClick={(e) => e.stopPropagation()}>
                           <div className="users-actions">
                             <button className="users-action-btn" onClick={() => startEdit(u)} title="Modifier">
                               <i className="fa-solid fa-pen" />

@@ -22,8 +22,9 @@ const NotificationsContext = createContext<NotificationsContextType>({
 });
 
 /** Source unique des notifications pour toute l'app : un seul abonnement
- *  Mercure et un seul polling de secours, montés ici (racine de l'app) plutôt
- *  que dans chaque page — voir MessagesProvider pour le même raisonnement. */
+ *  Mercure, monté ici (racine de l'app) plutôt que dans chaque page — voir
+ *  MessagesProvider pour le même raisonnement. Pas de polling de secours :
+ *  le temps réel passe entièrement par Mercure. */
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -36,16 +37,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       .then((data) => setNotifications([...data].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const id = setInterval(() => {
-      notificationsApi.getAll()
-        .then((data) => setNotifications([...data].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())))
-        .catch(() => {});
-    }, 15000);
-    return () => clearInterval(id);
   }, [userId]);
 
   const handleRealtimeNotification = useCallback((notif: NotificationAPI) => {
