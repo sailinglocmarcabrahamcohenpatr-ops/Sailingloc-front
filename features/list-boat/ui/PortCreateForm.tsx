@@ -5,6 +5,7 @@ import { portsApi } from "@/shared/lib/referentiels-api";
 import type { PortAPI } from "@/shared/lib/referentiels-api";
 import { ApiError } from "@/shared/lib/api-client";
 import { geocodeCity } from "../api/geocode";
+import PortCityAutocomplete from "./PortCityAutocomplete";
 
 interface PortCreateFormProps {
   /** Texte saisi dans la recherche, utilisé pour pré-remplir le nom. */
@@ -38,6 +39,7 @@ export default function PortCreateForm({
   const [ville, setVille] = useState("");
   const [codePostal, setCodePostal] = useState("");
   const [pays, setPays] = useState("France");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,17 +61,23 @@ export default function PortCreateForm({
     try {
       /* Géocodage best-effort : l'API stocke latitude/longitude, autant les
          renseigner à la création pour que la carte s'affiche tout de suite.
-         Un échec ici ne doit pas empêcher la création du port. */
+         Un échec ici ne doit pas empêcher la création du port. Si la ville
+         vient de l'autocomplétion, les coordonnées sont déjà connues. */
       let latitude: string | undefined;
       let longitude: string | undefined;
-      try {
-        const geo = await geocodeCity(`${ville.trim()} ${codePostal.trim()}`.trim());
-        if (geo) {
-          latitude = String(geo.lat);
-          longitude = String(geo.lng);
+      if (coords) {
+        latitude = String(coords.lat);
+        longitude = String(coords.lng);
+      } else {
+        try {
+          const geo = await geocodeCity(`${ville.trim()} ${codePostal.trim()}`.trim());
+          if (geo) {
+            latitude = String(geo.lat);
+            longitude = String(geo.lng);
+          }
+        } catch {
+          /* géocodage indisponible : on crée le port sans coordonnées */
         }
-      } catch {
-        /* géocodage indisponible : on crée le port sans coordonnées */
       }
 
       const created = await portsApi.create({
@@ -124,12 +132,18 @@ export default function PortCreateForm({
         </div>
         <div className="form-group">
           <label htmlFor="pc-ville">Ville *</label>
-          <input
+          <PortCityAutocomplete
             id="pc-ville"
-            type="text"
-            placeholder="Ex : Cannes"
-            value={ville}
-            onChange={(e) => { setVille(e.target.value); setError(""); }}
+            ville={ville}
+            pays={pays}
+            onVilleChange={(v) => { setVille(v); setCoords(null); setError(""); }}
+            onSelect={(s) => {
+              setVille(s.ville);
+              setCoords(s.lat != null && s.lng != null ? { lat: s.lat, lng: s.lng } : null);
+              if (s.codePostal) setCodePostal(s.codePostal);
+              if (!nom.trim()) setNom(`Port de ${s.ville}`);
+              setError("");
+            }}
           />
         </div>
         <div className="form-group">

@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
-import { AuthProvider, PreferencesProvider, MessagesProvider } from "@/shared/lib";
+import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider, FavorisProvider, CookieConsentProvider } from "@/shared/lib";
+import { CookieConsentBanner } from "@/widgets/cookie-consent";
 import { cn } from "@/lib/utils";
 
 const THEME_INIT_SCRIPT = `
@@ -81,8 +82,15 @@ export default function RootLayout({
         <AuthProvider>
           <PreferencesProvider>
             <MessagesProvider>
-              {children}
-              <FadeInObserver />
+              <NotificationsProvider>
+                <FavorisProvider>
+                  <CookieConsentProvider>
+                    {children}
+                    <FadeInObserver />
+                    <CookieConsentBanner />
+                  </CookieConsentProvider>
+                </FavorisProvider>
+              </NotificationsProvider>
             </MessagesProvider>
           </PreferencesProvider>
         </AuthProvider>

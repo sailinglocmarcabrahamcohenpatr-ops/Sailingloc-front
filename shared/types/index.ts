@@ -44,6 +44,9 @@ export interface Testimonial {
   body: string;
   destination: string;
   boatType: string;
+  noteProprietaire: number;
+  noteBateau: number;
+  noteLieu: number;
 }
 
 export interface Stat {
@@ -96,7 +99,7 @@ export interface FullDestination {
   avgWind: string;
   priceFrom: number;
   activities: string[];
-  highlights: { title: string; desc: string; icon: string }[];
+  highlights: { title: string; desc: string; icon: string; image?: string }[];
   tags: string[];
   gallerySeeds: string[];
   galleryImages?: string[];

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, useMessages } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
 
 type NavLink = { href: string; icon: string; label: string; badge?: number; exact?: boolean };
 
@@ -22,8 +23,8 @@ const adminLinks: NavLink[] = [
   { href: "/admin/avis",              icon: "fa-star",           label: "Avis" },
   { href: "/admin/reservations",      icon: "fa-calendar-check", label: "Réservations" },
   { href: "/admin/utilisateurs",      icon: "fa-users",          label: "Utilisateurs" },
-  { href: "/admin/bateaux",           icon: "fa-sailboat",       label: "Ajouter un bateau" },
   { href: "/admin/publication",       icon: "fa-file-circle-check", label: "Publication" },
+  { href: "/admin/ports",             icon: "fa-map-location-dot", label: "Gestion des ports" },
   { href: "/admin/demandes-proprio",  icon: "fa-user-check",     label: "Demandes propriétaire" },
   { href: "/admin/messages",          icon: "fa-envelope",       label: "Messages" },
 ];
@@ -33,7 +34,9 @@ const bottomLinks: NavLink[] = [
   { href: "/contact", icon: "fa-headset", label: "Support" },
 ];
 
-export default function DashboardSidebar() {
+type Props = { open?: boolean; onClose?: () => void };
+
+export default function DashboardSidebar({ open = false, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
@@ -62,10 +65,14 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside className="dashboard-sidebar">
+    <>
+      {open && <div className="dash-sidebar-backdrop" onClick={onClose} />}
+      <aside className={`dashboard-sidebar${open ? " mobile-open" : ""}`}>
+      <button type="button" className="dash-sidebar-close" onClick={onClose} title="Fermer le menu" aria-label="Fermer le menu">
+        <i className="fa-solid fa-xmark" />
+      </button>
       <Link href="/" className="dash-sidebar-logo">
-        <i className="fa-solid fa-anchor" aria-hidden="true" />
-        SailingLoc
+        <Logo />
       </Link>
 
       <div className="dash-sidebar-user">
@@ -118,6 +125,7 @@ export default function DashboardSidebar() {
           <span>Déconnexion</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -143,7 +143,7 @@ export default function DashboardContent() {
       </div>
 
       <div className="dh-stats-grid">
-        <Link href="/proprietaire/revenus" className="dh-stat-card hero">
+        <Link href="/proprietaire/revenus" className="dh-stat-card dh-hero">
           <div className="dh-stat-top">
             <div className="dh-stat-icon"><i className="fa-solid fa-euro-sign" /></div>
             <div className="dh-stat-nav"><i className="fa-solid fa-arrow-right" /></div>

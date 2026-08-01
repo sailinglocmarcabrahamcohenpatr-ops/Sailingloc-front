@@ -218,8 +218,8 @@ export default function RegisterForm() {
             <label className="checkbox-label auth-cgv">
               <input type="checkbox" checked={agreedCgu} onChange={(e) => setAgreedCgu(e.target.checked)} />
               <span>
-                J'accepte les <Link href="#" className="auth-link">CGU</Link>{" "}
-                et la <Link href="#" className="auth-link">politique de confidentialité</Link>
+                J'accepte les <Link href="/cgu" target="_blank" className="auth-link">CGU</Link>{" "}
+                et la <Link href="/confidentialite" target="_blank" className="auth-link">politique de confidentialité</Link>
               </span>
             </label>
           </div>

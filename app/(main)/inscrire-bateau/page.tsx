@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ListBoatForm } from "@/features/list-boat";
+import { Logo } from "@/shared/ui";
 import "@/features/list-boat/ui/list-boat.css";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export default function ListBoatPage() {
       <div className="inscrire-aside">
         <div className="inscrire-aside-inner">
           <div className="inscrire-aside-logo">
-            <i className="fa-solid fa-sailboat" /> SailingLoc
+            <Logo onDark />
           </div>
           <h2>Gagnez jusqu'à <span>40 000 €</span> par an</h2>
           <p>Votre bateau vous attend quand vous l'utilisez. Rentabilisez-le le reste du temps.</p>

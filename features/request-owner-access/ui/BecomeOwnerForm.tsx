@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ownerRequestsApi } from "@/shared/lib";
-import type { OwnerRequestAPI, OwnerType } from "@/shared/lib";
+import type { OwnerRequestAPI } from "@/shared/lib";
 import { sendOwnerRequest } from "../api/request";
 
 const STATUS_META: Record<OwnerRequestAPI["status"], { icon: string; title: string; text: string }> = {
@@ -24,21 +24,16 @@ const STATUS_META: Record<OwnerRequestAPI["status"], { icon: string; title: stri
 };
 
 const emptyForm = {
-  ownerType: "particulier" as OwnerType,
   phone: "",
   address: "",
   city: "",
   postalCode: "",
   country: "France",
-  companyName: "",
-  siret: "",
-  vatNumber: "",
 };
 
 export default function BecomeOwnerForm() {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [lastRequest, setLastRequest] = useState<OwnerRequestAPI | null>(null);
-  const [ownerType, setOwnerType] = useState<OwnerType>("particulier");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<OwnerRequestAPI | null>(null);
@@ -65,15 +60,11 @@ export default function BecomeOwnerForm() {
     const data = new FormData(form);
 
     const result = await sendOwnerRequest({
-      ownerType,
       phone: data.get("phone") as string,
       address: data.get("address") as string,
       city: data.get("city") as string,
       postalCode: data.get("postalCode") as string,
       country: (data.get("country") as string) || "France",
-      companyName: (data.get("companyName") as string) || undefined,
-      siret: (data.get("siret") as string) || undefined,
-      vatNumber: (data.get("vatNumber") as string) || undefined,
     });
 
     setLoading(false);
@@ -126,28 +117,6 @@ export default function BecomeOwnerForm() {
       )}
 
       <form className="contact-form-body" onSubmit={handleSubmit} noValidate>
-        <div className="form-group">
-          <span className="contact-subject-label">Type de compte</span>
-          <div className="contact-radios">
-            {(["particulier", "professionnel"] as OwnerType[]).map((t) => (
-              <div key={t} className={`contact-radio${ownerType === t ? " active" : ""}`}>
-                <input
-                  type="radio"
-                  name="ownerType"
-                  id={`owner-type-${t}`}
-                  value={t}
-                  checked={ownerType === t}
-                  onChange={() => setOwnerType(t)}
-                />
-                <label htmlFor={`owner-type-${t}`}>
-                  <i className={`fa-solid ${t === "particulier" ? "fa-user" : "fa-building"}`} aria-hidden="true" />{" "}
-                  {t === "particulier" ? "Particulier" : "Professionnel"}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div className="form-row">
           <div className="form-group">
             <label className="form-label req" htmlFor="phone">Téléphone</label>
@@ -183,25 +152,6 @@ export default function BecomeOwnerForm() {
           </div>
         </div>
 
-        {ownerType === "professionnel" && (
-          <>
-            <div className="form-group">
-              <label className="form-label req" htmlFor="companyName">Raison sociale</label>
-              <input type="text" id="companyName" name="companyName" className="form-input" placeholder="Nom de l'entreprise" required />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label" htmlFor="siret">SIRET</label>
-                <input type="text" id="siret" name="siret" className="form-input" placeholder="123 456 789 00012" />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="vatNumber">N° TVA intracommunautaire</label>
-                <input type="text" id="vatNumber" name="vatNumber" className="form-input" placeholder="FR12345678900" />
-              </div>
-            </div>
-          </>
-        )}
-
         {error && (
           <div className="form-error" role="alert">
             <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />{" "}
@@ -213,7 +163,7 @@ export default function BecomeOwnerForm() {
           <input type="checkbox" id="owner-terms" required className="form-rgpd-checkbox" />
           <label htmlFor="owner-terms" className="form-rgpd-label">
             J&apos;accepte les{" "}
-            <a href="#" className="form-rgpd-link">conditions propriétaires</a>{" "}
+            <a href="/cgu#proprietaires" target="_blank" className="form-rgpd-link">conditions propriétaires</a>{" "}
             de SailingLoc et certifie que les informations fournies sont exactes.
           </label>
         </div>

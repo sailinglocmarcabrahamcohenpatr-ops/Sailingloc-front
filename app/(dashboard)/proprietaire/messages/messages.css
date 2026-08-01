@@ -11,12 +11,21 @@
   flex-direction: column;
 }
 
+/* Le dashboard-main est plafonné à 1200px et centré (voir DashboardTopbar.css) :
+   sur cette page, on annule ce plafond pour que la messagerie occupe toute la
+   largeur disponible au lieu de laisser des bandes blanches de chaque côté. */
+.dashboard-main-wrapper .dashboard-main:has(> .messages-full-wrap) {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .messages-full-wrap .messages-layout {
   flex: 1;
   min-height: unset;
   height: 100%;
   gap: 0;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 1fr 2fr;
 }
 
 /* Retire les bords arrondis et ombres — on est collé aux bords */
@@ -88,6 +97,12 @@
   .messages-full-wrap .messages-layout {
     grid-template-columns: 1fr;
   }
+  /* Vue mobile façon appli de chat : la liste des contacts et la conversation
+     ne s'affichent jamais en même temps — seule la sélection courante décide. */
+  .messages-full-wrap .messages-layout:not(.conv-open) .messages-thread,
+  .messages-full-wrap .messages-layout:not(.conv-open) .messages-empty { display: none; }
+  .messages-full-wrap .messages-layout.conv-open .messages-list { display: none; }
+  .messages-full-wrap .messages-thread-back { display: flex; }
 }
 
 @media (max-width: 600px) {

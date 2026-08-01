@@ -18,21 +18,21 @@
 .dh-header p { color: var(--text-2); font-size: .9375rem; }
 
 /* KPI row */
-.dh-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.dh-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; align-items: start; }
 .dh-stat-card {
   background: var(--card-bg); border-radius: 20px; padding: 22px; box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 14px; text-decoration: none; color: inherit; transition: var(--transition);
 }
 .dh-stat-card:hover { box-shadow: var(--shadow-md); }
-.dh-stat-card.hero { background: linear-gradient(155deg, var(--dh-900), var(--dh-800)); color: #fff; }
+.dh-stat-card.dh-hero { background: linear-gradient(155deg, var(--dh-900), var(--dh-800)); color: #fff; }
 .dh-stat-top { display: flex; align-items: center; justify-content: space-between; }
 .dh-stat-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.125rem; flex-shrink: 0; }
-.dh-stat-card.hero .dh-stat-icon { background: rgba(255,255,255,.14); color: #fff; }
+.dh-stat-card.dh-hero .dh-stat-icon { background: rgba(255,255,255,.14); color: #fff; }
 .dh-stat-nav { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: .75rem; color: var(--text-2); flex-shrink: 0; }
-.dh-stat-card.hero .dh-stat-nav { background: rgba(255,255,255,.14); color: #fff; }
+.dh-stat-card.dh-hero .dh-stat-nav { background: rgba(255,255,255,.14); color: #fff; }
 .dh-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.2; }
 .dh-stat-label { font-size: .8125rem; color: var(--text-2); margin-top: 2px; }
-.dh-stat-card.hero .dh-stat-label { color: rgba(255,255,255,.75); }
+.dh-stat-card.dh-hero .dh-stat-label { color: rgba(255,255,255,.75); }
 
 .dh-icon-boats { background: #EFF6FF; color: #2563EB; }
 .dh-icon-reservations { background: var(--dh-100); color: var(--dh-600); }

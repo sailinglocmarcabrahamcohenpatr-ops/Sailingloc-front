@@ -1,0 +1,31 @@
+/* ──────────────────────────────────────────────────────────────
+   Aperçu d'un bateau côté propriétaire (Mes bateaux → Voir).
+   Reprend la recette de carte de la page de réservation (reservation.css)
+   pour un rendu visuel cohérent, sans le formulaire de réservation.
+   Isolé hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+
+.owner-view-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.owner-view-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  padding: 36px;
+}
+@media (max-width: 600px) {
+  .owner-view-card { padding: 24px; }
+}
+
+.owner-view-card-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+}

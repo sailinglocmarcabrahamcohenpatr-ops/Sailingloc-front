@@ -39,9 +39,6 @@ export interface CreateOwnerRequestPayload {
   city: string;
   postal_code: string;
   country?: string;
-  company_name?: string;
-  siret?: string;
-  vat_number?: string;
   identity_document_id?: number;
   proof_address_document_id?: number;
 }

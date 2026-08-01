@@ -1,13 +1,22 @@
 import { Suspense } from "react";
 import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
-import { BoatsSidebar, ResultsControls } from "@/widgets/boats-catalog";
+import { BoatsSidebar, ResultsControls, BoatsMapCard } from "@/widgets/boats-catalog";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 const adaptBoat = adaptBoatFromApi;
+
+/** Le backend `/api/bateaux` ignore silencieusement type/avec_skipper/prix_max/capacite/note en
+ *  query string (vérifié en direct sur l'API) : on doit donc les réappliquer nous-mêmes, comme
+ *  c'est déjà fait pour `destination` ci-dessous. */
+function boatMatchesType(labelTypeBateau: string | undefined, slug: string): boolean {
+  const label = normalizeText(labelTypeBateau ?? "").replace(/[^a-z0-9]+/g, " ");
+  const needle = slug.replace(/-/g, " ");
+  return label.includes(needle);
+}
 
 const TYPE_LABELS: Record<string, string> = {
   voilier: "Voiliers",
@@ -29,11 +38,12 @@ interface PageProps {
     skipper?: string;
     arrivee?: string;
     depart?: string;
+    vue?: string;
   }>;
 }
 
 export default async function BoatsPage({ searchParams }: PageProps) {
-  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart } = await searchParams;
+  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue } = await searchParams;
 
   const types = (type?.split(",").filter((t) => t && t !== "tous") ?? []) as BoatType[];
 
@@ -67,6 +77,28 @@ export default async function BoatsPage({ searchParams }: PageProps) {
         return todayKey >= debut && todayKey <= fin;
       });
     });
+    if (types.length > 0) {
+      filtered = filtered.filter((b) => types.some((t) => boatMatchesType(b.typeBateau?.labelTypeBateau, t)));
+    }
+    if (skipper) {
+      const wantSkipper = skipper === "avec";
+      filtered = filtered.filter((b) => b.avecSkipper === wantSkipper);
+    }
+    if (prixMax) {
+      const max = Number(prixMax);
+      filtered = filtered.filter((b) => {
+        const price = typeof b.prixJour === "string" ? parseFloat(b.prixJour) : b.prixJour;
+        return typeof price === "number" && Number.isFinite(price) && price <= max;
+      });
+    }
+    if (capacite) {
+      const min = Number(capacite);
+      filtered = filtered.filter((b) => (b.capacite ?? 0) >= min);
+    }
+    if (note) {
+      const min = Number(note);
+      filtered = filtered.filter((b) => (b.noteMoyenne ?? 0) >= min);
+    }
     if (destination) {
       // Le backend ne filtre pas toujours fiablement par destination : on revérifie ici
       // via le port réel embarqué dans chaque bateau (pays pour l'étranger, ville pour les
@@ -115,8 +147,10 @@ export default async function BoatsPage({ searchParams }: PageProps) {
             <p style={{ color: "var(--text-2)", padding: "48px 0" }}>
               Aucun bateau ne correspond à votre recherche.
             </p>
+          ) : vue === "carte" ? (
+            <BoatsMapCard boats={boats} className="map-card--catalog" />
           ) : (
-            <div className="boats-result-grid">
+            <div className={vue === "liste" ? "boats-result-list" : "boats-result-grid"}>
               {boats.map((boat) => (
                 <FavoriteBoatCard key={boat.id} boat={boat} />
               ))}

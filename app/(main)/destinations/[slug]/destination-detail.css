@@ -52,13 +52,63 @@
 
 .dest-highlights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 600px) { .dest-highlights-grid { grid-template-columns: 1fr; } }
-.dest-highlight-card { background: var(--bg); border-radius: var(--radius-lg); padding: 20px; }
-.dest-highlight-icon { font-size: 1.75rem; margin-bottom: 10px; }
-.dest-highlight-card h4 { margin-bottom: 6px; }
-.dest-highlight-card p { font-size: .875rem; color: var(--text-2); line-height: 1.6; }
-
-.dest-activities-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.dest-activity-chip { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 20px; font-size: .875rem; font-weight: 600; }
+.dest-highlight-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 26px;
+  padding-top: 190px;
+  min-height: 300px;
+  transition: var(--transition);
+}
+.dest-highlight-card:has(.dest-highlight-card-img) {
+  padding-top: 224px;
+  min-height: 330px;
+}
+.dest-highlight-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+.dest-highlight-card-img { position: absolute; inset: 0; z-index: 0; }
+.dest-highlight-card-img img { transition: transform .6s cubic-bezier(.16,1,.3,1); }
+.dest-highlight-card:hover .dest-highlight-card-img img { transform: scale(1.08); }
+.dest-highlight-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, var(--card-bg) 0%, var(--card-bg) 38%, rgba(0,0,0,.15) 68%, rgba(0,0,0,.05) 100%);
+}
+.dest-highlight-num {
+  position: absolute; top: 10px; right: 18px; z-index: 1;
+  font-size: 3.25rem; font-weight: 800; line-height: 1;
+  color: var(--primary);
+  opacity: .07;
+  transition: var(--transition);
+  pointer-events: none;
+}
+.dest-highlight-card:has(.dest-highlight-card-img) .dest-highlight-num {
+  color: var(--white); opacity: .85; text-shadow: 0 2px 10px rgba(0,0,0,.4); font-size: 1.5rem; top: 14px; right: 16px;
+}
+.dest-highlight-card:hover .dest-highlight-num { opacity: .14; transform: scale(1.06); }
+.dest-highlight-card:has(.dest-highlight-card-img):hover .dest-highlight-num { opacity: 1; }
+.dest-highlight-icon {
+  position: relative; z-index: 1;
+  width: 52px; height: 52px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.375rem; color: var(--white);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 6px 16px rgba(24,102,242,.3);
+  margin-bottom: 16px;
+  transition: var(--transition);
+}
+.dest-highlight-card:has(.dest-highlight-card-img) .dest-highlight-icon {
+  position: absolute; top: 156px; left: 26px; margin-bottom: 0;
+  border: 2px solid var(--card-bg);
+}
+.dest-highlight-card:hover .dest-highlight-icon { transform: scale(1.08) rotate(-4deg); }
+.dest-highlight-card h4 { position: relative; z-index: 1; font-size: 1.0625rem; margin-bottom: 8px; }
+.dest-highlight-card p { position: relative; z-index: 1; font-size: .875rem; color: var(--text-2); line-height: 1.65; }
 
 .dest-gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 200px 200px; gap: 8px; border-radius: var(--radius-xl); overflow: hidden; }
 .dest-gallery-item { position: relative; overflow: hidden; }
@@ -81,6 +131,68 @@
 .dest-practical-list { display: flex; flex-direction: column; gap: 10px; }
 .dest-practical-list li { display: flex; align-items: center; gap: 10px; font-size: .875rem; color: var(--text-2); }
 .dest-practical-list i { width: 16px; color: var(--primary); }
+
+/* ── Destination — ports (navigation vers les bateaux par port) ── */
+.dest-ports-intro { font-size: .9375rem; color: var(--text-2); margin-top: -12px; margin-bottom: 22px; }
+.dest-ports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.dest-port-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3.1;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+.dest-port-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.12);
+}
+.dest-port-card-img { position: absolute; inset: 0; }
+.dest-port-card-img img { transition: transform .6s cubic-bezier(.16,1,.3,1); }
+.dest-port-card:hover .dest-port-card-img img { transform: scale(1.08); }
+.dest-port-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(6,14,28,.94) 0%, rgba(6,14,28,.4) 55%, rgba(6,14,28,.08) 85%);
+}
+.dest-port-card-tag {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(8,20,40,.45);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.28);
+  color: var(--white); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 5px 11px; border-radius: 999px;
+}
+.dest-port-card-ribbon {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--white); font-size: .6875rem; font-weight: 700; letter-spacing: .04em;
+  padding: 5px 11px; border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(24,102,242,.45);
+}
+.dest-port-card-content { position: absolute; inset: 0; z-index: 1; padding: 18px; display: flex; flex-direction: column; justify-content: flex-end; }
+.dest-port-card-content h3 { font-size: 1.1875rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 5px; color: var(--white); }
+.dest-port-card-ville { font-size: .8125rem; color: rgba(255,255,255,.8); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.dest-port-card-ville i { color: var(--primary); font-size: .6875rem; }
+.dest-port-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.9); }
+.dest-port-card-footer i { color: var(--primary); margin-right: 4px; }
+.dest-port-card-price { font-weight: 700; }
+.dest-port-card-arrow {
+  position: absolute; right: 16px; bottom: 16px; z-index: 2;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.35);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: .8125rem;
+  opacity: 0; transform: translateY(6px) scale(.9);
+  transition: var(--transition);
+}
+.dest-port-card:hover .dest-port-card-arrow { opacity: 1; transform: none; background: var(--white); color: var(--navy); }
 
 /* ── Destination — carte dynamique des bateaux ── */
 .dest-map-card {
@@ -155,15 +267,6 @@
 
 /* Leaflet marker/popup skins for the destination map */
 .dest-map-marker { background: none; border: none; }
-.dest-map-pin {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,.45), 0 0 0 3px rgba(17,75,107,.25);
-}
-.dest-map-pin i { transform: rotate(45deg); font-size: .85rem; }
 
 .dest-map-hub { position: relative; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; }
 .dest-map-hub-pin {
@@ -175,6 +278,7 @@
   box-shadow: 0 4px 14px rgba(17,75,107,.55);
   border: 2px solid rgba(255,255,255,.85);
 }
+.dest-map-hub-glyph { width: 19px; height: 24px; }
 .dest-map-hub-ring {
   position: absolute; inset: 0; border-radius: 50%;
   border: 2px solid rgba(17,75,107,.65);

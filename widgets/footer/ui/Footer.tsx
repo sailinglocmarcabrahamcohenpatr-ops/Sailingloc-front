@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CookieSettingsButton } from "@/widgets/cookie-consent";
+import { Logo } from "@/shared/ui";
 
 const footerLinks = {
   annonces: [
@@ -21,7 +23,7 @@ const footerLinks = {
     { href: "/contact", label: "Contact" },
     { href: "/comment-ca-marche", label: "Comment ça marche" },
     { href: "/comment-ca-marche#questions", label: "FAQ" },
-    { href: "#", label: "Politique RGPD" },
+    { href: "/confidentialite", label: "Politique RGPD" },
     { href: "#", label: "Blog" },
   ],
   abonnement: [
@@ -39,8 +41,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="footer-logo">
-              <i className="fa-solid fa-anchor" aria-hidden="true" />
-              SailingLoc
+              <Logo onDark />
             </div>
             <p>
               La plateforme de référence pour la location de bateaux entre
@@ -88,10 +89,11 @@ export default function Footer() {
         <div className="footer-bottom">
           <span>© 2026 SailingLoc.com — Tous droits réservés</span>
           <div className="footer-bottom-links">
-            <Link href="#">CGU</Link>
-            <Link href="#">Cookies</Link>
-            <Link href="#">Confidentialité</Link>
-            <Link href="#">Mentions légales</Link>
+            <Link href="/cgu">CGU</Link>
+            <Link href="/cookies">Cookies</Link>
+            <Link href="/confidentialite">Confidentialité</Link>
+            <Link href="/mentions-legales">Mentions légales</Link>
+            <CookieSettingsButton className="">Gérer mes cookies</CookieSettingsButton>
           </div>
         </div>
       </div>

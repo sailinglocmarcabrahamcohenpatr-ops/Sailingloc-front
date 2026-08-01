@@ -72,6 +72,15 @@ export interface PaiementAPI {
   stripePaymentIntentId?: string | null;
 }
 
+/** Délai minimum avant le départ pour pouvoir annuler gratuitement (cf. FAQ et garanties de réservation). */
+export const CANCELLATION_MIN_HOURS = 72;
+
+/** Une réservation ne peut plus être annulée par le client à moins de {@link CANCELLATION_MIN_HOURS}h du départ. */
+export function canCancelReservation(dateDebut: string): boolean {
+  const hoursUntilDeparture = (new Date(dateDebut).getTime() - Date.now()) / (1000 * 60 * 60);
+  return hoursUntilDeparture >= CANCELLATION_MIN_HOURS;
+}
+
 export const reservationsApi = {
   getAll: () =>
     api.get<ReservationAPI[]>("/api/reservations"),
@@ -85,6 +94,9 @@ export const reservationsApi = {
     api.delete<void>(`/api/reservations/${id}`),
   getPaiements: (id: number | string) =>
     api.get<PaiementAPI[]>(`/api/reservations/${id}/paiements`),
+  /** PDF du contrat de location, généré côté backend (locataire, propriétaire du bateau ou admin). */
+  getContratPdf: (id: number | string) =>
+    api.getBlob(`/api/reservations/${id}/contrat`),
   getAvis: (id: number | string) =>
     api.get<AvisAPI[]>(`/api/reservations/${id}/avis`),
 };

@@ -4,58 +4,32 @@ import "leaflet/dist/leaflet.css";
 import { divIcon, type LatLngBoundsExpression } from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import Link from "next/link";
+import type { Boat } from "@/entities/boat";
+import PortMarker from "@/widgets/boats-catalog/ui/PortMarker";
 import { formatPrice } from "@/shared/lib/utils";
 
-export interface DestinationBoatMarker {
-  id: string;
-  name: string;
-  location: string;
-  lat: number;
-  lng: number;
-  pricePerDay: number;
-}
+export type DestinationBoatMarker = Boat & { coordinates: { lat: number; lng: number } };
 
-const boatIcon = divIcon({
-  className: "dest-map-marker",
-  html: '<span class="dest-map-pin"><i class="fa-solid fa-anchor" aria-hidden="true"></i></span>',
-  iconSize: [34, 34],
-  iconAnchor: [17, 34],
-  popupAnchor: [0, -32],
-});
+const BRAND_PIN_GLYPH = (className: string) =>
+  `<svg class="${className}" viewBox="0 0 48 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
+  '<path d="M24 57C13 44 6 33 6 21.5 6 11 14.1 3 24 3s18 8 18 18.5C42 33 35 44 24 57Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" />' +
+  '<path d="M24 14 34 34H14Z" fill="currentColor" />' +
+  '<path d="M10 34Q24 30 38 34Q24 42 10 34Z" fill="currentColor" />' +
+  '<path d="M8 47q8-5 16 0t16 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />' +
+  "</svg>";
 
-/**
- * Plusieurs bateaux partagent souvent exactement les mêmes coordonnées (même port) : sans
- * correction, leurs marqueurs se superposent pile et n'en laissent voir qu'un seul. On les
- * disperse en petit cercle autour du point réel — générique, donc valable pour tout nouveau
- * bateau ajouté au même port, pas seulement les cas déjà connus.
- */
-function spreadOverlappingBoats(boats: DestinationBoatMarker[]): DestinationBoatMarker[] {
-  const groups = new Map<string, DestinationBoatMarker[]>();
+/** Un port = une balise : les bateaux d'un même port partagent les mêmes coordonnées
+ *  (celles du port), donc les regrouper par coordonnées suffit — même logique que la
+ *  carte du catalogue (@/widgets/boats-catalog/ui/BoatsMap), pour une carte identique. */
+function groupByPort(boats: DestinationBoatMarker[]): DestinationBoatMarker[][] {
+  const ports = new Map<string, DestinationBoatMarker[]>();
   for (const boat of boats) {
-    const key = `${boat.lat.toFixed(5)},${boat.lng.toFixed(5)}`;
-    const group = groups.get(key);
+    const key = `${boat.coordinates.lat},${boat.coordinates.lng}`;
+    const group = ports.get(key);
     if (group) group.push(boat);
-    else groups.set(key, [boat]);
+    else ports.set(key, [boat]);
   }
-
-  const result: DestinationBoatMarker[] = [];
-  for (const group of groups.values()) {
-    if (group.length === 1) {
-      result.push(group[0]);
-      continue;
-    }
-    const radius = 0.0012 + Math.min(group.length, 8) * 0.00015;
-    const latRad = (group[0].lat * Math.PI) / 180;
-    group.forEach((boat, i) => {
-      const angle = (2 * Math.PI * i) / group.length;
-      result.push({
-        ...boat,
-        lat: boat.lat + radius * Math.cos(angle),
-        lng: boat.lng + (radius * Math.sin(angle)) / Math.max(Math.cos(latRad), 0.15),
-      });
-    });
-  }
-  return result;
+  return Array.from(ports.values());
 }
 
 const hubIcon = divIcon({
@@ -64,7 +38,7 @@ const hubIcon = divIcon({
     <span class="dest-map-hub">
       <span class="dest-map-hub-ring"></span>
       <span class="dest-map-hub-ring dest-map-hub-ring--delay"></span>
-      <span class="dest-map-hub-pin"><i class="fa-solid fa-sailboat" aria-hidden="true"></i></span>
+      <span class="dest-map-hub-pin">${BRAND_PIN_GLYPH("dest-map-hub-glyph")}</span>
     </span>`,
   iconSize: [46, 46],
   iconAnchor: [23, 23],
@@ -80,16 +54,18 @@ interface DestinationMapProps {
   boats: DestinationBoatMarker[];
 }
 
-export default function DestinationMap({ center, name, slug, boatCount, priceFrom, boats: rawBoats }: DestinationMapProps) {
-  const hasRealBoats = rawBoats.length > 0;
-  const boats = spreadOverlappingBoats(rawBoats);
+export default function DestinationMap({ center, name, slug, boatCount, priceFrom, boats }: DestinationMapProps) {
+  const hasRealBoats = boats.length > 0;
+  const ports = groupByPort(boats);
 
   const bounds: LatLngBoundsExpression | undefined =
-    hasRealBoats && boats.length > 1 ? boats.map((b) => [b.lat, b.lng]) : undefined;
+    hasRealBoats && boats.length > 1 ? boats.map((b) => [b.coordinates.lat, b.coordinates.lng]) : undefined;
 
   const singleView = !bounds
     ? {
-        center: hasRealBoats ? ([boats[0].lat, boats[0].lng] as [number, number]) : ([center.lat, center.lng] as [number, number]),
+        center: hasRealBoats
+          ? ([boats[0].coordinates.lat, boats[0].coordinates.lng] as [number, number])
+          : ([center.lat, center.lng] as [number, number]),
         zoom: hasRealBoats ? 11 : 8,
       }
     : {};
@@ -108,21 +84,8 @@ export default function DestinationMap({ center, name, slug, boatCount, priceFro
       />
 
       {hasRealBoats ? (
-        boats.map((boat) => (
-          <Marker key={boat.id} position={[boat.lat, boat.lng]} icon={boatIcon}>
-            <Popup>
-              <div className="dest-map-popup">
-                <strong>{boat.name}</strong>
-                <span>
-                  <i className="fa-solid fa-location-dot" aria-hidden="true" /> {boat.location}
-                </span>
-                <span className="dest-map-popup-price">{formatPrice(boat.pricePerDay)} / jour</span>
-                <Link href={`/bateaux/${boat.id}`} className="btn btn-primary btn-sm">
-                  Voir le bateau
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
+        ports.map((group) => (
+          <PortMarker key={`${group[0].coordinates.lat},${group[0].coordinates.lng}`} boats={group} />
         ))
       ) : (
         <>

@@ -33,7 +33,7 @@ export function useMercureMessages(
 
         es = new EventSource(url.toString(), { withCredentials: true });
         es.onmessage = (event) => onMessage(JSON.parse(event.data) as MessageAPI);
-        es.onerror = (err) => console.error("Mercure SSE error", err);
+        es.onerror = (err) => console.log("Mercure SSE error", err);
       } catch (err) {
         console.error("Impossible de s'abonner à Mercure", err);
       }

@@ -29,6 +29,7 @@ interface AuthContextType {
   login: (params: LoginParams) => void;
   logout: () => void;
   switchRole: (role: UserRole) => void;
+  updateUser: (patch: Partial<Pick<AuthUser, "name" | "email" | "telephone">>) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   login: () => {},
   logout: () => {},
   switchRole: () => {},
+  updateUser: () => {},
 });
 
 
@@ -103,6 +105,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       apiGetUserByEmail(email)
         .then((u) => {
+          if (u.statutCompte === "inactif") {
+            // Compte désactivé depuis la dernière session : on ne restaure
+            // pas la session malgré un JWT encore valide.
+            removeToken();
+            setUser(null);
+            return;
+          }
           const name = [u.prenom, u.nom].filter(Boolean).join(" ") || nameFromJwt;
           const userId = u.id;
           setUser(buildUser({ email, name, role, userId, telephone: u.telephone }));
@@ -164,8 +173,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateUser = useCallback((patch: Partial<Pick<AuthUser, "name" | "email" | "telephone">>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      if (patch.name) {
+        next.initials = patch.name.split(" ").map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
+      }
+      return next;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, checking, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ user, checking, login, logout, switchRole, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

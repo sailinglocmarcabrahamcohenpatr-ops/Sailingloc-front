@@ -87,12 +87,21 @@ export const referentielsApi = {
 };
 
 export const portsApi = {
-  getAll: () =>
-    api.get<PortAPI[]>("/api/ports"),
+  /** GET /api/ports renvoie { data, pagination }, pas un tableau brut —
+   *  on normalise ici pour que tous les appelants reçoivent un PortAPI[]. */
+  getAll: async () => {
+    const res = await api.get<PortAPI[] | { data: PortAPI[] }>("/api/ports");
+    if (Array.isArray(res)) return res;
+    return (res as { data?: PortAPI[] })?.data ?? [];
+  },
   getOne: (id: number | string) =>
     api.get<PortAPI>(`/api/ports/${id}`),
   create: (data: CreatePortPayload) =>
     api.post<PortAPI>("/api/ports", data, true),
+  update: (id: number | string, data: Partial<CreatePortPayload>) =>
+    api.put<PortAPI>(`/api/ports/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/ports/${id}`),
 };
 
 export const utilisateursApi = {
@@ -100,9 +109,10 @@ export const utilisateursApi = {
     api.get<UtilisateurAPI[]>("/api/utilisateurs"),
   getOne: (id: number | string) =>
     api.get<UtilisateurAPI>(`/api/utilisateurs/${id}`),
-  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">> & { statut_compte?: string }) =>
+  /** password optionnel : à n'envoyer que si l'utilisateur souhaite le changer. */
+  update: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id" | "roles">> & { password?: string; statut_compte?: string }) =>
     api.put<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
-  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id">> & { statut_compte?: string; roles?: string[] }) =>
+  patch: (id: number | string, data: Partial<Omit<UtilisateurAPI, "id">> & { password?: string; statut_compte?: string; roles?: string[] }) =>
     api.patch<UtilisateurAPI>(`/api/utilisateurs/${id}`, data),
   delete: (id: number | string) =>
     api.delete<void>(`/api/utilisateurs/${id}`),

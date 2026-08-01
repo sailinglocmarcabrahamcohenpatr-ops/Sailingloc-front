@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth, useMessages } from "@/shared/lib";
+import { useAuth, useMessages, useFavoris } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
+import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./navbar.css";
 
 const navLinks = [
@@ -29,6 +31,7 @@ export default function Navbar() {
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
   const { unreadCount } = useMessages();
+  const { count: favorisCount } = useFavoris();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
@@ -68,8 +71,7 @@ export default function Navbar() {
       <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
         <div className="container navbar-inner">
           <Link href="/" className="navbar-logo">
-            <i className="fa-solid fa-anchor" aria-hidden="true" />
-            SailingLoc
+            <Logo />
           </Link>
 
           <nav className="navbar-nav" aria-label="Navigation principale">
@@ -89,14 +91,21 @@ export default function Navbar() {
             {user ? (
               <>
                 {!isAdmin && (
-                  <Link
-                    href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
-                    className="navbar-icon-btn"
-                    aria-label="Messages"
-                  >
-                    <i className="fa-solid fa-envelope" />
-                    {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
-                  </Link>
+                  <>
+                    <Link href="/profil/favoris" className="navbar-icon-btn" aria-label="Favoris">
+                      <i className="fa-solid fa-heart" />
+                      {favorisCount > 0 && <span className="navbar-badge">{favorisCount}</span>}
+                    </Link>
+                    <NotificationsBell />
+                    <Link
+                      href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                      className="navbar-icon-btn"
+                      aria-label="Messages"
+                    >
+                      <i className="fa-solid fa-envelope" />
+                      {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
+                    </Link>
+                  </>
                 )}
 
                 <div className="navbar-user-menu" ref={userMenuRef}>

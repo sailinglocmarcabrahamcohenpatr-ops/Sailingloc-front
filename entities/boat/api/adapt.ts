@@ -10,10 +10,14 @@ export function adaptBoatFromApi(b: BoatAPI): Boat {
 
   const photos = sortedPhotos.map((p) => resolvePhotoUrl(p.url)).filter(Boolean);
 
+  const lat = b.port?.latitude != null ? Number(b.port.latitude) : NaN;
+  const lng = b.port?.longitude != null ? Number(b.port.longitude) : NaN;
+
   return {
     id: String(b.id),
     name: b.nomBateau,
     location: b.port ? b.port.ville : "France",
+    coordinates: Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined,
     type: (b.typeBateau?.labelTypeBateau?.toLowerCase() ?? "voilier") as BoatType,
     rating: b.noteMoyenne ?? 0,
     reviewCount: b.nombreAvis ?? 0,

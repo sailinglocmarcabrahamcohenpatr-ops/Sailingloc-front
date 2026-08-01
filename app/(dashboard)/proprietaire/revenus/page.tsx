@@ -45,6 +45,11 @@ function initials(r: ReservationAPI): string {
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 
+// jsPDF's default font can't render the narrow no-break space used by
+// toLocaleString("fr-FR") as a thousands separator (it prints as "/"),
+// so PDF export uses a plain space instead.
+const fmtEuroPdf = (n: number) => `${n.toLocaleString("fr-FR").replace(/[  ]/g, " ")} €`;
+
 export default function OwnerRevenuePage() {
   const { user } = useAuth();
   const [boats, setBoats] = useState<BoatAPI[]>([]);
@@ -174,14 +179,14 @@ export default function OwnerRevenuePage() {
         1: { halign: "right" },
       },
       body: [
-        ["Revenus nets cumulés", `${totalNet.toLocaleString("fr-FR")} €`],
-        ["Chiffre d'affaires brut", `${totalGross.toLocaleString("fr-FR")} €`],
+        ["Revenus nets cumulés", fmtEuroPdf(totalNet)],
+        ["Chiffre d'affaires brut", fmtEuroPdf(totalGross)],
         [
           "Commission SailingLoc",
-          `${totalCommission.toLocaleString("fr-FR")} € (${Math.round(COMMISSION_RATE * 100)}%)`,
+          `${fmtEuroPdf(totalCommission)} (${Math.round(COMMISSION_RATE * 100)}%)`,
         ],
         ["Locations réalisées (hors annulées)", `${count}`],
-        ["Revenu moyen / location", `${avgNet.toLocaleString("fr-FR")} €`],
+        ["Revenu moyen / location", fmtEuroPdf(avgNet)],
         ["Bateaux concernés", `${ownedBoatIds.size}`],
       ],
       margin: { left: marginX, right: marginX },
@@ -210,8 +215,8 @@ export default function OwnerRevenuePage() {
           boatName,
           `${fmtDate(r.dateDebut)} – ${fmtDate(r.dateFin)}`,
           STATUS_LABEL[key].label,
-          `${gross.toLocaleString("fr-FR")} €`,
-          `${net.toLocaleString("fr-FR")} €`,
+          fmtEuroPdf(gross),
+          fmtEuroPdf(net),
         ];
       });
 
@@ -219,8 +224,10 @@ export default function OwnerRevenuePage() {
       startY: afterSummaryY + 10,
       head: [["Locataire", "Bateau", "Période", "Statut", "Brut", "Net"]],
       body: rows,
+      foot: [["", "", "", "Total", fmtEuroPdf(totalGross), fmtEuroPdf(totalNet)]],
       styles: { fontSize: 9, cellPadding: 6 },
       headStyles: { fillColor: [14, 59, 46], textColor: 255 },
+      footStyles: { fillColor: [14, 59, 46], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [243, 246, 244] },
       columnStyles: { 4: { halign: "right" }, 5: { halign: "right" } },
       margin: { left: marginX, right: marginX },

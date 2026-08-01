@@ -22,7 +22,7 @@
 @media (max-width: 960px) { .inscrire-aside { position: static; height: auto; padding: 40px 24px; } }
 
 .inscrire-aside-inner { padding: 40px; display: flex; flex-direction: column; gap: 24px; }
-.inscrire-aside-logo { font-size: 1.25rem; font-weight: 800; color: var(--white); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.inscrire-aside-logo { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .inscrire-aside h2 { font-size: 1.75rem; font-weight: 800; line-height: 1.3; }
 .inscrire-aside h2 span { color: #60D5A4; }
 .inscrire-aside > .inscrire-aside-inner > p { color: rgba(255,255,255,.75); line-height: 1.7; }

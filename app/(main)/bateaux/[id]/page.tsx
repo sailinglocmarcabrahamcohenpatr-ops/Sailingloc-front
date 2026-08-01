@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
@@ -56,8 +55,9 @@ interface BoatPageData {
   avecSkipper: boolean;
   description: string | null;
   caution: number;
-  ownerSeed: string;
+  ownerId: number | null;
   ownerName: string;
+  ownerInitials: string;
   galleryImages: { src: string; alt: string }[];
 }
 
@@ -79,7 +79,11 @@ function adaptBoat(b: BoatAPI): BoatPageData {
         ];
 
   const owner = b.proprietaire ?? b.utilisateur;
+  const ownerId = owner?.id ?? b.id_utilisateur ?? null;
   const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : "Propriétaire";
+  const ownerInitials = owner
+    ? `${owner.prenom?.[0] ?? ""}${owner.nom?.[0] ?? ""}`.toUpperCase() || "?"
+    : "?";
 
   const lat = b.port?.latitude != null ? Number(b.port.latitude) : NaN;
   const lng = b.port?.longitude != null ? Number(b.port.longitude) : NaN;
@@ -102,8 +106,9 @@ function adaptBoat(b: BoatAPI): BoatPageData {
     avecSkipper: b.avecSkipper,
     description: b.description ?? null,
     caution: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? 0),
-    ownerSeed: String(b.id_utilisateur ?? b.id),
+    ownerId,
     ownerName,
+    ownerInitials,
     galleryImages,
   };
 }
@@ -212,21 +217,18 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
             </div>
             <div className="product-owner">
-              <Image
-                src={`https://i.pravatar.cc/96?u=${boat.ownerSeed}`}
-                alt="Photo du propriétaire"
-                width={48}
-                height={48}
-                className="product-owner-avatar"
-                style={{ borderRadius: "50%", objectFit: "cover" }}
-              />
+              <div className="product-owner-avatar" aria-hidden="true">
+                {boat.ownerInitials}
+              </div>
               <div className="product-owner-info">
                 <small>Proposé par</small>
                 <strong>{boat.ownerName}</strong>
-                <Link href="#">
-                  Voir le profil{" "}
-                  <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
-                </Link>
+                {boat.ownerId != null && (
+                  <Link href={`/proprietaires/${boat.ownerId}`}>
+                    Voir le profil{" "}
+                    <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
+                  </Link>
+                )}
               </div>
             </div>
           </div>

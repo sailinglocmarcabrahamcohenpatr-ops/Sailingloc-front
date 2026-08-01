@@ -114,34 +114,6 @@
   flex-shrink: 0;
 }
 
-/* ── Skipper ─────────────────────────────────── */
-.toggleGroup {
-  display: flex;
-  gap: 6px;
-}
-
-.toggleBtn {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border: 1.5px solid #d1d5db;
-  background: #fff;
-  color: #374151;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.toggleBtn:hover {
-  border-color: #6b7280;
-}
-
-.toggleBtn--active {
-  background: #111827;
-  color: #fff;
-  border-color: #111827;
-}
-
 /* ── Submit ──────────────────────────────────── */
 .submitWrap {
   display: flex;

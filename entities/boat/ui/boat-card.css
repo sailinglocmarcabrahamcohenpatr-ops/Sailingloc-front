@@ -74,6 +74,22 @@
 .boat-gallery-nav:focus-visible { opacity: 1; }
 .boat-gallery-nav:hover { background: #fff; }
 
+/* ── Mode liste : photo à gauche, infos à droite ── */
+.boats-result-list .boat-card {
+  flex-direction: row;
+}
+.boats-result-list .boat-card-img {
+  width: 280px;
+  flex-shrink: 0;
+  aspect-ratio: 4 / 3;
+}
+.boats-result-list .boat-card-body {
+  justify-content: center;
+}
+.boats-result-list .boat-card-name {
+  white-space: normal;
+}
+
 /* Tactile : pas de survol → flèches toujours visibles */
 @media (hover: none) {
   .boat-gallery-nav { opacity: 1; }

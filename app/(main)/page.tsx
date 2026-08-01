@@ -4,16 +4,21 @@ import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import Image from "next/image";
-import { FEATURED_BOATS, getBoatImageUrl } from "@/entities/boat";
-import { getDestinations } from "@/entities/destination";
+import { getBoatImageUrl } from "@/entities/boat";
+import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
+import { getHomeStats } from "./getHomeStats";
+import { getTestimonials } from "./getTestimonials";
+import { getFeaturedBoats } from "./getFeaturedBoats";
 import { ScrollVideoBackground } from "@/widgets/scroll-video";
 import "./home-shell.css";
 import "./home.css";
 /* Refonte « verre sur vidéo », conditionnée à l'attribut que pose
    ScrollVideoBackground → ne s'applique qu'ici. */
 import "../glass.css";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -53,7 +58,12 @@ const HOW_IT_WORKS = [
 ];
 
 export default async function HomePage() {
-  const destinations = await getDestinations();
+  const [destinations, homeStats, testimonials, featuredBoats] = await Promise.all([
+    getDestinationsWithLiveBoatCounts(),
+    getHomeStats(),
+    getTestimonials(),
+    getFeaturedBoats(),
+  ]);
 
   return (
     <div className="home-shell">
@@ -65,7 +75,7 @@ export default async function HomePage() {
       {/* ── Stats ── */}
       <section className="stats-dark-section" aria-label="Chiffres clés">
         <div className="container">
-          <StatsCounters />
+          <StatsCounters stats={homeStats} />
         </div>
       </section>
 
@@ -125,24 +135,26 @@ export default async function HomePage() {
       </section>
 
       {/* ── Bateaux vedettes ── */}
-      <section className="home-section bg-surface" aria-labelledby="featured-title">
-        <div className="container">
-          <div className="home-section-hd fade-in">
-            <div>
-              <h2 id="featured-title">Bateaux en vedette</h2>
-              <p>Une sélection de nos meilleures annonces du moment</p>
+      {featuredBoats.length > 0 && (
+        <section className="home-section bg-surface" aria-labelledby="featured-title">
+          <div className="container">
+            <div className="home-section-hd fade-in">
+              <div>
+                <h2 id="featured-title">Bateaux en vedette</h2>
+                <p>Une sélection de nos meilleures annonces du moment</p>
+              </div>
+              <Link href="/bateaux" className="btn btn-outline">
+                Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </Link>
             </div>
-            <Link href="/bateaux" className="btn btn-outline">
-              Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
-            </Link>
+            <div className="boats-grid fade-in">
+              {featuredBoats.map((boat) => (
+                <FavoriteBoatCard key={boat.id} boat={boat} />
+              ))}
+            </div>
           </div>
-          <div className="boats-grid fade-in">
-            {FEATURED_BOATS.map((boat) => (
-              <FavoriteBoatCard key={boat.id} boat={boat} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Comment ça marche ── */}
       <section className="home-section home-hiw" aria-labelledby="hiw-title">
@@ -182,7 +194,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Avis clients ── */}
-      <Testimonials />
+      <Testimonials testimonials={testimonials} />
 
       {/* ── Owner CTA ── */}
       <section className="owner-cta-home" aria-labelledby="owner-cta-title">

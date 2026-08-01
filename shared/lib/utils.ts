@@ -19,6 +19,19 @@ export function formatPriceCurrency(amount: number): string {
   }).format(amount);
 }
 
+/**
+ * Convertit un Date en "YYYY-MM-DD" à partir de ses composants *locaux*.
+ * `d.toISOString().split("T")[0]` est un piège : il passe par l'UTC, donc pour
+ * un fuseau en avance sur UTC (France UTC+1/+2), un Date à minuit local
+ * "retombe" sur la veille (ex. 1er août 00:00 local → 31 juillet 22:00 UTC).
+ */
+export function toLocalIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function calculateBookingTotal(pricePerDay: number, days: number) {
   const subtotal = pricePerDay * days;
   const serviceFee = Math.round(subtotal * SERVICE_FEE_RATE);

@@ -3,64 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDestinations, getDestinationBySlug } from "@/entities/destination";
-import type { FullDestination } from "@/entities/destination";
-import { getBoats, type Boat } from "@/entities/boat";
-import { boatsApi, type BoatAPI } from "@/shared/lib/boats-api";
-import { matchesDestination as matchesDestinationApi, locationMatchesDestination } from "@/shared/lib/destination-match";
-import type { DestinationBoatMarker } from "./DestinationMap";
+import { formatPrice } from "@/shared/lib/utils";
+import { getCoherentPhoto } from "@/shared/lib/pexels";
+import { getDestinationBoats, groupBoatsByPort } from "./ports-data";
 import DestinationMapSection from "./DestinationMapSection";
 import "./destination-detail.css";
-
-/** Décalage déterministe (basé sur l'id) pour disperser lisiblement les bateaux sans port géolocalisé. */
-function jitter(seed: number, base: number, spread: number): number {
-  const x = Math.sin(seed * 12.9898) * 43758.5453;
-  const frac = x - Math.floor(x);
-  return base + (frac - 0.5) * spread;
-}
-
-/** L'API renvoie parfois les nombres en string (comme `prixJour`) : on normalise défensivement. */
-function toNumber(v: number | string | undefined): number | undefined {
-  if (v == null) return undefined;
-  const n = typeof v === "string" ? parseFloat(v) : v;
-  return Number.isFinite(n) ? n : undefined;
-}
-
-function adaptApiBoat(b: BoatAPI, dest: FullDestination): DestinationBoatMarker | null {
-  if (!matchesDestinationApi(b.port, dest)) return null;
-
-  const lat = toNumber(b.port?.latitude) ?? jitter(b.id, dest.center.lat, 0.05);
-  const lng = toNumber(b.port?.longitude) ?? jitter(b.id * 7 + 3, dest.center.lng, 0.08);
-
-  return {
-    id: String(b.id),
-    name: b.nomBateau,
-    location: b.port?.ville || dest.name,
-    lat,
-    lng,
-    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
-  };
-}
-
-async function getDestinationBoats(dest: FullDestination): Promise<DestinationBoatMarker[]> {
-  try {
-    const apiBoats = await boatsApi.getAll();
-    return apiBoats
-      .map((b) => adaptApiBoat(b, dest))
-      .filter((b): b is DestinationBoatMarker => b !== null);
-  } catch {
-    const mockBoats = await getBoats();
-    return mockBoats
-      .filter((b): b is Boat & { coordinates: { lat: number; lng: number } } => !!b.coordinates && locationMatchesDestination(b.location, dest))
-      .map((b) => ({
-        id: b.id,
-        name: b.name,
-        location: b.location,
-        lat: b.coordinates.lat,
-        lng: b.coordinates.lng,
-        pricePerDay: b.pricePerDay,
-      }));
-  }
-}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -87,6 +34,21 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   if (!dest) notFound();
 
   const destBoats = await getDestinationBoats(dest);
+  const rawPorts = groupBoatsByPort(destBoats);
+  const ports = await Promise.all(
+    rawPorts.map(async (port) => ({
+      ...port,
+      photo: await getCoherentPhoto(`${port.ville} marina port boats`, port.imageSeed, "500/380"),
+    }))
+  );
+
+  const galleryPhotos =
+    dest.galleryImages ??
+    (await Promise.all(
+      dest.highlights
+        .slice(0, 4)
+        .map((h, i) => getCoherentPhoto(h.title, dest.gallerySeeds[i] ?? `${dest.slug}-${i}`))
+    ));
 
   return (
     <>
@@ -119,7 +81,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           <h1>{dest.name}</h1>
           <p className="dest-detail-tagline">{dest.tagline}</p>
           <div className="dest-detail-hero-meta">
-            <span><i className="fa-solid fa-sailboat" /> {dest.boatCount} bateaux disponibles</span>
+            <span><i className="fa-solid fa-sailboat" /> {destBoats.length} bateaux disponibles</span>
             <span><i className="fa-solid fa-euro-sign" /> À partir de {dest.priceFrom} € / jour</span>
             <span><i className="fa-solid fa-location-dot" /> {dest.region}</span>
           </div>
@@ -143,9 +105,22 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <div className="dest-detail-section fade-in">
               <h2>Points forts de la destination</h2>
               <div className="dest-highlights-grid">
-                {dest.highlights.map((h) => (
+                {dest.highlights.map((h, i) => (
                   <div key={h.title} className="dest-highlight-card">
-                    <div className="dest-highlight-icon">{h.icon}</div>
+                    {h.image && (
+                      <div className="dest-highlight-card-img">
+                        <Image
+                          src={h.image}
+                          alt={h.title}
+                          fill
+                          sizes="(max-width: 600px) 100vw, 50vw"
+                          style={{ objectFit: "cover" }}
+                        />
+                        <div className="dest-highlight-card-overlay" />
+                      </div>
+                    )}
+                    <span className="dest-highlight-num">{String(i + 1).padStart(2, "0")}</span>
+                    <div className="dest-highlight-icon"><i className={`fa-solid ${h.icon}`} aria-hidden="true" /></div>
                     <h4>{h.title}</h4>
                     <p>{h.desc}</p>
                   </div>
@@ -153,32 +128,66 @@ export default async function DestinationDetailPage({ params }: PageProps) {
               </div>
             </div>
 
+            {ports.length > 0 && (
+              <div className="dest-detail-section fade-in">
+                <h2>Ports de {dest.name}</h2>
+                <p className="dest-ports-intro">Choisissez un port pour découvrir les bateaux disponibles sur place.</p>
+                <div className="dest-ports-grid">
+                  {ports.map((port) => {
+                    const isCheapest = ports.length > 1 && port.priceFrom === Math.min(...ports.map((p) => p.priceFrom));
+                    return (
+                      <Link
+                        key={port.id}
+                        href={`/destinations/${dest.slug}/ports/${port.id}`}
+                        className="dest-port-card"
+                      >
+                        <div className="dest-port-card-img">
+                          <Image
+                            src={port.photo}
+                            alt=""
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1100px) 50vw, 25vw"
+                            style={{ objectFit: "cover" }}
+                          />
+                          <div className="dest-port-card-overlay" />
+                        </div>
+                        <span className="dest-port-card-tag">
+                          <i className="fa-solid fa-anchor" aria-hidden="true" /> Port
+                        </span>
+                        {isCheapest && <span className="dest-port-card-ribbon">Meilleur prix</span>}
+                        <div className="dest-port-card-content">
+                          <h3>{port.name}</h3>
+                          <p className="dest-port-card-ville"><i className="fa-solid fa-location-dot" aria-hidden="true" /> {port.ville}</p>
+                          <div className="dest-port-card-footer">
+                            <span><i className="fa-solid fa-sailboat" aria-hidden="true" /> {port.boats.length} bateau{port.boats.length > 1 ? "x" : ""}</span>
+                            <span className="dest-port-card-price">Dès {formatPrice(port.priceFrom)}</span>
+                          </div>
+                        </div>
+                        <span className="dest-port-card-arrow" aria-hidden="true">
+                          <i className="fa-solid fa-arrow-right" />
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="dest-detail-section fade-in">
               <DestinationMapSection
                 slug={dest.slug}
                 name={dest.name}
                 center={dest.center}
-                boatCount={dest.boatCount}
+                boatCount={destBoats.length}
                 priceFrom={dest.priceFrom}
                 boats={destBoats}
               />
             </div>
 
             <div className="dest-detail-section fade-in">
-              <h2>Activités nautiques</h2>
-              <div className="dest-activities-grid">
-                {dest.activities.map((a) => (
-                  <div key={a} className="dest-activity-chip">
-                    <i className="fa-solid fa-circle-check" style={{ color: "var(--primary)" }} /> {a}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="dest-detail-section fade-in">
               <h2>Galerie photos</h2>
               <div className="dest-gallery">
-                {(dest.galleryImages ?? dest.gallerySeeds.map((seed) => `https://picsum.photos/seed/${seed}/800/600`)).map((src, i) => (
+                {galleryPhotos.map((src, i) => (
                   <div key={src} className={`dest-gallery-item${i === 0 ? " dest-gallery-main" : ""}`}>
                     <Image
                       src={src}

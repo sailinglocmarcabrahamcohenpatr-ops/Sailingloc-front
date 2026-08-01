@@ -173,6 +173,11 @@ export default function OwnerMessagesPage() {
     selectConversation(partner.id, partner);
   }
 
+  function closeConversation() {
+    setSelectedId(null);
+    setDraftPartner(null);
+  }
+
   async function sendMessage() {
     const text = reply.trim();
     if (!text || !selectedId || sendingRef.current) return;
@@ -210,7 +215,7 @@ export default function OwnerMessagesPage() {
     <>
       {newConvOpen && <NewConvModal myId={myId} onSelect={handleNewConvSelect} onClose={() => setNewConvOpen(false)} />}
       <div className="messages-full-wrap">
-        <div className="messages-layout">
+        <div className={`messages-layout${activePartner ? " conv-open" : ""}`}>
 
           {/* Left panel */}
           <div className="messages-list">
@@ -277,6 +282,9 @@ export default function OwnerMessagesPage() {
           {activePartner ? (
             <div className="messages-thread">
               <div className="messages-thread-hd">
+                <button type="button" className="messages-thread-back" onClick={closeConversation} title="Retour aux conversations">
+                  <i className="fa-solid fa-arrow-left" />
+                </button>
                 <div className="message-avatar" style={{ background: avatarColor(activePartner.id), width: 40, height: 40, fontSize: ".875rem", flexShrink: 0 }}>
                   {`${activePartner.prenom[0] ?? ""}${activePartner.nom[0] ?? ""}`.toUpperCase()}
                 </div>

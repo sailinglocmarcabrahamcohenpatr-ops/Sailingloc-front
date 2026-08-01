@@ -4,7 +4,14 @@ export type { AuthUser, UserRole } from "./auth-context";
 export { PreferencesProvider, usePreferences } from "./preferences-context";
 export type { Theme, TextSize } from "./preferences-context";
 
+export { CookieConsentProvider, useCookieConsent } from "./cookie-consent-context";
+export type { CookieCategory, CookieCategories } from "./cookie-consent-context";
+
 export { MessagesProvider, useMessages } from "./messages-context";
+
+export { NotificationsProvider, useNotifications } from "./notifications-context";
+
+export { FavorisProvider, useFavoris } from "./favoris-context";
 
 export { api, getToken, setToken, removeToken, setRoleCookie, ApiError } from "./api-client";
 
@@ -14,11 +21,18 @@ export type { LoginPayload, RegisterPayload } from "./auth-api";
 export { boatsApi, resolvePhotoUrl, StatutBateau } from "./boats-api";
 export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload, DocumentAPI, StatutBateauValue } from "./boats-api";
 
-export { reservationsApi, avisApi } from "./reservations-api";
+export { reservationsApi, avisApi, canCancelReservation, CANCELLATION_MIN_HOURS } from "./reservations-api";
 export type { ReservationAPI, CreateReservationPayload, AvisAPI, CreateAvisPayload, PaiementAPI } from "./reservations-api";
+
+export { generateReservationInvoicePdf, generateReservationsInvoicesPdf, generateReservationContractPdf } from "./invoice-pdf";
+
+export { downloadBlob } from "./download-blob";
 
 export { messagesApi } from "./messages-api";
 export type { MessageAPI, SendMessagePayload } from "./messages-api";
+
+export { notificationsApi } from "./notifications-api";
+export type { NotificationAPI, NotificationType } from "./notifications-api";
 
 export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi } from "./referentiels-api";
 export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI, TypeDocumentAPI } from "./referentiels-api";

@@ -87,6 +87,28 @@ export const api = {
   patch:  <T>(path: string, body: unknown, auth = true)  => request<T>("PATCH",  path, body, auth),
   delete: <T>(path: string, auth = true)                 => request<T>("DELETE", path, undefined, auth),
 
+  /** GET binaire (PDF, etc.) — renvoie le Blob brut plutôt que du JSON parsé. */
+  getBlob: async (path: string, auth = true): Promise<Blob> => {
+    const headers: Record<string, string> = {};
+    if (auth) {
+      const token = getToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE}${path}`, { headers });
+
+    if (!res.ok) {
+      let message = `Erreur ${res.status}`;
+      try {
+        const data = await res.json();
+        message = data.message ?? data.error ?? message;
+      } catch {}
+      throw new ApiError(res.status, message);
+    }
+
+    return res.blob();
+  },
+
   /** POST multipart/form-data — ne pas définir Content-Type, le navigateur le gère */
   postMultipart: async <T>(path: string, formData: FormData): Promise<T> => {
     const headers: Record<string, string> = {};

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useAuth, useMessages } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
+import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./client-space.css";
 
 type NavItem = { href: string; icon: string; label: string; exact?: boolean };
@@ -47,10 +49,12 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
   return (
     <div className="client-space">
       <aside className="client-space-side">
-        <Link href="/" className="client-space-logo">
-          <i className="fa-solid fa-anchor" aria-hidden="true" />
-          SailingLoc
-        </Link>
+        <div className="client-space-topline">
+          <Link href="/" className="client-space-logo">
+            <Logo />
+          </Link>
+          <NotificationsBell />
+        </div>
 
         <div className="client-profile-card">
           <div className="client-profile-banner" />

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getDestinations } from "@/entities/destination";
+import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
+import { getCoherentPhoto } from "@/shared/lib/pexels";
 import HeroCarousel from "./HeroCarousel";
 import "./destinations.css";
 
@@ -11,7 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function DestinationsPage() {
-  const destinations = await getDestinations();
+  const liveDestinations = await getDestinationsWithLiveBoatCounts();
+  const destinations = await Promise.all(
+    liveDestinations.map(async (dest) => ({
+      ...dest,
+      photo: await getCoherentPhoto(`${dest.name} ${dest.country} coastline sailing`, dest.imageSeed, "800/600"),
+      heroPhoto: dest.heroImage ?? (await getCoherentPhoto(`${dest.name} ${dest.country} aerial coastline`, dest.heroSeed, "1600/800")),
+    }))
+  );
 
   return (
     <>
@@ -70,7 +78,7 @@ export default async function DestinationsPage() {
               >
                 <div className="dest-page-card-img">
                   <Image
-                    src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
+                    src={dest.photo}
                     alt={dest.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"

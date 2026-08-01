@@ -23,14 +23,18 @@
   gap: 16px;
 }
 
+.client-space-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .client-space-logo {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 4px 4px 0;
   font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--primary);
   text-decoration: none;
 }
 

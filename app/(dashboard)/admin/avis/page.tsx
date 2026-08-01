@@ -6,6 +6,7 @@ import { avisApi, ApiError } from "@/shared/lib";
 import type { AvisAPI } from "@/shared/lib";
 import "../../proprietaire/dashboard.css";
 import "../utilisateurs/utilisateurs.css";
+import "./avis.css";
 
 type RatingFilter = "all" | "low" | "mid" | "high";
 
@@ -25,6 +26,10 @@ function matchesFilter(note: number, filter: RatingFilter): boolean {
 
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+
+function initials(u: { prenom: string; nom: string }) {
+  return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
+}
 
 const Stars = ({ n }: { n: number }) => (
   <span className="stars">
@@ -65,6 +70,11 @@ export default function AdminAvisPage() {
     [avis, filter],
   );
 
+  const avgNote = useMemo(
+    () => (avis.length ? avis.reduce((sum, a) => sum + a.note, 0) / avis.length : 0),
+    [avis],
+  );
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -80,7 +90,7 @@ export default function AdminAvisPage() {
   }
 
   return (
-    <div className="dash-page">
+    <div className="dash-page avis-page">
       <div className="dash-page-hd">
         <div>
           <h1 className="dash-title">Gestion des avis</h1>
@@ -93,6 +103,32 @@ export default function AdminAvisPage() {
           <i className="fa-solid fa-circle-exclamation" />
           {error}
           <button onClick={() => setError("")}><i className="fa-solid fa-xmark" /></button>
+        </div>
+      )}
+
+      {!loading && avis.length > 0 && (
+        <div className="avis-stats-grid">
+          <div className="avis-stat-card avis-stat-hero">
+            <div className="avis-stat-icon"><i className="fa-solid fa-star" /></div>
+            <div>
+              <div className="avis-stat-value">{avis.length}</div>
+              <div className="avis-stat-label">Avis publiés</div>
+            </div>
+          </div>
+          <div className="avis-stat-card">
+            <div className="avis-stat-icon"><i className="fa-solid fa-chart-line" /></div>
+            <div>
+              <div className="avis-stat-value">{avgNote.toFixed(1)} / 5</div>
+              <div className="avis-stat-label">Note moyenne</div>
+            </div>
+          </div>
+          <div className="avis-stat-card">
+            <div className="avis-stat-icon avis-stat-icon-alt"><i className="fa-solid fa-thumbs-up" /></div>
+            <div>
+              <div className="avis-stat-value">{counts.high}</div>
+              <div className="avis-stat-label">Avis 4-5 étoiles</div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -113,61 +149,63 @@ export default function AdminAvisPage() {
       </div>
 
       {loading ? (
-        <div className="dash-empty-state">
-          <i className="fa-solid fa-circle-notch fa-spin fa-2x" style={{ opacity: 0.3 }} />
-          <p>Chargement des avis…</p>
-        </div>
+        <div className="page-loading"><div className="page-loading-spinner" /></div>
       ) : filtered.length === 0 ? (
-        <div className="dash-empty-state">
-          <i className="fa-solid fa-star fa-2x" style={{ opacity: 0.3 }} />
-          <p>Aucun avis à afficher pour l&apos;instant.</p>
+        <div className="avis-card">
+          <div className="users-empty">
+            <i className="fa-solid fa-star" />
+            <p>Aucun avis à afficher pour l&apos;instant.</p>
+          </div>
         </div>
       ) : (
-        <div className="bookings-list">
-          {filtered.map((a) => {
-            const reviewer = a.utilisateur;
-            const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Utilisateur inconnu";
-            const boat = a.reservation?.bateau;
+        <div className="avis-card">
+          <div className="avis-card-hd"><h3>Tous les avis</h3></div>
+          <div className="avis-list">
+            {filtered.map((a) => {
+              const reviewer = a.utilisateur;
+              const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Utilisateur inconnu";
+              const boat = a.reservation?.bateau;
 
-            return (
-              <div key={a.id} className="notation-card">
-                <div className="notation-card-hd">
-                  <div>
-                    <h3>
-                      {authorName}
-                      {boat && (
-                        <>
-                          {" "}
-                          <span style={{ fontWeight: 400, color: "var(--text-2)" }}>
-                            — <Link href={`/bateaux/${boat.id}`}>{boat.nomBateau}</Link>
-                          </span>
-                        </>
-                      )}
-                    </h3>
-                    <Stars n={a.note} />
+              return (
+                <div key={a.id} className="avis-row">
+                  <div className="users-avatar">
+                    {reviewer ? initials(reviewer) : "?"}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span className="notation-card-date">Noté le {fmt(a.dateAvis)}</span>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      style={{ color: "var(--red)" }}
-                      onClick={() => setDeleteTarget(a)}
-                    >
-                      <i className="fa-solid fa-trash" /> Supprimer
-                    </button>
+                  <div className="avis-row-body">
+                    <div className="avis-row-top">
+                      <div>
+                        <h3 className="avis-row-name">
+                          {authorName}
+                          {boat && (
+                            <span className="avis-row-boat"> — <Link href={`/bateaux/${boat.id}`}>{boat.nomBateau}</Link></span>
+                          )}
+                        </h3>
+                        <Stars n={a.note} />
+                      </div>
+                      <div className="avis-row-meta">
+                        <span className="avis-row-date">Noté le {fmt(a.dateAvis)}</span>
+                        <button
+                          className="avis-row-action-btn"
+                          onClick={() => setDeleteTarget(a)}
+                          title="Supprimer"
+                        >
+                          <i className="fa-solid fa-trash" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="notation-card-subnotes">
+                      <span><i className="fa-solid fa-user" /> Propriétaire <Stars n={a.noteProprietaire} /></span>
+                      <span><i className="fa-solid fa-sailboat" /> Bateau <Stars n={a.noteBateau} /></span>
+                      <span><i className="fa-solid fa-map-location-dot" /> Lieu <Stars n={a.noteLieu} /></span>
+                    </div>
+
+                    {a.commentaire && <p className="avis-comment">{a.commentaire}</p>}
                   </div>
                 </div>
-
-                <div className="notation-card-subnotes">
-                  <span><i className="fa-solid fa-user" /> Propriétaire <Stars n={a.noteProprietaire} /></span>
-                  <span><i className="fa-solid fa-sailboat" /> Bateau <Stars n={a.noteBateau} /></span>
-                  <span><i className="fa-solid fa-map-location-dot" /> Lieu <Stars n={a.noteLieu} /></span>
-                </div>
-
-                {a.commentaire && <p className="notation-card-comment">{a.commentaire}</p>}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
