@@ -26,7 +26,20 @@ export default async function DestinationsPage() {
     <>
       <section className="dest-hero fade-in">
         <div className="dest-hero-bg">
-          <Image src="https://picsum.photos/seed/destinations-hero/1600/600" alt="" fill sizes="100vw" style={{ objectFit: "cover" }} priority />
+          {/* Vidéo de fond : vue aérienne d'une côte méditerranéenne, en accord
+              avec une app de location de bateaux. muted + playsInline pour un
+              autoplay fiable ; poster = image côtière affichée avant le chargement. */}
+          <video
+            className="dest-hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/images/destinations/corse/pexels-slimmars-13-197677686-38525042.jpg"
+          >
+            <source src="/videos/azur.mp4" type="video/mp4" />
+          </video>
           <div className="dest-hero-overlay" />
         </div>
         <div className="container dest-hero-content">
