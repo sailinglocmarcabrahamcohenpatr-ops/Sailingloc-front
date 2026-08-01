@@ -755,18 +755,128 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .map-card--catalog .boats-map-loading { height: 420px; }
 }
 
-.boat-map-marker-pin { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(45deg); background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.boat-map-marker { position: relative; display: block; filter: drop-shadow(0 3px 5px rgba(15, 30, 55, .35)); }
+.boat-map-marker-pin { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(45deg); background: linear-gradient(135deg, #3B82F6, var(--primary)); color: #fff; }
 .boat-map-marker-pin i { transform: rotate(-45deg); font-size: .8rem; }
 .boat-map-marker-pin--sm { width: 30px; height: 30px; }
 .boat-map-marker-pin--sm i { font-size: .5rem; }
-.boat-map-popup { display: flex; flex-direction: column; gap: 4px; min-width: 180px; font-size: .8125rem; }
-.boat-map-popup strong { font-size: .9rem; }
-.boat-map-popup i { color: var(--primary); width: 14px; }
-.boat-map-popup-price { font-weight: 700; color: var(--primary); }
-.boat-map-popup .btn { margin-top: 6px; text-align: center; }
-.boat-map-popup .btn-primary,
-.boat-map-popup .btn-primary:link,
-.boat-map-popup .btn-primary:visited { color: var(--white) !important; }
+.boat-map-marker-badge {
+  position: absolute;
+  top: -9px;
+  right: -11px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary);
+  font-size: .6875rem;
+  font-weight: 800;
+  line-height: 21px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--primary), 0 2px 6px rgba(15, 30, 55, .45);
+}
+
+/* ── Popup carte : carrousel des bateaux d'un même port ── */
+.boat-map-popup-wrap .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(15, 30, 55, .22), 0 4px 10px rgba(15, 30, 55, .12);
+}
+.boat-map-popup-wrap .leaflet-popup-content { margin: 0; width: 240px !important; }
+.boat-map-popup-wrap .leaflet-popup-tip { box-shadow: 0 4px 10px rgba(15, 30, 55, .12); }
+.boat-map-popup-card { display: flex; flex-direction: column; background: var(--card-bg); }
+
+.boat-map-popup-photo { position: relative; width: 100%; height: 150px; background: var(--bg); overflow: hidden; }
+.boat-map-popup-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .45) 0%, rgba(15, 23, 42, 0) 38%);
+  pointer-events: none;
+}
+.boat-map-popup-chip {
+  position: absolute;
+  top: 8px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.boat-map-popup-chip--count { left: 8px; }
+.boat-map-popup-chip--index { right: 8px; }
+.boat-map-popup-chip i { font-size: .625rem; }
+
+.boat-map-popup-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  color: var(--text);
+  font-size: .65rem;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(15, 30, 55, .3);
+  transition: background-color .2s ease, transform .2s ease;
+}
+.boat-map-popup-nav:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
+.boat-map-popup-nav--prev { left: 8px; }
+.boat-map-popup-nav--next { right: 8px; }
+
+.boat-map-popup { display: flex; flex-direction: column; gap: 5px; padding: 12px 14px 14px; font-size: .8125rem; }
+.boat-map-popup-name {
+  font-size: .9375rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.boat-map-popup-meta { display: flex; align-items: center; gap: 6px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.boat-map-popup-meta i { color: var(--primary); width: 14px; flex-shrink: 0; font-size: .75rem; }
+.boat-map-popup-foot { display: flex; align-items: baseline; gap: 4px; margin-top: 2px; }
+.boat-map-popup-price { font-size: 1.0625rem; font-weight: 800; color: var(--text); }
+.boat-map-popup-foot small { font-size: .75rem; font-weight: 500; color: var(--text-2); }
+.boat-map-popup-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.boat-map-popup-cta,
+.boat-map-popup-cta:link,
+.boat-map-popup-cta:visited { color: var(--white) !important; }
+.boat-map-popup-cta i { font-size: .75rem; transition: transform .2s ease; }
+.boat-map-popup-cta:hover i { transform: translateX(2px); }
+
+.boat-map-popup-dots { display: flex; justify-content: center; align-items: center; gap: 5px; padding: 0 0 12px; }
+.boat-map-popup-dot { width: 6px; height: 6px; padding: 0; border: none; border-radius: 999px; background: var(--border); cursor: pointer; transition: background-color .2s ease, width .2s ease; }
+.boat-map-popup-dot:hover { background: var(--text-3); }
+.boat-map-popup-dot.is-active { width: 16px; background: var(--primary); }
 
 .map-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
 .map-modal { position: relative; width: 100%; max-width: 960px; height: min(80vh, 720px); background: var(--card-bg); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }

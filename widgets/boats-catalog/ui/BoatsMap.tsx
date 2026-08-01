@@ -1,19 +1,10 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { divIcon, type LatLngBoundsExpression } from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import Link from "next/link";
+import type { LatLngBoundsExpression } from "leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 import type { Boat } from "@/entities/boat";
-import { formatPrice } from "@/shared/lib/utils";
-
-const boatIcon = divIcon({
-  className: "boat-map-marker",
-  html: '<span class="boat-map-marker-pin"><i class="fa-solid fa-anchor" aria-hidden="true"></i></span>',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -30],
-});
+import PortMarker from "./PortMarker";
 
 interface BoatsMapProps {
   boats: Boat[];
@@ -23,6 +14,16 @@ export default function BoatsMap({ boats }: BoatsMapProps) {
   const located = boats.filter(
     (b): b is Boat & { coordinates: { lat: number; lng: number } } => !!b.coordinates
   );
+
+  // Un port = une balise : les bateaux d'un même port partagent les mêmes
+  // coordonnées (celles du port), donc les regrouper par coordonnées suffit.
+  const ports = new Map<string, (Boat & { coordinates: { lat: number; lng: number } })[]>();
+  for (const boat of located) {
+    const key = `${boat.coordinates.lat},${boat.coordinates.lng}`;
+    const group = ports.get(key);
+    if (group) group.push(boat);
+    else ports.set(key, [boat]);
+  }
 
   const bounds: LatLngBoundsExpression | undefined =
     located.length > 1 ? located.map((b) => [b.coordinates.lat, b.coordinates.lng]) : undefined;
@@ -49,24 +50,8 @@ export default function BoatsMap({ boats }: BoatsMapProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {located.map((boat) => (
-        <Marker key={boat.id} position={[boat.coordinates.lat, boat.coordinates.lng]} icon={boatIcon}>
-          <Popup>
-            <div className="boat-map-popup">
-              <strong>{boat.name}</strong>
-              <span>
-                <i className="fa-solid fa-location-dot" aria-hidden="true" /> {boat.location}
-              </span>
-              <span>
-                <i className="fa-solid fa-user" aria-hidden="true" /> Propriétaire : {boat.owner.name}
-              </span>
-              <span className="boat-map-popup-price">{formatPrice(boat.pricePerDay)} / jour</span>
-              <Link href={`/bateaux/${boat.id}`} className="btn btn-primary btn-sm">
-                Voir le bateau
-              </Link>
-            </div>
-          </Popup>
-        </Marker>
+      {Array.from(ports, ([key, group]) => (
+        <PortMarker key={key} boats={group} />
       ))}
     </MapContainer>
   );
