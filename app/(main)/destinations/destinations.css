@@ -174,7 +174,12 @@
 /* Les cartes reveal-right partent décalées de +56px avant apparition ; sur la
    section élargie ce décalage dépassait le bord et créait un léger scroll
    horizontal. clip le contient sans casser le lift vertical au survol. */
-.dest-grid-section { overflow-x: clip; }
+/* Espacement uniforme entre sections = celui hero -> 1re section (48px).
+   Les sections etant adjacentes, chaque ecart = padding-bas du haut +
+   padding-haut du bas. Le carrousel garde son 48/48 symetrique (reference) ;
+   la grille passe a 0 vertical (son panneau garde son padding interne de
+   carte), donc carrousel(48) + grille(0) = 48. */
+.dest-grid-section { overflow-x: clip; padding-top: 0; padding-bottom: 0; }
 
 /* Panneau bleu inséré : occupe la boîte de contenu du container (mêmes marges
    latérales que la carte du carrousel de la section précédente) et reprend son
@@ -263,7 +268,9 @@
 /* CTA de fin de page */
 /* Bande de section sur fond blanc : la carte CTA (dégradé bleu) flotte dessus.
    Seul le footer reste en bleu foncé, sans se fondre avec cette section. */
-.dest-cta-section { background: var(--white); padding: 60px 0; }
+/* padding-haut 48px = ecart de reference ; grille(0) + cta(48) = 48. Bas
+   conserve pour l'espace avant le footer. */
+.dest-cta-section { background: var(--white); padding: 48px 0 60px; }
 .dest-cta-box {
   background: linear-gradient(135deg, var(--primary) 0%, var(--navy-2) 100%);
   border-radius: var(--radius-2xl);
