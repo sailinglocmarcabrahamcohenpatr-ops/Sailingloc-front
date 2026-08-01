@@ -204,10 +204,8 @@ export default function OwnerBoatsPage() {
                   {openMenuId === boat.id && (
                     <div className="owner-boat-menu-dropdown" role="menu">
                       <Link
-                        href={`/bateaux/${boat.id}`}
+                        href={`/proprietaire/bateaux/${boat.id}`}
                         className="owner-boat-menu-item"
-                        target="_blank"
-                        rel="noopener"
                         role="menuitem"
                         onClick={() => setOpenMenuId(null)}
                       >
