@@ -65,8 +65,13 @@ export default async function DestinationsPage() {
         </div>
       </section>
 
-      <section className="section dest-grid-section" style={{ background: "var(--surface)" }}>
+      <section className="section dest-grid-section">
         <div className="container">
+          {/* Panneau inséré : mêmes marges latérales et mêmes coins arrondis
+              que la carte du carrousel de la section précédente. Le fond porte
+              le panneau (boîte de contenu du container), pas la section entière
+              qui allait bord à bord. */}
+          <div className="dest-grid-panel">
           <div className="section-hd fade-in">
             <h2>{destinations.length} destinations d'exception</h2>
             <p>Des criques sauvages de Corse aux îles dorées des Cyclades</p>
@@ -108,6 +113,7 @@ export default async function DestinationsPage() {
               </Link>
               );
             })}
+          </div>
           </div>
         </div>
       </section>

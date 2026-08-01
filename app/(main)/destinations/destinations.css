@@ -176,6 +176,19 @@
    horizontal. clip le contient sans casser le lift vertical au survol. */
 .dest-grid-section { overflow-x: clip; }
 
+/* Panneau bleu inséré : occupe la boîte de contenu du container (mêmes marges
+   latérales que la carte du carrousel de la section précédente) et reprend son
+   rayon de 28px. Remplace le fond pleine largeur à angles droits. */
+.dest-grid-panel {
+  background: var(--surface);
+  border-radius: 28px;
+  padding: 40px 32px;
+}
+.dest-grid-panel .destinations-page-grid { margin-top: 28px; }
+@media (max-width: 640px) {
+  .dest-grid-panel { padding: 24px 16px; border-radius: 20px; }
+}
+
 .destinations-page-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
