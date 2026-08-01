@@ -16,6 +16,11 @@ interface SearchableSelectProps {
   searchPlaceholder?: string;
   id?: string;
   required?: boolean;
+  /** Active la création d'une entrée absente de la liste. Reçoit le texte
+   *  saisi dans la recherche, pour pré-remplir le formulaire de création. */
+  onCreate?: (query: string) => void;
+  /** Libellé de l'action de création (defaut : « Ajouter »). */
+  createLabel?: string;
 }
 
 export default function SearchableSelect({
@@ -26,6 +31,8 @@ export default function SearchableSelect({
   searchPlaceholder = "Rechercher…",
   id,
   required,
+  onCreate,
+  createLabel = "Ajouter",
 }: SearchableSelectProps) {
   const [open,   setOpen]   = useState(false);
   const [query,  setQuery]  = useState("");
@@ -61,6 +68,12 @@ export default function SearchableSelect({
 
   const pick = (opt: Option) => {
     onChange(opt.value);
+    setOpen(false);
+    setQuery("");
+  };
+
+  const handleCreate = () => {
+    onCreate?.(query.trim());
     setOpen(false);
     setQuery("");
   };
@@ -113,7 +126,25 @@ export default function SearchableSelect({
           {/* Options */}
           <ul className="ss-list">
             {filtered.length === 0 ? (
-              <li className="ss-no-result">Aucun résultat</li>
+              <li className="ss-no-result">
+                {onCreate ? (
+                  <>
+                    <span className="ss-no-result-text">
+                      Aucun résultat{query.trim() ? ` pour « ${query.trim()} »` : ""}.
+                    </span>
+                    <button
+                      type="button"
+                      className="ss-create-btn"
+                      onClick={handleCreate}
+                    >
+                      <i className="fa-solid fa-plus" aria-hidden="true" />
+                      {createLabel}
+                    </button>
+                  </>
+                ) : (
+                  "Aucun résultat"
+                )}
+              </li>
             ) : (
               filtered.map((opt) => (
                 <li
@@ -132,6 +163,22 @@ export default function SearchableSelect({
               ))
             )}
           </ul>
+
+          {/* Action de création toujours accessible : un port peut exister sous
+              un nom voisin sans être celui du propriétaire. Sans ce pied de
+              liste, il faudrait taper un texte sans résultat pour la révéler. */}
+          {onCreate && filtered.length > 0 && (
+            <div className="ss-footer">
+              <button
+                type="button"
+                className="ss-create-btn"
+                onClick={handleCreate}
+              >
+                <i className="fa-solid fa-plus" aria-hidden="true" />
+                {createLabel}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
