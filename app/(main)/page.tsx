@@ -4,7 +4,7 @@ import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { BoatTypeIcon } from "@/entities/boat";
-import { getDestinations } from "@/entities/destination";
+import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
 import { getHomeStats } from "./getHomeStats";
@@ -53,7 +53,7 @@ const HOW_IT_WORKS = [
 
 export default async function HomePage() {
   const [destinations, homeStats, testimonials, featuredBoats] = await Promise.all([
-    getDestinations(),
+    getDestinationsWithLiveBoatCounts(),
     getHomeStats(),
     getTestimonials(),
     getFeaturedBoats(),

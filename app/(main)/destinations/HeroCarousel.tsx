@@ -8,7 +8,9 @@ import type { FullDestination } from "@/entities/destination";
 const AUTOPLAY_MS = 5500;
 const THUMB_COUNT = 3;
 
-export default function HeroCarousel({ destinations }: { destinations: FullDestination[] }) {
+type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
+
+export default function HeroCarousel({ destinations }: { destinations: DestinationWithPhotos[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const count = destinations.length;
@@ -58,7 +60,7 @@ export default function HeroCarousel({ destinations }: { destinations: FullDesti
             aria-hidden={i !== index}
           >
             <Image
-              src={`https://picsum.photos/seed/${dest.heroSeed}/1600/800`}
+              src={dest.heroPhoto}
               alt=""
               fill
               sizes="100vw"
@@ -118,7 +120,7 @@ export default function HeroCarousel({ destinations }: { destinations: FullDesti
             >
               <span className="dest-featured-thumb-img">
                 <Image
-                  src={`https://picsum.photos/seed/${dest.imageSeed}/400/520`}
+                  src={dest.photo}
                   alt=""
                   fill
                   sizes="140px"

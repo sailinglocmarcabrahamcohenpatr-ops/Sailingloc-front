@@ -1,0 +1,93 @@
+/* ──────────────────────────────────────────────────────────────
+   Styles co-localisés de la page /destinations/[slug]/ports/[port].
+   Isolés hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+
+.port-hero {
+  position: relative;
+  height: 420px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 0 0 28px 28px;
+}
+.port-hero img { animation: port-hero-kenburns 22s ease-in-out infinite alternate; }
+/* dupliqué depuis destination-detail.css (dest-hero-kenburns) : cette route doit fonctionner de façon autonome */
+@keyframes port-hero-kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .port-hero img { animation: none; }
+}
+.port-hero-overlay {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 88% -15%, rgba(24,102,242,.4) 0%, transparent 45%),
+    linear-gradient(to top, rgba(4,12,26,.95) 0%, rgba(8,20,40,.55) 55%, rgba(8,20,40,.15) 100%),
+    linear-gradient(90deg, rgba(4,12,26,.5) 0%, transparent 60%);
+}
+.port-hero-watermark {
+  position: absolute; z-index: 1;
+  right: 5%; bottom: 8px;
+  font-size: 11rem; line-height: 1;
+  color: rgba(255,255,255,.05);
+  pointer-events: none;
+}
+@media (max-width: 900px) { .port-hero-watermark { display: none; } }
+.port-hero-content { position: relative; z-index: 2; padding-bottom: 44px; color: var(--white); }
+
+/* dupliqué depuis destination-detail.css : cette route doit fonctionner de façon autonome */
+.dest-detail-breadcrumb { font-size: .875rem; color: rgba(255,255,255,.65); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.dest-detail-breadcrumb a { color: rgba(255,255,255,.65); }
+.dest-detail-breadcrumb a:hover { color: var(--white); }
+
+.port-hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--white); background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.28);
+  padding: 6px 14px; border-radius: 999px; backdrop-filter: blur(8px);
+  font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.port-hero-content h1 { color: var(--white); font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 300; letter-spacing: -.02em; line-height: 1.05; }
+.port-hero-ville { font-size: 1.0625rem; color: rgba(255,255,255,.8); margin-top: 8px; margin-bottom: 22px; display: flex; align-items: center; gap: 8px; }
+.port-hero-ville i { color: var(--primary); }
+.port-hero-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.port-hero-stats span {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .875rem; color: var(--white); font-weight: 600;
+  background: rgba(255,255,255,.1); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+  padding: 9px 16px;
+}
+.port-hero-stats i { color: var(--primary); }
+
+@media (max-width: 640px) {
+  .port-hero { height: 320px; border-radius: 0 0 18px 18px; }
+}
+
+/* ── Section — bateaux disponibles au port ── */
+.port-boats-section { position: relative; }
+.port-section-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 8px;
+}
+.port-section-eyebrow i { font-size: .6875rem; }
+.port-boats-section .section-hd h2 { font-weight: 800; letter-spacing: -.01em; }
+
+.port-boats-panel { position: relative; }
+.port-boats-panel::before,
+.port-boats-panel::after {
+  content: "";
+  position: absolute;
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: .1;
+  pointer-events: none;
+  z-index: 0;
+}
+.port-boats-panel::before { top: -140px; left: -120px; background: var(--primary); }
+.port-boats-panel::after { bottom: -160px; right: -120px; background: #34D399; }
+.port-boats-panel .boats-result-grid { position: relative; z-index: 1; }
