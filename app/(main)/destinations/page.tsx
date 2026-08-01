@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
 import { getCoherentPhoto } from "@/shared/lib/pexels";
 import HeroCarousel from "./HeroCarousel";
+import DestHeroStats from "./DestHeroStats";
 import "./destinations.css";
 
 export const metadata: Metadata = {
@@ -32,22 +33,13 @@ export default async function DestinationsPage() {
           <p className="hero-eyebrow">Nos destinations</p>
           <h1>Naviguez vers l'extraordinaire</h1>
           <p className="dest-hero-sub">Découvrez les plus belles eaux de Méditerranée et d'Atlantique, sélectionnées par nos experts nautiques.</p>
-          <div className="dest-hero-stats">
-            <div className="dest-hero-stat">
-              <strong>{destinations.length}</strong>
-              <span>destinations</span>
-            </div>
-            <div className="dest-hero-stat-divider" />
-            <div className="dest-hero-stat">
-              <strong>{destinations.reduce((sum, d) => sum + d.boatCount, 0)}+</strong>
-              <span>bateaux</span>
-            </div>
-            <div className="dest-hero-stat-divider" />
-            <div className="dest-hero-stat">
-              <strong>{new Set(destinations.map((d) => d.country)).size}</strong>
-              <span>pays</span>
-            </div>
-          </div>
+          <DestHeroStats
+            stats={[
+              { target: destinations.length, label: "destinations" },
+              { target: destinations.reduce((sum, d) => sum + d.boatCount, 0), suffix: "+", label: "bateaux" },
+              { target: new Set(destinations.map((d) => d.country)).size, label: "pays" },
+            ]}
+          />
         </div>
         <div className="dest-detail-hero-scroll" aria-hidden="true">
           <i className="fa-solid fa-chevron-down" />
