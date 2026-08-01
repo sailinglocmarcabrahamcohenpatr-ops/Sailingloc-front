@@ -10,6 +10,7 @@ import StatsCounters from "./StatsCounters";
 import { getHomeStats } from "./getHomeStats";
 import { getTestimonials } from "./getTestimonials";
 import { getFeaturedBoats } from "./getFeaturedBoats";
+import { getBoatCategoryCounts } from "./getBoatCategoryCounts";
 import "./home-shell.css";
 import "./home.css";
 
@@ -22,12 +23,12 @@ export const metadata: Metadata = {
 };
 
 const BOAT_CATEGORIES = [
-  { type: "voilier", icon: "fa-sailboat", label: "Voilier", count: "1 240 annonces" },
-  { type: "catamaran", icon: "fa-ship", label: "Catamaran", count: "480 annonces" },
-  { type: "moteur", icon: "fa-gauge-high", label: "Moteur", count: "720 annonces" },
-  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide", count: "310 annonces" },
-  { type: "habitable", icon: "fa-house", label: "Habitable", count: "195 annonces" },
-  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis", count: "255 annonces" },
+  { type: "voilier", icon: "fa-sailboat", label: "Voilier" },
+  { type: "catamaran", icon: "fa-ship", label: "Catamaran" },
+  { type: "moteur", icon: "fa-gauge-high", label: "Moteur" },
+  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide" },
+  { type: "habitable", icon: "fa-house", label: "Habitable" },
+  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis" },
 ];
 
 const HOW_IT_WORKS = [
@@ -52,11 +53,12 @@ const HOW_IT_WORKS = [
 ];
 
 export default async function HomePage() {
-  const [destinations, homeStats, testimonials, featuredBoats] = await Promise.all([
+  const [destinations, homeStats, testimonials, featuredBoats, categoryCounts] = await Promise.all([
     getDestinationsWithLiveBoatCounts(),
     getHomeStats(),
     getTestimonials(),
     getFeaturedBoats(),
+    getBoatCategoryCounts(),
   ]);
 
   return (
@@ -84,17 +86,20 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="categories-grid fade-in">
-            {BOAT_CATEGORIES.map((cat) => (
-              <Link
-                key={cat.type}
-                href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
-                className="category-card"
-              >
-                <span className="category-icon" aria-hidden="true"><BoatTypeIcon type={cat.type} style={{ fontSize: "2.1rem" }} /></span>
-                <strong>{cat.label}</strong>
-                <span>{cat.count}</span>
-              </Link>
-            ))}
+            {BOAT_CATEGORIES.map((cat) => {
+              const count = categoryCounts[cat.type] ?? 0;
+              return (
+                <Link
+                  key={cat.type}
+                  href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
+                  className="category-card"
+                >
+                  <span className="category-icon" aria-hidden="true"><BoatTypeIcon type={cat.type} style={{ fontSize: "2.1rem" }} /></span>
+                  <strong>{cat.label}</strong>
+                  <span>{count.toLocaleString("fr-FR")} annonce{count !== 1 ? "s" : ""}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
