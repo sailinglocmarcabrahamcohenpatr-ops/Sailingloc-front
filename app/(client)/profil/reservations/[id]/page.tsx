@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { reservationsApi, boatsApi, resolvePhotoUrl, canCancelReservation, CANCELLATION_MIN_HOURS } from "@/shared/lib";
+import {
+  reservationsApi,
+  boatsApi,
+  resolvePhotoUrl,
+  canCancelReservation,
+  CANCELLATION_MIN_HOURS,
+  generateReservationInvoicePdf,
+  useAuth,
+} from "@/shared/lib";
 import type { ReservationAPI, BoatAPI, PaiementAPI } from "@/shared/lib";
 import { RatingForm } from "@/features/rate-boat";
 import "../reservations.css";
@@ -45,6 +53,7 @@ const nights = (start: string, end: string) =>
 export default function ReservationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const { user } = useAuth();
 
   const [reservation, setReservation] = useState<ReservationAPI | null>(null);
   const [boat, setBoat] = useState<BoatAPI | null>(null);
@@ -140,6 +149,20 @@ export default function ReservationDetailPage() {
     }
   };
 
+  const handleDownloadInvoice = () => {
+    generateReservationInvoicePdf(
+      reservation,
+      {
+        name: reservation.utilisateur
+          ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}`
+          : user?.name,
+        email: reservation.utilisateur?.email ?? user?.email,
+      },
+      paiements,
+      boat
+    );
+  };
+
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
@@ -155,11 +178,16 @@ export default function ReservationDetailPage() {
             {ville && <span style={{ marginLeft: 10 }}><i className="fa-solid fa-location-dot" /> {ville}</span>}
           </p>
         </div>
-        {boatId != null && (
-          <Link href={`/bateaux/${boatId}`} className="btn btn-outline btn-sm">
-            <i className="fa-solid fa-eye" /> Voir la fiche bateau
-          </Link>
-        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
+            <i className="fa-solid fa-download" /> Télécharger la facture
+          </button>
+          {boatId != null && (
+            <Link href={`/bateaux/${boatId}`} className="btn btn-outline btn-sm">
+              <i className="fa-solid fa-eye" /> Voir la fiche bateau
+            </Link>
+          )}
+        </div>
       </div>
 
       {photos.length > 0 && (

@@ -3,8 +3,16 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { reservationsApi, canCancelReservation, CANCELLATION_MIN_HOURS } from "@/shared/lib";
-import type { ReservationAPI } from "@/shared/lib";
+import {
+  reservationsApi,
+  boatsApi,
+  canCancelReservation,
+  CANCELLATION_MIN_HOURS,
+  generateReservationInvoicePdf,
+  generateReservationsInvoicesPdf,
+  useAuth,
+} from "@/shared/lib";
+import type { ReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
 import { resolvePhotoUrl } from "@/shared/lib/boats-api";
 import { RatingForm } from "@/features/rate-boat";
 import "./reservations.css";
@@ -33,10 +41,14 @@ const fmt = (d: string) =>
 
 const BookingCard = ({
   r,
+  boat,
+  paiements,
   onRated,
   onCancelled,
 }: {
   r: ReservationAPI;
+  boat?: BoatAPI;
+  paiements: PaiementAPI[];
   onRated: (reservationId: number) => void;
   onCancelled: (reservationId: number) => void;
 }) => {
@@ -56,6 +68,19 @@ const BookingCard = ({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
+  const { user } = useAuth();
+
+  const handleDownloadInvoice = () => {
+    generateReservationInvoicePdf(
+      r,
+      {
+        name: r.utilisateur ? `${r.utilisateur.prenom} ${r.utilisateur.nom}` : user?.name,
+        email: r.utilisateur?.email ?? user?.email,
+      },
+      paiements,
+      boat
+    );
+  };
 
   const handleCancel = async () => {
     if (!cancellable) return;
@@ -97,6 +122,9 @@ const BookingCard = ({
           <Link href={`/profil/reservations/${r.id}`} className="btn btn-primary btn-sm">
             <i className="fa-solid fa-receipt" /> Voir en détail
           </Link>
+          <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
+            <i className="fa-solid fa-file-pdf" /> Facture PDF
+          </button>
           {/* <Link href={`/bateaux/${boatId}`} className="btn btn-ghost btn-sm">
             <i className="fa-solid fa-eye" /> Voir le bateau
           </Link> */}
@@ -233,14 +261,34 @@ const AccordionSection = ({
 };
 
 export default function UserReservationsPage() {
+  const { user } = useAuth();
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
+  const [boatsById, setBoatsById] = useState<Map<number, BoatAPI>>(new Map());
+  const [paiementsByReservation, setPaiementsByReservation] = useState<Record<number, PaiementAPI[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     reservationsApi
       .getAll()
-      .then(setReservations)
+      .then(async (list) => {
+        setReservations(list);
+
+        const [boats, paiementsEntries] = await Promise.all([
+          boatsApi.getAll().catch(() => [] as BoatAPI[]),
+          Promise.all(
+            list.map(async (r) => {
+              try {
+                return [r.id, await reservationsApi.getPaiements(r.id)] as const;
+              } catch {
+                return [r.id, [] as PaiementAPI[]] as const;
+              }
+            })
+          ),
+        ]);
+        setBoatsById(new Map(boats.map((b) => [b.id, b])));
+        setPaiementsByReservation(Object.fromEntries(paiementsEntries));
+      })
       .catch(() => setError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
   }, []);
@@ -253,6 +301,14 @@ export default function UserReservationsPage() {
 
   const handleCancelled = (reservationId: number) => {
     setReservations((prev) => prev.filter((r) => r.id !== reservationId));
+  };
+
+  const handleExportAllInvoices = () => {
+    generateReservationsInvoicesPdf(
+      reservations,
+      { name: user?.name, email: user?.email },
+      paiementsByReservation
+    );
   };
 
   if (loading)
@@ -281,16 +337,33 @@ export default function UserReservationsPage() {
             {reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total
           </p>
         </div>
-        <Link href="/bateaux" className="btn btn-primary">
-          <i className="fa-solid fa-magnifying-glass" /> Trouver un bateau
-        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={handleExportAllInvoices}
+            disabled={reservations.length === 0}
+          >
+            <i className="fa-solid fa-download" /> Export PDF
+          </button>
+          <Link href="/bateaux" className="btn btn-primary">
+            <i className="fa-solid fa-magnifying-glass" /> Trouver un bateau
+          </Link>
+        </div>
       </div>
 
       {upcoming.length > 0 && (
         <AccordionSection title="À venir" count={upcoming.length} defaultOpen>
           <div className="bookings-list">
             {upcoming.map((r) => (
-              <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
+              <BookingCard
+                key={r.id}
+                r={r}
+                boat={r.bateau?.id != null ? boatsById.get(r.bateau.id) : undefined}
+                paiements={paiementsByReservation[r.id] ?? []}
+                onRated={handleRated}
+                onCancelled={handleCancelled}
+              />
             ))}
           </div>
         </AccordionSection>
@@ -299,7 +372,14 @@ export default function UserReservationsPage() {
         <AccordionSection title="Historique" count={past.length} defaultOpen={false}>
           <div className="bookings-list">
             {past.map((r) => (
-              <BookingCard key={r.id} r={r} onRated={handleRated} onCancelled={handleCancelled} />
+              <BookingCard
+                key={r.id}
+                r={r}
+                boat={r.bateau?.id != null ? boatsById.get(r.bateau.id) : undefined}
+                paiements={paiementsByReservation[r.id] ?? []}
+                onRated={handleRated}
+                onCancelled={handleCancelled}
+              />
             ))}
           </div>
         </AccordionSection>

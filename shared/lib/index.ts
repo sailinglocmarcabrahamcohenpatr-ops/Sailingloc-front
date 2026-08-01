@@ -24,6 +24,8 @@ export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload, DocumentAP
 export { reservationsApi, avisApi, canCancelReservation, CANCELLATION_MIN_HOURS } from "./reservations-api";
 export type { ReservationAPI, CreateReservationPayload, AvisAPI, CreateAvisPayload, PaiementAPI } from "./reservations-api";
 
+export { generateReservationInvoicePdf, generateReservationsInvoicesPdf } from "./invoice-pdf";
+
 export { messagesApi } from "./messages-api";
 export type { MessageAPI, SendMessagePayload } from "./messages-api";
 
