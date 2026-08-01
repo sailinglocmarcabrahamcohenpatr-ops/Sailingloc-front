@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
-import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider } from "@/shared/lib";
+import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider, CookieConsentProvider } from "@/shared/lib";
+import { CookieConsentBanner } from "@/widgets/cookie-consent";
 import { cn } from "@/lib/utils";
 
 const THEME_INIT_SCRIPT = `
@@ -77,8 +78,11 @@ export default function RootLayout({
           <PreferencesProvider>
             <MessagesProvider>
               <NotificationsProvider>
-                {children}
-                <FadeInObserver />
+                <CookieConsentProvider>
+                  {children}
+                  <FadeInObserver />
+                  <CookieConsentBanner />
+                </CookieConsentProvider>
               </NotificationsProvider>
             </MessagesProvider>
           </PreferencesProvider>

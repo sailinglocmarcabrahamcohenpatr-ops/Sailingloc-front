@@ -272,9 +272,14 @@ footer {
   font-size: .8125rem; color: rgba(255,255,255,.35);
   flex-wrap: wrap; gap: 12px;
 }
-.footer-bottom-links { display: flex; gap: 20px; }
+.footer-bottom-links { display: flex; gap: 20px; flex-wrap: wrap; }
 .footer-bottom-links a { color: rgba(255,255,255,.5); }
 .footer-bottom-links a:hover { color: var(--white); }
+.footer-bottom-links button {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; color: rgba(255,255,255,.5);
+}
+.footer-bottom-links button:hover { color: var(--white); }
 
 /* ── Cards — bateau ─────────────────────────────── */
 .boat-card {
@@ -1265,6 +1270,142 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .form-footer-links {
   display: flex;
   gap: 16px;
+}
+
+/* ── Cookie consent banner ───────────────────────── */
+.cookie-banner {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 20px 24px;
+}
+.cookie-banner-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.cookie-banner-icon {
+  flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: var(--radius-lg);
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
+}
+.cookie-banner-text { flex: 1 1 380px; min-width: 260px; }
+.cookie-banner-text strong { display: block; font-size: .9375rem; margin-bottom: 4px; }
+.cookie-banner-text p { font-size: .8125rem; color: var(--text-2); line-height: 1.6; }
+.cookie-banner-link { color: var(--primary); font-weight: 600; }
+.cookie-banner-link:hover { text-decoration: underline; }
+.cookie-banner-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0;
+}
+
+.cookie-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1100; padding: 24px;
+}
+.cookie-modal {
+  position: relative;
+  width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto;
+  background: var(--card-bg); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg); padding: 32px;
+}
+.cookie-modal h3 { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.cookie-modal h3 i { color: var(--primary); }
+.cookie-modal-intro { font-size: .875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 8px; }
+.cookie-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: var(--bg); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: .9rem;
+}
+.cookie-modal-close:hover { background: var(--border); }
+.cookie-modal-footnote { font-size: .8125rem; color: var(--text-2); margin-top: 8px; line-height: 1.6; }
+.cookie-modal-actions {
+  display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+  .cookie-banner-inner { flex-direction: column; align-items: stretch; }
+  .cookie-banner-actions { justify-content: stretch; }
+  .cookie-banner-actions .btn { flex: 1; justify-content: center; }
+  .cookie-modal { padding: 24px; }
+  .cookie-modal-actions .btn { flex: 1; justify-content: center; }
+}
+
+/* ── Legal pages (CGU, RGPD, cookies, mentions légales) ── */
+.legal-hero {
+  background: var(--navy-2, #0B1929);
+  color: var(--white);
+  padding: 56px 0 40px;
+}
+.legal-hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  font-size: .8125rem; font-weight: 600; margin-bottom: 16px;
+}
+.legal-hero h1 { color: var(--white); margin-bottom: 10px; }
+.legal-hero-sub { color: rgba(255,255,255,.75); font-size: 1rem; max-width: 640px; line-height: 1.6; }
+.legal-hero-updated {
+  margin-top: 18px; display: inline-flex; align-items: center; gap: 8px;
+  font-size: .8125rem; color: rgba(255,255,255,.65);
+}
+
+.legal-wrap {
+  display: grid; grid-template-columns: 240px 1fr; gap: 48px;
+  padding: 48px 0 80px; align-items: start;
+}
+.legal-toc {
+  position: sticky; top: 88px;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--card-bg); padding: 20px;
+}
+.legal-toc h5 { margin-bottom: 12px; color: var(--text-2); font-size: .8125rem; text-transform: uppercase; letter-spacing: .04em; }
+.legal-toc ul { display: flex; flex-direction: column; gap: 2px; }
+.legal-toc a {
+  display: block; padding: 8px 10px; border-radius: var(--radius);
+  font-size: .875rem; color: var(--text-2); font-weight: 500;
+}
+.legal-toc a:hover { background: var(--bg); color: var(--primary); }
+
+.legal-content { max-width: 760px; }
+.legal-content section { margin-bottom: 40px; scroll-margin-top: 88px; }
+.legal-content h2 {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.legal-content h2 i { color: var(--primary); font-size: 1.125rem; }
+.legal-content h3 { margin: 20px 0 8px; font-size: 1.0625rem; }
+.legal-content p { color: var(--text-2); line-height: 1.75; margin-bottom: 12px; }
+.legal-content ul { margin: 0 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.legal-content li {
+  display: flex; align-items: flex-start; gap: 10px;
+  color: var(--text-2); line-height: 1.65; font-size: .9375rem;
+}
+.legal-content li i { color: var(--primary); margin-top: 5px; font-size: .75rem; flex-shrink: 0; }
+.legal-content strong { color: var(--text); }
+.legal-content a { color: var(--primary); font-weight: 600; }
+.legal-content a:hover { text-decoration: underline; }
+.legal-content table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: .875rem; }
+.legal-content th, .legal-content td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-2); }
+.legal-content th { color: var(--text); font-weight: 700; }
+
+.legal-callout {
+  display: flex; gap: 12px;
+  background: var(--primary-light); border-radius: var(--radius-lg);
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.legal-callout i { color: var(--primary); font-size: 1.125rem; margin-top: 2px; }
+.legal-callout p { margin: 0; color: var(--text); font-size: .875rem; }
+
+.legal-manage-cookies-btn { margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .legal-wrap { grid-template-columns: 1fr; }
+  .legal-toc { position: static; }
 }
 
 /* ── Booking guarantees ─────────────────────────── */

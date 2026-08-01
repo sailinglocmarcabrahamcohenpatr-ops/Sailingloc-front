@@ -4,6 +4,9 @@ export type { AuthUser, UserRole } from "./auth-context";
 export { PreferencesProvider, usePreferences } from "./preferences-context";
 export type { Theme, TextSize } from "./preferences-context";
 
+export { CookieConsentProvider, useCookieConsent } from "./cookie-consent-context";
+export type { CookieCategory, CookieCategories } from "./cookie-consent-context";
+
 export { MessagesProvider, useMessages } from "./messages-context";
 
 export { NotificationsProvider, useNotifications } from "./notifications-context";

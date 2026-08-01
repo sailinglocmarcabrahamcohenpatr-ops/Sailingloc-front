@@ -163,7 +163,7 @@ export default function BecomeOwnerForm() {
           <input type="checkbox" id="owner-terms" required className="form-rgpd-checkbox" />
           <label htmlFor="owner-terms" className="form-rgpd-label">
             J&apos;accepte les{" "}
-            <a href="#" className="form-rgpd-link">conditions propriétaires</a>{" "}
+            <a href="/cgu#proprietaires" target="_blank" className="form-rgpd-link">conditions propriétaires</a>{" "}
             de SailingLoc et certifie que les informations fournies sont exactes.
           </label>
         </div>
