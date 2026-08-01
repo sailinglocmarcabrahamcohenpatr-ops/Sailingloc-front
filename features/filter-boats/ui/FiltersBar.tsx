@@ -20,9 +20,10 @@ export default function FiltersBar() {
   const priceMax = searchParams.get("prixMax") ?? "";
   const capacityMin = searchParams.get("capacite") ?? "";
   const ratingMin = searchParams.get("note") ?? "";
+  const skipper = searchParams.get("skipper") ?? "";
 
   const activeCount =
-    activeTypes.size + (priceMax ? 1 : 0) + (capacityMin ? 1 : 0) + (ratingMin ? 1 : 0);
+    activeTypes.size + (priceMax ? 1 : 0) + (capacityMin ? 1 : 0) + (ratingMin ? 1 : 0) + (skipper ? 1 : 0);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -51,8 +52,12 @@ export default function FiltersBar() {
     updateParams({ type: next.size > 0 ? Array.from(next).join(",") : null });
   };
 
+  const toggleSkipper = (value: "avec" | "sans") => {
+    updateParams({ skipper: skipper === value ? null : value });
+  };
+
   const clearAll = () => {
-    updateParams({ type: null, prixMax: null, capacite: null, note: null });
+    updateParams({ type: null, prixMax: null, capacite: null, note: null, skipper: null });
   };
 
   return (
@@ -97,6 +102,28 @@ export default function FiltersBar() {
                     {t.label}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="filter-panel-section">
+              <span className="filter-panel-label">Skipper</span>
+              <div className="filter-panel-chips">
+                <button
+                  type="button"
+                  className={`chip${skipper === "avec" ? " active" : ""}`}
+                  aria-pressed={skipper === "avec"}
+                  onClick={() => toggleSkipper("avec")}
+                >
+                  Avec
+                </button>
+                <button
+                  type="button"
+                  className={`chip${skipper === "sans" ? " active" : ""}`}
+                  aria-pressed={skipper === "sans"}
+                  onClick={() => toggleSkipper("sans")}
+                >
+                  Sans
+                </button>
               </div>
             </div>
 

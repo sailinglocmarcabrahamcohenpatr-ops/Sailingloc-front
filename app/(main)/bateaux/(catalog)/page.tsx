@@ -9,6 +9,15 @@ import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 const adaptBoat = adaptBoatFromApi;
 
+/** Le backend `/api/bateaux` ignore silencieusement type/avec_skipper/prix_max/capacite/note en
+ *  query string (vérifié en direct sur l'API) : on doit donc les réappliquer nous-mêmes, comme
+ *  c'est déjà fait pour `destination` ci-dessous. */
+function boatMatchesType(labelTypeBateau: string | undefined, slug: string): boolean {
+  const label = normalizeText(labelTypeBateau ?? "").replace(/[^a-z0-9]+/g, " ");
+  const needle = slug.replace(/-/g, " ");
+  return label.includes(needle);
+}
+
 const TYPE_LABELS: Record<string, string> = {
   voilier: "Voiliers",
   catamaran: "Catamarans",
@@ -68,6 +77,28 @@ export default async function BoatsPage({ searchParams }: PageProps) {
         return todayKey >= debut && todayKey <= fin;
       });
     });
+    if (types.length > 0) {
+      filtered = filtered.filter((b) => types.some((t) => boatMatchesType(b.typeBateau?.labelTypeBateau, t)));
+    }
+    if (skipper) {
+      const wantSkipper = skipper === "avec";
+      filtered = filtered.filter((b) => b.avecSkipper === wantSkipper);
+    }
+    if (prixMax) {
+      const max = Number(prixMax);
+      filtered = filtered.filter((b) => {
+        const price = typeof b.prixJour === "string" ? parseFloat(b.prixJour) : b.prixJour;
+        return typeof price === "number" && Number.isFinite(price) && price <= max;
+      });
+    }
+    if (capacite) {
+      const min = Number(capacite);
+      filtered = filtered.filter((b) => (b.capacite ?? 0) >= min);
+    }
+    if (note) {
+      const min = Number(note);
+      filtered = filtered.filter((b) => (b.noteMoyenne ?? 0) >= min);
+    }
     if (destination) {
       // Le backend ne filtre pas toujours fiablement par destination : on revérifie ici
       // via le port réel embarqué dans chaque bateau (pays pour l'étranger, ville pour les
