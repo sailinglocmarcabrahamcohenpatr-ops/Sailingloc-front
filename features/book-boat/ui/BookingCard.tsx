@@ -8,7 +8,7 @@ import { useAuth, boatsApi } from "@/shared/lib";
 import GuestCounter from "./GuestCounter";
 import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
 import { BOOKING_GUARANTEES } from "../model/constants";
-import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
+import { formatPrice, calculateBookingTotal, toLocalIsoDate } from "@/shared/lib/utils";
 
 function isCancelled(libelle?: string): boolean {
   return (libelle ?? "").toLowerCase().includes("annul");
@@ -20,10 +20,6 @@ function daysBetween(start: string, end: string): number {
       (1000 * 60 * 60 * 24)
   );
   return Math.max(1, diff);
-}
-
-function toIsoDay(d: Date): string {
-  return d.toISOString().split("T")[0];
 }
 
 interface BookingCardProps {
@@ -75,8 +71,8 @@ export default function BookingCard({
       .finally(() => setCalLoading(false));
   }, [boatId]);
 
-  const startDate = range?.from ? toIsoDay(range.from) : "";
-  const endDate = range?.to ? toIsoDay(range.to) : "";
+  const startDate = range?.from ? toLocalIsoDate(range.from) : "";
+  const endDate = range?.to ? toLocalIsoDate(range.to) : "";
   const hasAvailability = !calLoading;
   const canBook = Boolean(startDate && endDate);
 

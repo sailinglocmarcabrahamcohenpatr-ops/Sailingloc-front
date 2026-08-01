@@ -5,6 +5,7 @@ import type { DateRange } from "react-day-picker";
 import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { useMediaQuery, breakpoints } from "@/shared/hooks/useMediaQuery";
+import { toLocalIsoDate } from "@/shared/lib/utils";
 
 export interface DateSpan {
   from: Date;
@@ -19,9 +20,7 @@ interface Props {
   loading: boolean;
 }
 
-function dayKey(d: Date): string {
-  return d.toISOString().split("T")[0];
-}
+const dayKey = toLocalIsoDate;
 
 function isInRange(day: Date, span: DateSpan): boolean {
   const k = dayKey(day);

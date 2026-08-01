@@ -7,14 +7,13 @@ import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { boatsApi, disponibilitesApi } from "@/shared/lib";
 import type { BoatAPI, DisponibiliteAPI, ReservationAPI } from "@/shared/lib";
+import { toLocalIsoDate } from "@/shared/lib/utils";
 
 function toDate(iso: string): Date {
   return new Date(iso);
 }
 
-function toIsoDay(d: Date): string {
-  return d.toISOString().split("T")[0];
-}
+const toIsoDay = toLocalIsoDate;
 
 function fmtFR(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
