@@ -3,11 +3,13 @@ import Link from "next/link";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
-import { FEATURED_BOATS, BoatTypeIcon } from "@/entities/boat";
+import { BoatTypeIcon } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import StatsCounters from "./StatsCounters";
 import { getHomeStats } from "./getHomeStats";
+import { getTestimonials } from "./getTestimonials";
+import { getFeaturedBoats } from "./getFeaturedBoats";
 import "./home-shell.css";
 import "./home.css";
 
@@ -50,7 +52,12 @@ const HOW_IT_WORKS = [
 ];
 
 export default async function HomePage() {
-  const [destinations, homeStats] = await Promise.all([getDestinations(), getHomeStats()]);
+  const [destinations, homeStats, testimonials, featuredBoats] = await Promise.all([
+    getDestinations(),
+    getHomeStats(),
+    getTestimonials(),
+    getFeaturedBoats(),
+  ]);
 
   return (
     <div className="home-shell">
@@ -109,24 +116,26 @@ export default async function HomePage() {
       </section>
 
       {/* ── Bateaux vedettes ── */}
-      <section className="home-section bg-surface" aria-labelledby="featured-title">
-        <div className="container">
-          <div className="home-section-hd fade-in">
-            <div>
-              <h2 id="featured-title">Bateaux en vedette</h2>
-              <p>Une sélection de nos meilleures annonces du moment</p>
+      {featuredBoats.length > 0 && (
+        <section className="home-section bg-surface" aria-labelledby="featured-title">
+          <div className="container">
+            <div className="home-section-hd fade-in">
+              <div>
+                <h2 id="featured-title">Bateaux en vedette</h2>
+                <p>Une sélection de nos meilleures annonces du moment</p>
+              </div>
+              <Link href="/bateaux" className="btn btn-outline">
+                Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </Link>
             </div>
-            <Link href="/bateaux" className="btn btn-outline">
-              Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
-            </Link>
+            <div className="boats-grid fade-in">
+              {featuredBoats.map((boat) => (
+                <FavoriteBoatCard key={boat.id} boat={boat} />
+              ))}
+            </div>
           </div>
-          <div className="boats-grid fade-in">
-            {FEATURED_BOATS.map((boat) => (
-              <FavoriteBoatCard key={boat.id} boat={boat} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Comment ça marche ── */}
       <section className="home-section home-hiw" aria-labelledby="hiw-title">
@@ -166,7 +175,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Avis clients ── */}
-      <Testimonials />
+      <Testimonials testimonials={testimonials} />
 
       {/* ── Owner CTA ── */}
       <section className="owner-cta-home" aria-labelledby="owner-cta-title">

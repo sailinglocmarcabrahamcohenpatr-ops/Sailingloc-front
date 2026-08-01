@@ -44,6 +44,9 @@ export interface Testimonial {
   body: string;
   destination: string;
   boatType: string;
+  noteProprietaire: number;
+  noteBateau: number;
+  noteLieu: number;
 }
 
 export interface Stat {

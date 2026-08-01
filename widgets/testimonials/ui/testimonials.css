@@ -23,8 +23,41 @@
   transition: var(--transition);
 }
 .testimonial-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.testimonial-card { cursor: pointer; }
+.testimonial-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .testimonial-stars { color: var(--star); display: flex; gap: 3px; font-size: .9375rem; }
 .testimonial-body { font-size: .9375rem; line-height: 1.65; color: var(--text); flex: 1; }
 .testimonial-author { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .testimonial-author strong { display: block; font-size: .9rem; }
 .testimonial-author span { font-size: .8125rem; color: var(--text-2); }
+
+/* ── Détail d'un avis (les 3 notations) ── */
+.testimonial-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+}
+.testimonial-modal {
+  position: relative;
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 440px; padding: 28px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.testimonial-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: var(--bg); color: var(--text-2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.testimonial-modal-close:hover { background: var(--border); color: var(--text); }
+.testimonial-modal-author { display: flex; align-items: center; gap: 12px; padding-right: 32px; }
+.testimonial-modal-author strong { display: block; font-size: .9375rem; }
+.testimonial-modal-author span { font-size: .8125rem; color: var(--text-2); }
+.testimonial-modal-body { font-size: .9375rem; line-height: 1.65; color: var(--text); }
+.testimonial-modal-subnotes {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+  font-size: .8125rem; color: var(--text-2);
+}
+.testimonial-modal-subnotes span { display: flex; align-items: center; gap: 8px; }
+.testimonial-modal-subnotes i { color: var(--text-3); width: 14px; }
+.testimonial-modal-subnotes .stars { margin-left: auto; }
