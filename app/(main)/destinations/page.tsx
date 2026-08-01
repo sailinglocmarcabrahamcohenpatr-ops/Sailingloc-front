@@ -17,7 +17,10 @@ export default async function DestinationsPage() {
   const destinations = await Promise.all(
     liveDestinations.map(async (dest) => ({
       ...dest,
-      photo: await getCoherentPhoto(`${dest.name} ${dest.country} coastline sailing`, dest.imageSeed, "800/600"),
+      /* Image de carte = photo curée de la destination (heroImage) → chaque
+         carte montre bien son lieu (Corse pour « Corse », etc.). Repli sur
+         getCoherentPhoto seulement si une destination n'a pas d'image dédiée. */
+      photo: dest.heroImage ?? (await getCoherentPhoto(`${dest.name} ${dest.country} coastline sailing`, dest.imageSeed, "800/600")),
       heroPhoto: dest.heroImage ?? (await getCoherentPhoto(`${dest.name} ${dest.country} aerial coastline`, dest.heroSeed, "1600/800")),
     }))
   );
