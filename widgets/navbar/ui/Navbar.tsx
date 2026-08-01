@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth, useMessages } from "@/shared/lib";
+import { useAuth, useMessages, useFavoris } from "@/shared/lib";
 import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./navbar.css";
 
@@ -30,6 +30,7 @@ export default function Navbar() {
   const router = useRouter();
   const { user, logout, switchRole } = useAuth();
   const { unreadCount } = useMessages();
+  const { count: favorisCount } = useFavoris();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
@@ -91,6 +92,10 @@ export default function Navbar() {
               <>
                 {!isAdmin && (
                   <>
+                    <Link href="/profil/favoris" className="navbar-icon-btn" aria-label="Favoris">
+                      <i className="fa-solid fa-heart" />
+                      {favorisCount > 0 && <span className="navbar-badge">{favorisCount}</span>}
+                    </Link>
                     <NotificationsBell />
                     <Link
                       href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}

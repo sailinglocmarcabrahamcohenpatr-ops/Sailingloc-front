@@ -11,6 +11,8 @@ export { MessagesProvider, useMessages } from "./messages-context";
 
 export { NotificationsProvider, useNotifications } from "./notifications-context";
 
+export { FavorisProvider, useFavoris } from "./favoris-context";
+
 export { api, getToken, setToken, removeToken, setRoleCookie, ApiError } from "./api-client";
 
 export { apiLogin, apiRegister, apiLogout, apiForgotPassword } from "./auth-api";
