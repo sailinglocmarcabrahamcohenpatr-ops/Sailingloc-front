@@ -2314,6 +2314,36 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   }
 }
 
+/* Menu d'actions "⋯" (Mes bateaux) */
+.owner-boat-menu { position: relative; }
+.owner-boat-menu-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--card-bg);
+  color: var(--text-2); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: var(--transition);
+}
+.owner-boat-menu-btn:hover { border-color: var(--primary); color: var(--primary); }
+.owner-boat-menu-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); padding: 6px; min-width: 190px;
+  display: flex; flex-direction: column; gap: 2px;
+  animation: owner-menu-pop-in .12s ease-out;
+}
+@keyframes owner-menu-pop-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.owner-boat-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 12px; border: none; background: none; border-radius: calc(var(--radius) - 4px);
+  font-size: .875rem; font-weight: 500; color: var(--text); text-align: left; cursor: pointer;
+  text-decoration: none;
+}
+.owner-boat-menu-item:hover { background: var(--bg); }
+.owner-boat-menu-item:disabled { opacity: .5; cursor: not-allowed; }
+.owner-boat-menu-item i { width: 16px; text-align: center; color: var(--text-2); }
+
 /* Calendrier de disponibilité (propriétaire) */
 .cal-back-link { display: inline-flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--text-2); margin-bottom: 8px; }
 .cal-back-link:hover { color: var(--primary); }
