@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { ReservationAPI, PaiementAPI } from "./reservations-api";
 import type { BoatAPI } from "./boats-api";
+import { LEGAL_COMPANY_NAME, LEGAL_ADDRESS, LEGAL_SIRET, LEGAL_SIREN, LEGAL_RCS, LEGAL_TVA } from "@/shared/config";
 
 const BRAND_GREEN: [number, number, number] = [14, 59, 46];
 const ACCENT_GREEN: [number, number, number] = [16, 122, 87];
@@ -33,6 +34,11 @@ const nights = (start: string, end: string) =>
 function invoiceNumber(reservationId: number, dateReservation?: string): string {
   const year = dateReservation ? new Date(dateReservation).getFullYear() : new Date().getFullYear();
   return `FACT-${year}-${String(reservationId).padStart(6, "0")}`;
+}
+
+function contractNumber(reservationId: number, dateReservation?: string): string {
+  const year = dateReservation ? new Date(dateReservation).getFullYear() : new Date().getFullYear();
+  return `CONTRAT-${year}-${String(reservationId).padStart(6, "0")}`;
 }
 
 function paymentStatusInfo(
@@ -156,19 +162,17 @@ function drawTotalBanner(doc: jsPDF, pageWidth: number, y: number, label: string
   return height;
 }
 
-function drawFooter(doc: jsPDF, pageWidth: number, pageHeight: number) {
+const DEFAULT_FOOTER_NOTE =
+  "SailingLoc — plateforme de location de bateaux entre particuliers. Ce document tient lieu de facture pour la prestation de location réservée via SailingLoc.";
+
+function drawFooter(doc: jsPDF, pageWidth: number, pageHeight: number, note: string = DEFAULT_FOOTER_NOTE) {
   const y = pageHeight - 46;
   doc.setDrawColor(...SOFT_BORDER);
   doc.line(PAGE_MARGIN, y, pageWidth - PAGE_MARGIN, y);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
   doc.setTextColor(...TEXT_MUTED);
-  doc.text(
-    "SailingLoc — plateforme de location de bateaux entre particuliers. Ce document tient lieu de facture pour la prestation de location réservée via SailingLoc.",
-    PAGE_MARGIN,
-    y + 14,
-    { maxWidth: pageWidth - PAGE_MARGIN * 2 }
-  );
+  doc.text(note, PAGE_MARGIN, y + 14, { maxWidth: pageWidth - PAGE_MARGIN * 2 });
 }
 
 function drawPageNumber(doc: jsPDF, pageWidth: number, pageHeight: number) {
@@ -344,4 +348,134 @@ export function generateReservationsInvoicesPdf(
   drawFooter(doc, pageWidth, pageHeight);
 
   doc.save(`sailingloc-factures-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+const CONTRACT_FOOTER_NOTE =
+  "SailingLoc SAS — ce document est un récapitulatif des conditions de location généré automatiquement à partir des informations de la réservation et de l'annonce du bateau, et des Conditions Générales d'Utilisation (CGU) de la plateforme, disponibles sur sailingloc.com/cgu. Il ne remplace pas un contrat signé formellement entre les parties.";
+
+/**
+ * Contrat de location PDF généré entièrement côté client (données déjà disponibles via
+ * reservationsApi/boatsApi), sans dépendre de l'endpoint backend GET /api/reservations/{id}/contrat
+ * (pas encore déployé). Les clauses générales (assurance, restitution, navigation, douane) reprennent
+ * les CGU déjà publiées par la plateforme (app/(main)/cgu) ; les clauses par bateau (caution, carburant,
+ * permis, skipper) viennent de l'annonce elle-même. Rien n'est inventé côté per-réservation : le champ
+ * libre `contrat.conditions` propre à chaque réservation n'est pas exposé par une API publique et n'est
+ * donc pas reproduit ici.
+ */
+export function generateReservationContractPdf(
+  reservation: ReservationAPI,
+  tenant: TenantInfo,
+  boat?: BoatAPI | null
+): void {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  const number = contractNumber(reservation.id, reservation.dateReservation);
+  const issuedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  let y = drawBrandBand(doc, pageWidth, "CONTRAT DE LOCATION", [`N° ${number}`, `Généré le ${issuedAt}`]);
+
+  y +=
+    drawInfoCard(doc, PAGE_MARGIN, y, pageWidth - PAGE_MARGIN * 2, "Intermédiaire de location", [
+      LEGAL_COMPANY_NAME,
+      LEGAL_ADDRESS,
+      `SIRET ${LEGAL_SIRET} — SIREN ${LEGAL_SIREN}`,
+      `RCS ${LEGAL_RCS} — TVA intracommunautaire ${LEGAL_TVA}`,
+    ]) + 20;
+
+  const reservationBoat = reservation.bateau;
+  const owner = boat?.proprietaire ?? boat?.utilisateur ?? reservationBoat?.proprietaire;
+  const port = boat?.port ? `${boat.port.nom} (${boat.port.ville})` : reservationBoat?.port?.ville;
+  const boatName = boat?.nomBateau ?? reservationBoat?.nomBateau ?? `Bateau #${boat?.id ?? reservationBoat?.id ?? reservation.id}`;
+  const typeBateau = boat?.typeBateau?.labelTypeBateau ?? reservationBoat?.typeBateau?.labelTypeBateau;
+
+  const cardGap = 16;
+  const cardWidth = (pageWidth - PAGE_MARGIN * 2 - cardGap) / 2;
+
+  const tenantLines = [tenant.name, tenant.email].filter((v): v is string => Boolean(v));
+  const ownerLines = owner
+    ? [`${owner.prenom} ${owner.nom}`, owner.email].filter((v): v is string => Boolean(v))
+    : ["Information indisponible"];
+
+  const h1 = drawInfoCard(doc, PAGE_MARGIN, y, cardWidth, "Locataire", tenantLines.length > 0 ? tenantLines : ["—"]);
+  const h2 = drawInfoCard(doc, PAGE_MARGIN + cardWidth + cardGap, y, cardWidth, "Propriétaire", ownerLines);
+  y += Math.max(h1, h2) + 28;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_GREEN);
+  doc.text("Objet de la location", PAGE_MARGIN, y);
+  y += 12;
+
+  autoTable(doc, {
+    startY: y,
+    theme: "grid",
+    head: [["Bateau", "Type", "Port", "Période", "Durée"]],
+    body: [
+      [
+        boatName,
+        typeBateau ?? "—",
+        port ?? "—",
+        `${fmtDatePdf(reservation.dateDebut)} - ${fmtDatePdf(reservation.dateFin)}`,
+        `${nights(reservation.dateDebut, reservation.dateFin)} nuit(s)`,
+      ],
+    ],
+    styles: { fontSize: 9, cellPadding: 8, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
+    headStyles: { fillColor: BRAND_GREEN, textColor: 255, fontStyle: "bold" },
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
+  });
+
+  let afterTableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
+  afterTableY = ensureSpace(doc, afterTableY, 260, pageHeight);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_GREEN);
+  doc.text("Conditions de location", PAGE_MARGIN, afterTableY);
+  afterTableY += 12;
+
+  const caution = boat?.caution != null && Number(boat.caution) > 0 ? fmtEuroPdf(Number(boat.caution)) : "Non renseignée";
+  const carburant = boat?.carburantInclus ? "Inclus" : "Non inclus, à restituer avec le niveau constaté au départ";
+  const permis = boat?.permisRequis ? "Oui — permis côtier ou hauturier valide exigé" : "Non requis";
+  const skipper = boat?.avecSkipper ? "Inclus" : "Non inclus — navigation par le locataire";
+
+  autoTable(doc, {
+    startY: afterTableY,
+    theme: "grid",
+    body: [
+      ["Caution", caution],
+      ["Carburant", carburant],
+      ["Permis bateau requis", permis],
+      ["Skipper", skipper],
+      [
+        "Assurance",
+        "Responsabilité civile et dommages matériels inclus dans les eaux européennes (cf. CGU art. 8).",
+      ],
+      [
+        "Restitution",
+        "À la date, l'heure et au lieu convenus, dans l'état constaté au départ (cf. CGU art. 4).",
+      ],
+      [
+        "Navigation & sécurité",
+        "Dans le respect des règles de navigation, de sécurité en mer et de la réglementation maritime en vigueur.",
+      ],
+      [
+        "Formalités douanières",
+        "En cas de navigation hors des eaux territoriales françaises, le locataire est seul responsable des formalités douanières, de déclaration et d'immigration applicables.",
+      ],
+    ],
+    styles: { fontSize: 9, cellPadding: 8, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
+    columnStyles: { 0: { fontStyle: "bold", textColor: [60, 60, 60], cellWidth: 150 } },
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
+    didDrawPage: () => drawPageNumber(doc, pageWidth, pageHeight),
+  });
+
+  let afterConditionsY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
+  afterConditionsY = ensureSpace(doc, afterConditionsY, 46, pageHeight);
+
+  drawTotalBanner(doc, pageWidth, afterConditionsY, "Montant total", fmtEuroPdf(Number(reservation.montantTotal)));
+
+  drawFooter(doc, pageWidth, pageHeight, CONTRACT_FOOTER_NOTE);
+
+  doc.save(`sailingloc-contrat-${reservation.id}.pdf`);
 }

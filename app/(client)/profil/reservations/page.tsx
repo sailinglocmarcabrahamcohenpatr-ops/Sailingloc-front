@@ -10,6 +10,7 @@ import {
   CANCELLATION_MIN_HOURS,
   generateReservationInvoicePdf,
   generateReservationsInvoicesPdf,
+  generateReservationContractPdf,
   useAuth,
 } from "@/shared/lib";
 import type { ReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
@@ -70,16 +71,17 @@ const BookingCard = ({
   const [cancelError, setCancelError] = useState("");
   const { user } = useAuth();
 
+  const tenantInfo = {
+    name: r.utilisateur ? `${r.utilisateur.prenom} ${r.utilisateur.nom}` : user?.name,
+    email: r.utilisateur?.email ?? user?.email,
+  };
+
   const handleDownloadInvoice = () => {
-    generateReservationInvoicePdf(
-      r,
-      {
-        name: r.utilisateur ? `${r.utilisateur.prenom} ${r.utilisateur.nom}` : user?.name,
-        email: r.utilisateur?.email ?? user?.email,
-      },
-      paiements,
-      boat
-    );
+    generateReservationInvoicePdf(r, tenantInfo, paiements, boat);
+  };
+
+  const handleDownloadContract = () => {
+    generateReservationContractPdf(r, tenantInfo, boat);
   };
 
   const handleCancel = async () => {
@@ -124,6 +126,9 @@ const BookingCard = ({
           </Link>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
             <i className="fa-solid fa-file-pdf" /> Facture PDF
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
+            <i className="fa-solid fa-file-contract" /> Contrat PDF
           </button>
           {/* <Link href={`/bateaux/${boatId}`} className="btn btn-ghost btn-sm">
             <i className="fa-solid fa-eye" /> Voir le bateau

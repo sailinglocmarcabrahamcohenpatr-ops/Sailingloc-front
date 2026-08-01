@@ -11,6 +11,7 @@ import {
   canCancelReservation,
   CANCELLATION_MIN_HOURS,
   generateReservationInvoicePdf,
+  generateReservationContractPdf,
   useAuth,
 } from "@/shared/lib";
 import type { ReservationAPI, BoatAPI, PaiementAPI } from "@/shared/lib";
@@ -149,18 +150,19 @@ export default function ReservationDetailPage() {
     }
   };
 
+  const tenantInfo = {
+    name: reservation.utilisateur
+      ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}`
+      : user?.name,
+    email: reservation.utilisateur?.email ?? user?.email,
+  };
+
   const handleDownloadInvoice = () => {
-    generateReservationInvoicePdf(
-      reservation,
-      {
-        name: reservation.utilisateur
-          ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}`
-          : user?.name,
-        email: reservation.utilisateur?.email ?? user?.email,
-      },
-      paiements,
-      boat
-    );
+    generateReservationInvoicePdf(reservation, tenantInfo, paiements, boat);
+  };
+
+  const handleDownloadContract = () => {
+    generateReservationContractPdf(reservation, tenantInfo, boat);
   };
 
   return (
@@ -181,6 +183,9 @@ export default function ReservationDetailPage() {
         <div style={{ display: "flex", gap: 8 }}>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
             <i className="fa-solid fa-download" /> Télécharger la facture
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
+            <i className="fa-solid fa-file-contract" /> Télécharger le contrat
           </button>
           {boatId != null && (
             <Link href={`/bateaux/${boatId}`} className="btn btn-outline btn-sm">
