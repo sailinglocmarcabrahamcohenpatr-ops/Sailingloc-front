@@ -162,13 +162,18 @@
   .dest-featured-bg-img { transition: none; }
 }
 
-/* Section « X destinations d'exception » élargie : le .container global
-   (95 % / max 1600px) est repoussé pour cette section seulement, la grille
-   respire davantage. Scopé → aucune autre page touchée. */
+/* Sections élargies (carrousel vedette + grille « X destinations ») : le
+   .container global (95 % / max 1600px) est repoussé à 98 % / max 1920px pour
+   ces sections seulement. Scopé → aucune autre page touchée. */
+.dest-featured-section > .container,
 .dest-grid-section > .container {
   width: 98%;
   max-width: 1920px;
 }
+/* Les cartes reveal-right partent décalées de +56px avant apparition ; sur la
+   section élargie ce décalage dépassait le bord et créait un léger scroll
+   horizontal. clip le contient sans casser le lift vertical au survol. */
+.dest-grid-section { overflow-x: clip; }
 
 .destinations-page-grid {
   display: grid;
