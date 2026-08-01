@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, useMessages } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
 
 type NavLink = { href: string; icon: string; label: string; badge?: number; exact?: boolean };
 
@@ -71,8 +72,7 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
         <i className="fa-solid fa-xmark" />
       </button>
       <Link href="/" className="dash-sidebar-logo">
-        <i className="fa-solid fa-anchor" aria-hidden="true" />
-        SailingLoc
+        <Logo />
       </Link>
 
       <div className="dash-sidebar-user">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useAuth, useMessages } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
 import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./client-space.css";
 
@@ -50,8 +51,7 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
       <aside className="client-space-side">
         <div className="client-space-topline">
           <Link href="/" className="client-space-logo">
-            <i className="fa-solid fa-anchor" aria-hidden="true" />
-            SailingLoc
+            <Logo />
           </Link>
           <NotificationsBell />
         </div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDestinations, getDestinationBySlug } from "@/entities/destination";
 import type { FullDestination } from "@/entities/destination";
-import { getBoats, type Boat } from "@/entities/boat";
+import { getBoats, adaptBoatFromApi } from "@/entities/boat";
 import { boatsApi, type BoatAPI } from "@/shared/lib/boats-api";
 import { matchesDestination as matchesDestinationApi, locationMatchesDestination } from "@/shared/lib/destination-match";
 import type { DestinationBoatMarker } from "./DestinationMap";
@@ -18,27 +18,14 @@ function jitter(seed: number, base: number, spread: number): number {
   return base + (frac - 0.5) * spread;
 }
 
-/** L'API renvoie parfois les nombres en string (comme `prixJour`) : on normalise défensivement. */
-function toNumber(v: number | string | undefined): number | undefined {
-  if (v == null) return undefined;
-  const n = typeof v === "string" ? parseFloat(v) : v;
-  return Number.isFinite(n) ? n : undefined;
-}
-
 function adaptApiBoat(b: BoatAPI, dest: FullDestination): DestinationBoatMarker | null {
   if (!matchesDestinationApi(b.port, dest)) return null;
 
-  const lat = toNumber(b.port?.latitude) ?? jitter(b.id, dest.center.lat, 0.05);
-  const lng = toNumber(b.port?.longitude) ?? jitter(b.id * 7 + 3, dest.center.lng, 0.08);
+  const boat = adaptBoatFromApi(b);
+  const lat = boat.coordinates?.lat ?? jitter(b.id, dest.center.lat, 0.05);
+  const lng = boat.coordinates?.lng ?? jitter(b.id * 7 + 3, dest.center.lng, 0.08);
 
-  return {
-    id: String(b.id),
-    name: b.nomBateau,
-    location: b.port?.ville || dest.name,
-    lat,
-    lng,
-    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
-  };
+  return { ...boat, coordinates: { lat, lng } };
 }
 
 async function getDestinationBoats(dest: FullDestination): Promise<DestinationBoatMarker[]> {
@@ -49,16 +36,9 @@ async function getDestinationBoats(dest: FullDestination): Promise<DestinationBo
       .filter((b): b is DestinationBoatMarker => b !== null);
   } catch {
     const mockBoats = await getBoats();
-    return mockBoats
-      .filter((b): b is Boat & { coordinates: { lat: number; lng: number } } => !!b.coordinates && locationMatchesDestination(b.location, dest))
-      .map((b) => ({
-        id: b.id,
-        name: b.name,
-        location: b.location,
-        lat: b.coordinates.lat,
-        lng: b.coordinates.lng,
-        pricePerDay: b.pricePerDay,
-      }));
+    return mockBoats.filter(
+      (b): b is DestinationBoatMarker => !!b.coordinates && locationMatchesDestination(b.location, dest)
+    );
   }
 }
 

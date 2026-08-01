@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, useMessages, useFavoris } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
 import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./navbar.css";
 
@@ -70,8 +71,7 @@ export default function Navbar() {
       <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
         <div className="container navbar-inner">
           <Link href="/" className="navbar-logo">
-            <i className="fa-solid fa-anchor" aria-hidden="true" />
-            SailingLoc
+            <Logo />
           </Link>
 
           <nav className="navbar-nav" aria-label="Navigation principale">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CookieSettingsButton } from "@/widgets/cookie-consent";
+import { Logo } from "@/shared/ui";
 
 const footerLinks = {
   annonces: [
@@ -40,8 +41,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="footer-logo">
-              <i className="fa-solid fa-anchor" aria-hidden="true" />
-              SailingLoc
+              <Logo onDark />
             </div>
             <p>
               La plateforme de référence pour la location de bateaux entre

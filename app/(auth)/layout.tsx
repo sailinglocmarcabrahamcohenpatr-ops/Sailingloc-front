@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "@/shared/ui";
 import "@/features/auth/ui/auth.css";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +23,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="auth-split-overlay" />
           <div className="auth-split-brand">
             <Link href="/" className="auth-split-logo">
-              <i className="fa-solid fa-anchor" /> SailingLoc
+              <Logo onDark />
             </Link>
 
             <div className="auth-split-center">
@@ -78,7 +79,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           <div className="auth-split-right-logo">
             <Link href="/">
-              <i className="fa-solid fa-anchor" /> SailingLoc
+              <Logo />
             </Link>
           </div>
 

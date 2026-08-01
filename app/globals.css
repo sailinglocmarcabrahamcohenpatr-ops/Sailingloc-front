@@ -192,11 +192,21 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 }
 .navbar-logo {
   font-size: 1.375rem; font-weight: 800;
-  color: var(--primary);
   display: flex; align-items: center; gap: 9px;
   flex-shrink: 0; letter-spacing: -.4px;
 }
-.navbar-logo i { font-size: 1.1rem; }
+
+/* ── Logo de marque (icône + wordmark), réutilisé partout ── */
+.brand-logo { display: inline-flex; align-items: center; gap: 6px; }
+.brand-logo-mark { height: 2.1em; width: auto; flex-shrink: 0; display: block; color: var(--primary); }
+.brand-logo-word {
+  display: inline-flex; align-items: baseline;
+  font-weight: 800; letter-spacing: -.02em; white-space: nowrap;
+}
+.brand-logo-word-sailing { color: var(--primary); }
+.brand-logo-word-loc { color: var(--text); }
+.brand-logo-word-loc--on-dark { color: var(--white); }
+
 .navbar-nav {
   display: flex; gap: 2px; flex: 1;
 }
@@ -245,12 +255,10 @@ footer {
   gap: 48px; margin-bottom: 56px;
 }
 .footer-brand .footer-logo {
-  font-size: 1.5rem; font-weight: 800;
-  color: var(--white);
+  font-size: 1.5rem;
   display: flex; align-items: center; gap: 9px;
   margin-bottom: 16px; letter-spacing: -.4px;
 }
-.footer-brand .footer-logo i { font-size: 1.2rem; color: var(--primary); }
 .footer-brand p {
   color: rgba(255,255,255,.55);
   font-size: .875rem; line-height: 1.75; max-width: 260px;
@@ -757,9 +765,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 .boat-map-marker { position: relative; display: block; filter: drop-shadow(0 3px 5px rgba(15, 30, 55, .35)); }
 .boat-map-marker-pin { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(45deg); background: linear-gradient(135deg, #3B82F6, var(--primary)); color: #fff; }
-.boat-map-marker-pin i { transform: rotate(-45deg); font-size: .8rem; }
+.boat-map-marker-glyph { width: 15px; height: 18.75px; transform: rotate(-45deg); }
 .boat-map-marker-pin--sm { width: 30px; height: 30px; }
-.boat-map-marker-pin--sm i { font-size: .5rem; }
+.boat-map-marker-pin--sm .boat-map-marker-glyph { width: 11px; height: 13.75px; }
 .boat-map-marker-badge {
   position: absolute;
   top: -9px;
@@ -2146,8 +2154,6 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   gap: 8px;
   padding: 24px 20px 20px;
   font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--primary);
   text-decoration: none;
   border-bottom: 1px solid var(--border);
 }
@@ -2825,6 +2831,28 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .form-group input:focus,
 .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(24,102,242,.1); }
 .form-optional { font-size: .75rem; font-weight: 400; color: var(--text-3); margin-left: auto; }
+
+/* ── Autocomplétion « ville portuaire » (features/list-boat/ui/PortCityAutocomplete) ── */
+.pca-wrap { position: relative; }
+.pca-spinner {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--text-2); font-size: .875rem; pointer-events: none;
+}
+.pca-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md); max-height: 260px; overflow-y: auto; padding: 6px;
+}
+.pca-empty { padding: 10px 12px; font-size: .8125rem; color: var(--text-2); font-style: italic; }
+.pca-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 10px; border: none; background: none; border-radius: var(--radius-md);
+  cursor: pointer; font-size: .875rem; color: var(--text); transition: var(--transition);
+}
+.pca-item:hover, .pca-item:focus-visible { background: var(--primary-light); color: var(--primary-dark); }
+.pca-item-icon { color: var(--text-2); font-size: .8125rem; flex-shrink: 0; }
+.pca-item:hover .pca-item-icon { color: var(--primary); }
+.pca-item-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .security-items { display: flex; flex-direction: column; gap: 0; }
 .security-item {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

@@ -155,15 +155,6 @@
 
 /* Leaflet marker/popup skins for the destination map */
 .dest-map-marker { background: none; border: none; }
-.dest-map-pin {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,.45), 0 0 0 3px rgba(24,102,242,.25);
-}
-.dest-map-pin i { transform: rotate(45deg); font-size: .85rem; }
 
 .dest-map-hub { position: relative; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; }
 .dest-map-hub-pin {
@@ -175,6 +166,7 @@
   box-shadow: 0 4px 14px rgba(24,102,242,.55);
   border: 2px solid rgba(255,255,255,.85);
 }
+.dest-map-hub-glyph { width: 19px; height: 24px; }
 .dest-map-hub-ring {
   position: absolute; inset: 0; border-radius: 50%;
   border: 2px solid rgba(24,102,242,.65);
