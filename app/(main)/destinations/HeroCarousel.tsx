@@ -6,7 +6,6 @@ import Link from "next/link";
 import type { FullDestination } from "@/entities/destination";
 
 const AUTOPLAY_MS = 5500;
-const THUMB_COUNT = 3;
 
 type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
 
@@ -32,10 +31,11 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
   if (count === 0) return null;
 
   const current = destinations[index];
-  const thumbs = Array.from({ length: Math.min(THUMB_COUNT, count - 1) }, (_, n) => {
-    const i = (index + 1 + n) % count;
-    return { i, dest: destinations[i] };
-  });
+  /* Piste de vignettes coulissante : on rend la liste DEUX fois, pour qu'il y
+     ait toujours des destinations à droite quel que soit l'index (pas de
+     fenêtre vide en fin de liste). Le décalage horizontal est piloté en CSS
+     par --thumb-i, avec une transition → défilement fluide. */
+  const track = [...destinations, ...destinations];
 
   return (
     <div
@@ -113,29 +113,34 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         </div>
       </div>
 
-      {thumbs.length > 0 && (
+      {count > 1 && (
         <div className="dest-featured-thumbs" aria-label="Autres destinations">
-          {thumbs.map(({ i, dest }) => (
-            <button
-              key={dest.slug}
-              type="button"
-              className="dest-featured-thumb"
-              onClick={() => goTo(i)}
-              aria-label={`Aller à ${dest.name}`}
-            >
-              <span className="dest-featured-thumb-img">
-                <Image
-                  src={dest.photo}
-                  alt=""
-                  fill
-                  sizes="140px"
-                  style={{ objectFit: "cover" }}
-                />
-              </span>
-              <span className="dest-featured-thumb-name">{dest.name}</span>
-              <span className="dest-featured-thumb-tag">Explorer</span>
-            </button>
-          ))}
+          <div
+            className="dest-featured-thumbs-track"
+            style={{ "--thumb-i": index + 1 } as React.CSSProperties}
+          >
+            {track.map((dest, n) => (
+              <button
+                key={`${dest.slug}-${n}`}
+                type="button"
+                className={`dest-featured-thumb${n % count === index ? " is-active" : ""}`}
+                onClick={() => goTo(n % count)}
+                aria-label={`Aller à ${dest.name}`}
+              >
+                <span className="dest-featured-thumb-img">
+                  <Image
+                    src={dest.photo}
+                    alt=""
+                    fill
+                    sizes="140px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </span>
+                <span className="dest-featured-thumb-name">{dest.name}</span>
+                <span className="dest-featured-thumb-tag">Explorer</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

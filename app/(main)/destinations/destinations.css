@@ -125,14 +125,32 @@
 .dest-featured-pager-count { font-size: .875rem; font-weight: 600; color: rgba(255,255,255,.85); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 
 /* Thumbnail rail — upcoming destinations, floating over the image's right side */
+/* Fenêtre fixe (3 vignettes) ; la piste à l'intérieur coulisse. overflow-x
+   clip pour masquer le hors-champ horizontal, overflow-y visible pour ne pas
+   rogner le lift/l'ombre au survol. */
 .dest-featured-thumbs {
+  --thumb-w: 132px;
+  --thumb-gap: 16px;
   position: absolute; right: 40px; bottom: 40px;
-  display: flex; gap: 16px; z-index: 2;
+  width: calc(3 * var(--thumb-w) + 2 * var(--thumb-gap));
+  overflow-x: clip;
+  overflow-y: visible;
+  z-index: 2;
+}
+.dest-featured-thumbs-track {
+  display: flex;
+  gap: var(--thumb-gap);
+  /* Décalage = index+1 (--thumb-i) → montre les destinations à venir, et
+     glisse d'une vignette a chaque changement. */
+  transform: translateX(calc(var(--thumb-i, 0) * -1 * (var(--thumb-w) + var(--thumb-gap))));
+  transition: transform .7s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
 }
 .dest-featured-thumb {
   background: none; border: none; padding: 0;
+  flex: 0 0 var(--thumb-w);
   display: flex; flex-direction: column; gap: 10px;
-  width: 132px; text-align: left;
+  text-align: left;
 }
 .dest-featured-thumb-img {
   position: relative; display: block;
@@ -143,30 +161,27 @@
   box-shadow: var(--shadow-md);
   transition: transform .45s cubic-bezier(.16,1,.3,1), border-color .45s ease, box-shadow .45s ease;
 }
-/* Cartes non actives grisées : image désaturée + légèrement assombrie, elles
-   passent en pleine couleur au survol. Signale visuellement l'état inactif. */
+/* Vignettes en pleine couleur (plus de grisement) ; léger zoom au survol. */
 .dest-featured-thumb-img img {
-  filter: grayscale(1) brightness(.72) contrast(1.02);
-  transition: filter .5s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+  transition: transform .6s cubic-bezier(.16,1,.3,1);
 }
 .dest-featured-thumb-name,
-.dest-featured-thumb-tag { transition: color .35s ease, opacity .35s ease; }
-.dest-featured-thumb-name { font-size: .875rem; font-weight: 700; color: rgba(255,255,255,.72); }
+.dest-featured-thumb-tag { transition: color .35s ease; }
+.dest-featured-thumb-name { font-size: .875rem; font-weight: 700; color: rgba(255,255,255,.85); }
 .dest-featured-thumb-tag {
   display: inline-block; font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  color: rgba(255,255,255,.5);
+  color: rgba(255,255,255,.6);
 }
 .dest-featured-thumb:hover .dest-featured-thumb-img {
   border-color: var(--white);
   transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
 }
-.dest-featured-thumb:hover .dest-featured-thumb-img img {
-  filter: grayscale(0) brightness(1);
-  transform: scale(1.06);
-}
-.dest-featured-thumb:hover .dest-featured-thumb-name { color: var(--white); }
+.dest-featured-thumb:hover .dest-featured-thumb-img img { transform: scale(1.06); }
+.dest-featured-thumb:hover .dest-featured-thumb-name,
 .dest-featured-thumb:hover .dest-featured-thumb-tag { color: var(--white); }
+/* Vignette de la destination active : contour blanc marqué. */
+.dest-featured-thumb.is-active .dest-featured-thumb-img { border-color: var(--white); }
 
 /* Entrée du texte à chaque changement de slide : fondu + glissé + mise au net,
    en cascade (eyebrow, titre, description). Le fond fait son fondu (1s) en
@@ -194,6 +209,7 @@
   .dest-featured-bg-img { transition: none; }
   .dest-featured-text > * { animation: none; }
   .dest-featured-thumb-img img { transition: none; }
+  .dest-featured-thumbs-track { transition: none; }
 }
 
 /* Sections élargies (carrousel vedette + grille « X destinations ») : le
