@@ -30,6 +30,13 @@
 .testimonial-author { display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .testimonial-author strong { display: block; font-size: .9rem; }
 .testimonial-author span { font-size: .8125rem; color: var(--text-2); }
+.testimonial-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .875rem; flex-shrink: 0;
+}
+.testimonial-avatar--lg { width: 48px; height: 48px; font-size: 1rem; }
 
 /* ── Détail d'un avis (les 3 notations) ── */
 .testimonial-modal-overlay {

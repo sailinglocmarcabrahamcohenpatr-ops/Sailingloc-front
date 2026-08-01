@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import type { Testimonial } from "@/shared/types";
 import "./testimonials.css";
+
+const getInitials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
 const Stars = ({ n }: { n: number }) => (
   <span className="stars">
@@ -22,14 +30,9 @@ function TestimonialDetailModal({ t, onClose }: { t: Testimonial; onClose: () =>
         </button>
 
         <div className="testimonial-modal-author">
-          <Image
-            src={`https://i.pravatar.cc/64?u=${t.avatarSeed}`}
-            alt={t.author}
-            width={48}
-            height={48}
-            className="testimonial-avatar"
-            style={{ borderRadius: "50%", objectFit: "cover" }}
-          />
+          <div className="testimonial-avatar testimonial-avatar--lg" aria-hidden="true">
+            {getInitials(t.author)}
+          </div>
           <div>
             <strong>{t.author}</strong>
             <span>{t.role} · {t.destination}</span>
@@ -80,14 +83,9 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
               </div>
               <p className="testimonial-body">&ldquo;{t.body}&rdquo;</p>
               <div className="testimonial-author">
-                <Image
-                  src={`https://i.pravatar.cc/64?u=${t.avatarSeed}`}
-                  alt={t.author}
-                  width={40}
-                  height={40}
-                  className="testimonial-avatar"
-                  style={{ borderRadius: "50%", objectFit: "cover" }}
-                />
+                <div className="testimonial-avatar" aria-hidden="true">
+                  {getInitials(t.author)}
+                </div>
                 <div>
                   <strong>{t.author}</strong>
                   <span>{t.role} · {t.destination}</span>
