@@ -87,12 +87,21 @@ export const referentielsApi = {
 };
 
 export const portsApi = {
-  getAll: () =>
-    api.get<PortAPI[]>("/api/ports"),
+  /** GET /api/ports renvoie { data, pagination }, pas un tableau brut —
+   *  on normalise ici pour que tous les appelants reçoivent un PortAPI[]. */
+  getAll: async () => {
+    const res = await api.get<PortAPI[] | { data: PortAPI[] }>("/api/ports");
+    if (Array.isArray(res)) return res;
+    return (res as { data?: PortAPI[] })?.data ?? [];
+  },
   getOne: (id: number | string) =>
     api.get<PortAPI>(`/api/ports/${id}`),
   create: (data: CreatePortPayload) =>
     api.post<PortAPI>("/api/ports", data, true),
+  update: (id: number | string, data: Partial<CreatePortPayload>) =>
+    api.put<PortAPI>(`/api/ports/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/ports/${id}`),
 };
 
 export const utilisateursApi = {

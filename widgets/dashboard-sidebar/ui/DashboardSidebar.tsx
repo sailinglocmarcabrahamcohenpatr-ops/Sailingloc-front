@@ -23,6 +23,7 @@ const adminLinks: NavLink[] = [
   { href: "/admin/reservations",      icon: "fa-calendar-check", label: "Réservations" },
   { href: "/admin/utilisateurs",      icon: "fa-users",          label: "Utilisateurs" },
   { href: "/admin/publication",       icon: "fa-file-circle-check", label: "Publication" },
+  { href: "/admin/ports",             icon: "fa-map-location-dot", label: "Gestion des ports" },
   { href: "/admin/demandes-proprio",  icon: "fa-user-check",     label: "Demandes propriétaire" },
   { href: "/admin/messages",          icon: "fa-envelope",       label: "Messages" },
 ];

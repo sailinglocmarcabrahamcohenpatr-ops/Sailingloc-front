@@ -137,6 +137,14 @@ export default function AdminDashboardContent() {
               </div>
               <i className="fa-solid fa-chevron-right adh-list-arrow" />
             </Link>
+            <Link href="/admin/ports" className="adh-list-row">
+              <div className="adh-list-icon"><i className="fa-solid fa-map-location-dot" /></div>
+              <div className="adh-list-info">
+                <strong>Gérer les ports</strong>
+                <span>Ajouter ou modifier les ports d&apos;attache référencés</span>
+              </div>
+              <i className="fa-solid fa-chevron-right adh-list-arrow" />
+            </Link>
           </div>
         </div>
 

@@ -1,0 +1,199 @@
+/* ─────────────────────────────────────────────────
+   Admin · Gestion des ports
+   Même langage visuel que le tableau de bord admin
+   (app/(dashboard)/admin/dashboard/admin-dashboard-home.css) :
+   cartes arrondies, accent vert, listes à icônes.
+───────────────────────────────────────────────── */
+
+.ports-page {
+  --port-900: #0E3B2E;
+  --port-800: #16543F;
+  --port-600: #1B8A5A;
+  --port-100: #E3F6EC;
+}
+
+/* ── Bouton d'ajout, header ── */
+.ports-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(155deg, var(--port-900), var(--port-800));
+  color: #fff;
+  font-size: .9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.ports-add-btn:hover { opacity: .92; box-shadow: var(--shadow-md); }
+
+/* ── Cartes de statistiques ── */
+.ports-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.ports-stat-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ports-stat-hero { background: linear-gradient(155deg, var(--port-900), var(--port-800)); color: #fff; }
+.ports-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--port-100);
+  color: var(--port-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+.ports-stat-hero .ports-stat-icon { background: rgba(255,255,255,.14); color: #fff; }
+.ports-stat-icon-alt { background: #EFF6FF; color: #2563EB; }
+.ports-stat-value { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.ports-stat-label { font-size: .8125rem; color: var(--text-2); margin-top: 2px; }
+.ports-stat-hero .ports-stat-label { color: rgba(255,255,255,.75); }
+
+/* ── Carte liste des ports ── */
+.ports-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.ports-card-hd { margin-bottom: 4px; }
+.ports-card-hd h3 { font-size: 1rem; font-weight: 700; }
+
+.ports-list { display: flex; flex-direction: column; }
+
+.ports-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+.ports-row:last-child { border-bottom: none; }
+
+.ports-row-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--port-100);
+  color: var(--port-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.ports-row-info { flex: 1; min-width: 0; }
+.ports-row-info strong { display: block; font-size: .9rem; }
+.ports-row-info span { font-size: .8125rem; color: var(--text-2); }
+
+.ports-row-coords { flex-shrink: 0; }
+.ports-coord-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--port-100);
+  color: var(--port-800);
+  font-size: .8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ports-coord-badge-empty {
+  background: var(--bg);
+  color: var(--text-2);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.ports-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.ports-row-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8125rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.ports-row-action-btn:hover { border-color: var(--port-600); color: var(--port-600); background: var(--port-100); }
+.ports-row-action-btn.danger:hover { border-color: var(--red); color: var(--red); background: #FEF2F2; }
+
+@media (max-width: 640px) {
+  .ports-row { flex-wrap: wrap; }
+  .ports-row-coords { order: 3; margin-left: 54px; }
+}
+
+/* ── Modale : icône verte cohérente avec la liste ── */
+.ports-modal-icon {
+  background: var(--port-100) !important;
+  color: var(--port-800) !important;
+}
+.ports-primary-btn {
+  background: var(--port-600) !important;
+  border-color: var(--port-600) !important;
+}
+.ports-primary-btn:hover { opacity: .92; }
+
+/* ── Formulaire (modale création/édition) ── */
+.ports-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ports-coords-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.ports-locate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  height: fit-content;
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--port-600);
+  background: var(--port-100);
+  color: var(--port-800);
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.ports-locate-btn:hover:not(:disabled) { background: var(--port-600); color: #fff; }
+.ports-locate-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .ports-form-grid,
+  .ports-coords-row {
+    grid-template-columns: 1fr;
+  }
+}
