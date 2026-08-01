@@ -157,6 +157,10 @@
 }
 .ports-primary-btn:hover { opacity: .92; }
 
+/* ── Modale agrandie : la ville a maintenant une autocomplétion avec menu
+   déroulant, un peu plus d'air évite qu'il se sente à l'étroit. ── */
+.ports-modal { max-width: 680px; }
+
 /* ── Formulaire (modale création/édition) ── */
 .ports-form-grid {
   display: grid;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { portsApi, ApiError } from "@/shared/lib";
 import type { PortAPI, CreatePortPayload } from "@/shared/lib/referentiels-api";
 import { geocodeCity } from "@/features/list-boat/api/geocode";
+import PortCityAutocomplete, { type PortCitySelection } from "@/features/list-boat/ui/PortCityAutocomplete";
 import "../../proprietaire/dashboard.css";
 import "../utilisateurs/utilisateurs.css";
 import "./ports.css";
@@ -100,6 +101,18 @@ export default function AdminPortsPage() {
     if (saving) return;
     setModalMode(null);
     setEditingPort(null);
+  }
+
+  function handleCitySelect(s: PortCitySelection) {
+    setForm((f) => ({
+      ...f,
+      ville: s.ville,
+      codePostal: s.codePostal || f.codePostal,
+      latitude: s.lat != null ? String(s.lat) : f.latitude,
+      longitude: s.lng != null ? String(s.lng) : f.longitude,
+      nom: f.nom.trim() || `Port de ${s.ville}`,
+    }));
+    setFormError("");
   }
 
   async function handleLocate() {
@@ -289,7 +302,7 @@ export default function AdminPortsPage() {
           className="users-modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
-          <div className="users-modal" role="dialog" aria-modal="true">
+          <div className="users-modal ports-modal" role="dialog" aria-modal="true">
             <div className="users-modal-header">
               <h2>
                 <div className="users-modal-avatar ports-modal-icon"><i className="fa-solid fa-anchor" /></div>
@@ -314,12 +327,12 @@ export default function AdminPortsPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="port-ville">Ville *</label>
-                  <input
+                  <PortCityAutocomplete
                     id="port-ville"
-                    type="text"
-                    placeholder="Ex : Cannes"
-                    value={form.ville}
-                    onChange={(e) => setForm({ ...form, ville: e.target.value })}
+                    ville={form.ville}
+                    pays={form.pays}
+                    onVilleChange={(ville) => setForm((f) => ({ ...f, ville }))}
+                    onSelect={handleCitySelect}
                   />
                 </div>
                 <div className="form-group">
