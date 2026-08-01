@@ -192,6 +192,21 @@
   padding: 40px 32px;
 }
 .dest-grid-panel .destinations-page-grid { margin-top: 28px; }
+/* En-tête empilé : le .section-hd global est un flex space-between qui rejetait
+   le sous-titre tout à droite du titre, tassé. On le passe en colonne, aligné à
+   gauche, avec le sous-titre en lead atténué (--text-2) sous le titre serif. */
+.dest-grid-panel .section-hd {
+  display: block;
+  text-align: left;
+  margin-bottom: 0;
+}
+.dest-grid-panel .section-hd h2 { margin-bottom: 6px; }
+.dest-grid-panel .section-hd p {
+  color: var(--text-2);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  max-width: 640px;
+}
 @media (max-width: 640px) {
   .dest-grid-panel { padding: 24px 16px; border-radius: 20px; }
 }
