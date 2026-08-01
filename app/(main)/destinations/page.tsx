@@ -65,7 +65,7 @@ export default async function DestinationsPage() {
         </div>
       </section>
 
-      <section className="section" style={{ background: "var(--surface)" }}>
+      <section className="section dest-grid-section" style={{ background: "var(--surface)" }}>
         <div className="container">
           <div className="section-hd fade-in">
             <h2>{destinations.length} destinations d'exception</h2>

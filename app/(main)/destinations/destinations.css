@@ -162,6 +162,14 @@
   .dest-featured-bg-img { transition: none; }
 }
 
+/* Section « X destinations d'exception » élargie : le .container global
+   (95 % / max 1600px) est repoussé pour cette section seulement, la grille
+   respire davantage. Scopé → aucune autre page touchée. */
+.dest-grid-section > .container {
+  width: 98%;
+  max-width: 1920px;
+}
+
 .destinations-page-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
