@@ -104,9 +104,14 @@ export default function BoatsSidebar() {
 
   const [geo, setGeo] = useState<GeoLocation>(DEFAULT_LOC);
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!destination) {
+      setWeather(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setWeather(null);
     (async () => {
@@ -129,6 +134,17 @@ export default function BoatsSidebar() {
     <aside className="sidebar" aria-label={t.aria}>
 
       {/* ── Weather card ───────────────────────────────── */}
+      {!destination ? (
+        <div className="weather-card weather-card-empty" role="region" aria-label={t.weatherAria}>
+          <div className="weather-empty-badge">
+            <i className="fa-solid fa-cloud-sun" aria-hidden="true" />
+          </div>
+          <div className="weather-empty-title">{t.weatherEmptyTitle}</div>
+          <p className="weather-empty-text">
+            {t.weatherEmptyText}
+          </p>
+        </div>
+      ) : (
       <div className="weather-card" role="region" aria-label={t.weatherAria}>
         <div className="weather-location">
           <i className="fa-solid fa-location-dot" aria-hidden="true" />
@@ -216,6 +232,7 @@ export default function BoatsSidebar() {
           </>
         )}
       </div>
+      )}
 
       {/* ── Info card ──────────────────────────────────── */}
       <div className="info-card" role="region" aria-label={t.infoTitle}>

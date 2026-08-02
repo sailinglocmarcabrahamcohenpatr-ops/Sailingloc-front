@@ -213,7 +213,7 @@ export const en: Dictionary = {
     estimatorCta: "See estimated earnings",
     seoTitle: "Peer-to-peer boat rental in France and Europe",
     seoText:
-      "SailingLoc is the leading platform for peer-to-peer boat rental. Book a sailboat, catamaran or motorboat at the best price, with insurance included and secure payment. Find the ideal boat for your holidays in the Mediterranean, on the Atlantic or abroad — French Riviera, Corsica, the Cyclades, the Balearics, Croatia and much more.",
+      "SailingLoc is the leading platform for peer-to-peer boat rental. Book a sailboat, catamaran or motorboat at the best price, with insurance included and secure payment. Find the ideal boat for your holidays in the Mediterranean or on the Atlantic — French Riviera, Corsica, Brittany and much more.",
   },
 
   destinationCard: {
@@ -410,6 +410,8 @@ export const en: Dictionary = {
   sidebar: {
     aria: "Additional information",
     weatherAria: "Local weather",
+    weatherEmptyTitle: "Local weather",
+    weatherEmptyText: "Type a destination in the search bar to see the weather",
     today: "Today",
     todayShort: "Now",
     unavailable: "Weather unavailable",

@@ -41,6 +41,30 @@
 }
 .dest-detail-hero-meta i { color: var(--primary); }
 
+/* dest-detail-hero-scroll est aussi défini dans ../destinations.css (page liste) — dupliqué
+   ici volontairement pour que cette route fonctionne de façon autonome. */
+.dest-detail-hero-scroll {
+  position: absolute; left: 50%; bottom: 22px; z-index: 2;
+  transform: translateX(-50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.35);
+  color: rgba(255,255,255,.8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem;
+  animation: dest-scroll-bounce 2.2s ease-in-out infinite;
+}
+@keyframes dest-scroll-bounce {
+  0%, 100% { transform: translate(-50%, 0); opacity: .6; }
+  50% { transform: translate(-50%, 6px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dest-detail-hero-scroll { animation: none; }
+}
+@media (max-width: 640px) {
+  .dest-detail-hero { height: 520px; }
+  .dest-detail-hero-scroll { display: none; }
+}
+
 .dest-detail-layout { display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: flex-start; }
 @media (max-width: 900px) { .dest-detail-layout { grid-template-columns: 1fr; } }
 .dest-detail-main { display: flex; flex-direction: column; gap: 48px; }

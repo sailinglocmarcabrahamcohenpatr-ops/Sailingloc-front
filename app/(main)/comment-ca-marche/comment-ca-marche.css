@@ -27,8 +27,8 @@
   color: var(--primary);
 }
 .hiw-page .section-badge--gold {
-  background: color-mix(in srgb, var(--sand) 26%, transparent);
-  color: var(--sand);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--primary);
 }
 
 /* ── HERO ─────────────────────────────────────────────────────── */

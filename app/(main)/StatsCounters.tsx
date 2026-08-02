@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/shared/i18n";
+import { formatStatNumber } from "@/shared/lib/site-stats";
 import type { HomeStatsValues } from "./getHomeStats";
 
 interface Stat {
@@ -19,14 +20,6 @@ function buildStats(values: HomeStatsValues, t: ReturnType<typeof useI18n>["dict
     { target: values.completedTrips, label: t.completedTrips, icon: "fa-anchor" },
     { target: values.satisfaction, decimals: 1, suffix: " / 5", label: t.satisfaction, icon: "fa-star" },
   ];
-}
-
-/** Espace fine comme séparateur de milliers (« 3 200 », « 50 000 »). */
-function formatNumber(n: number, decimals: number): string {
-  const fixed = n.toFixed(decimals);
-  const [intPart, dec] = fixed.split(".");
-  const spaced = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return dec ? `${spaced}.${dec}` : spaced;
 }
 
 /** Compteurs qui s'incrémentent de 0 jusqu'à leur valeur quand la section
@@ -70,7 +63,7 @@ export default function StatsCounters({ stats }: { stats: HomeStatsValues }) {
         <div key={s.label} className="stats-dark-item">
           <i className={`fa-solid ${s.icon} stats-dark-icon`} aria-hidden="true" />
           <strong>
-            {formatNumber(values[i], s.decimals ?? 0)}
+            {formatStatNumber(values[i], s.decimals ?? 0)}
             {s.suffix ?? ""}
           </strong>
           <span>{s.label}</span>

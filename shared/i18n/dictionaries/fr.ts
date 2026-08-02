@@ -212,7 +212,7 @@ export const fr = {
     estimatorCta: "Voir les revenus estimés",
     seoTitle: "Location de bateaux entre particuliers en France et en Europe",
     seoText:
-      "SailingLoc est la plateforme de référence pour la location de bateaux entre particuliers. Réservez un voilier, un catamaran ou un bateau à moteur au meilleur prix, avec assurance incluse et paiement sécurisé. Trouvez le bateau idéal pour vos vacances en Méditerranée, sur l'Atlantique ou à l'étranger — Côte d'Azur, Corse, Cyclades, Baléares, Croatie et plus encore.",
+      "SailingLoc est la plateforme de référence pour la location de bateaux entre particuliers. Réservez un voilier, un catamaran ou un bateau à moteur au meilleur prix, avec assurance incluse et paiement sécurisé. Trouvez le bateau idéal pour vos vacances en Méditerranée ou sur l'Atlantique — Côte d'Azur, Corse, Bretagne et plus encore.",
   },
 
   destinationCard: {
@@ -409,6 +409,8 @@ export const fr = {
   sidebar: {
     aria: "Informations complémentaires",
     weatherAria: "Météo locale",
+    weatherEmptyTitle: "Météo locale",
+    weatherEmptyText: "Tapez une destination dans la barre de recherche pour afficher la météo",
     today: "Aujourd'hui",
     todayShort: "Auj.",
     unavailable: "Données indisponibles",

@@ -37,9 +37,10 @@
   /* Bleu océan profond. L'ancien #114B6B était le bleu SaaS générique et ne
      tenait que 4.33:1 sur son propre fond teinté — sous le seuil WCAG AA.
      Celui-ci monte à 8.15:1 : gain d'identité ET d'accessibilité. */
-  --primary: #1E90FF;
-  --primary-dark:  #1570CC;
-  --primary-light: #E6F4FF;
+  --primary: #114B6B;
+  --primary-dark:  #0C3850;
+  --primary-light: #EAF0F4;
+  --primary-on-dark: #93B4FF;
   --navy:          #0B1929;
   --navy-2:        #152438;
   --navy-3:        #1E3554;

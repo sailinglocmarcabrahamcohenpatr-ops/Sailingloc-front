@@ -18,8 +18,8 @@ export default async function ConnexionPage({ searchParams }: PageProps) {
     <div className="auth-card">
       {registered === "1" && (
         <div className="auth-success" role="alert">
-          <i className="fa-solid fa-circle-check" aria-hidden="true" />
-          Compte créé avec succès ! Connectez-vous maintenant.
+          <i className="fa-solid fa-envelope-circle-check" aria-hidden="true" />
+          Compte créé avec succès ! Un e-mail de confirmation vous a été envoyé — cliquez sur le lien qu&apos;il contient pour activer votre compte, puis connectez-vous.
         </div>
       )}
 

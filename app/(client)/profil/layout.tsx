@@ -1,5 +1,5 @@
 import "./profil.css";
 
 export default function ProfilLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <div className="profil-shell">{children}</div>;
 }

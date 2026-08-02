@@ -10,7 +10,6 @@ const MENU_BOXES = [
   { href: "/profil/messages", icon: "fa-envelope", label: "Messages", desc: "Vos échanges avec les propriétaires", color: "#10B981", bg: "#D1FAE5" },
   { href: "/profil/notations", icon: "fa-star", label: "Notations", desc: "Les avis que vous avez laissés", color: "#EAB308", bg: "#FEF9C3" },
   { href: "/profil/favoris", icon: "fa-heart", label: "Favoris", desc: "Les bateaux que vous avez sauvegardés", color: "#DB2777", bg: "#FCE7F3" },
-  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres", desc: "Notifications et confidentialité", color: "#0284C7", bg: "#E0F2FE" },
   { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire", desc: "Publiez votre bateau à la location", color: "#059669", bg: "#D1FAE5" },
 ];
 
