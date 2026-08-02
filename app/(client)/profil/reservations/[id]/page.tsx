@@ -297,7 +297,15 @@ export default function ReservationDetailPage() {
           ) : (
             <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>Informations indisponibles.</p>
           )}
-          <Link href="/profil/messages" className="btn btn-ghost btn-sm" style={{ marginTop: 14 }}>
+          <Link
+            href={
+              owner
+                ? `/profil/messages?with=${owner.id}&prenom=${encodeURIComponent(owner.prenom)}&nom=${encodeURIComponent(owner.nom)}&email=${encodeURIComponent(owner.email ?? "")}`
+                : "/profil/messages"
+            }
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 14 }}
+          >
             <i className="fa-solid fa-envelope" /> Contacter
           </Link>
         </div>

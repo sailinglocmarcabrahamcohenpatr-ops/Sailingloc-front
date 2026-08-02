@@ -65,6 +65,9 @@ interface BoatPageData {
   caution: number;
   ownerId: number | null;
   ownerName: string;
+  ownerPrenom: string;
+  ownerNom: string;
+  ownerEmail: string;
   ownerInitials: string;
   galleryImages: { src: string; alt: string }[];
 }
@@ -90,6 +93,9 @@ function adaptBoat(b: BoatAPI, t: BoatDetailDict): BoatPageData {
   const owner = b.proprietaire ?? b.utilisateur;
   const ownerId = owner?.id ?? b.id_utilisateur ?? null;
   const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : t.defaultOwner;
+  const ownerPrenom = owner?.prenom ?? "";
+  const ownerNom = owner?.nom ?? "";
+  const ownerEmail = owner?.email ?? "";
   const ownerInitials = owner
     ? `${owner.prenom?.[0] ?? ""}${owner.nom?.[0] ?? ""}`.toUpperCase() || "?"
     : "?";
@@ -117,6 +123,9 @@ function adaptBoat(b: BoatAPI, t: BoatDetailDict): BoatPageData {
     caution: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? 0),
     ownerId,
     ownerName,
+    ownerPrenom,
+    ownerNom,
+    ownerEmail,
     ownerInitials,
     galleryImages,
   };
@@ -386,7 +395,11 @@ export default async function ProductPage({ params }: PageProps) {
           rating={boat.rating}
           reviewCount={boat.reviewCount}
           capacity={boat.capacity || 8}
+          ownerId={boat.ownerId}
           ownerName={boat.ownerName}
+          ownerPrenom={boat.ownerPrenom}
+          ownerNom={boat.ownerNom}
+          ownerEmail={boat.ownerEmail}
         />
       </div>
     </div>
