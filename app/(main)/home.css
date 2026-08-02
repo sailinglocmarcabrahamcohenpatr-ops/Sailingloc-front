@@ -121,7 +121,7 @@
 @media (max-width: 560px) { .destinations-home-grid { grid-template-columns: 1fr; } }
 
 /* ── Stats dark ── */
-.stats-dark-section { background: var(--navy); padding: 0; }
+.stats-dark-section { background: transparent; padding: 0; }
 .stats-dark-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
 .stats-dark-item {
   text-align: center; padding: 56px 24px;
