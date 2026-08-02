@@ -310,6 +310,61 @@ export const fr = {
     mapModalClose: "Fermer la carte",
   },
 
+  howItWorksPage: {
+    metaTitle: "Comment ça marche — SailingLoc",
+    metaDescription: "Louez ou inscrivez votre bateau en quelques étapes. Recherche, réservation sécurisée, navigation. Location de bateaux entre particuliers simplifiée.",
+
+    heroEyebrow: "Transparent & sécurisé",
+    heroTitle: "Comment ça marche ?",
+    heroSub: "De la recherche à l'embarquement, SailingLoc sécurise chaque étape. Simple pour les locataires, rentable pour les propriétaires.",
+    heroSearch: "Rechercher un bateau",
+    heroOwnerBtn: "Je suis propriétaire",
+
+    renterBadge: "Pour les locataires",
+    renterTitle: "Réservez votre bateau en 4 étapes",
+    renterSub: "Un parcours pensé pour être simple, sécurisé et agréable",
+    renterCta: "Commencer ma recherche",
+    renterSteps: [
+      { title: "Recherchez votre bateau", desc: "Filtrez par destination, type de bateau, dates et nombre de passagers. Comparez les annonces avec photos HD, équipements détaillés et avis vérifiés.", bullets: ["Destination, dates, capacité", "Types : voilier, catamaran, moteur…", "Options : avec ou sans permis, skipper"] },
+      { title: "Contactez le propriétaire", desc: "Envoyez votre demande de réservation via notre messagerie sécurisée. Posez vos questions, présentez-vous, discutez des modalités.", bullets: ["Messagerie intégrée", "Profil du propriétaire visible", "Réponse sous 24h en moyenne"] },
+      { title: "Réservez en toute sécurité", desc: "Paiement 100% sécurisé par carte bancaire. Votre argent est bloqué et protégé jusqu'à l'embarquement. Le contrat de location est généré automatiquement.", bullets: ["Paiement en ligne SSL", "Contrat légal automatique", "Caution par empreinte bancaire"] },
+      { title: "Naviguez & profitez", desc: "Embarquez et vivez votre aventure nautique en Méditerranée ou ailleurs. À votre retour, laissez un avis pour aider la communauté.", bullets: ["Check-in avec le propriétaire", "Assistance 24h/24 en mer", "Laisser un avis à votre retour"] },
+    ],
+
+    guaranteesTitle: "Nos garanties",
+    guaranteesSub: "Naviguez l'esprit tranquille",
+    guarantees: [
+      { title: "Assurance tous risques", desc: "Chaque location inclut une assurance dommages et RC. Votre bateau et votre responsabilité sont couverts." },
+      { title: "Contrat automatique", desc: "Un contrat de location légal est généré automatiquement pour chaque réservation. Aucune paperasse manuelle." },
+      { title: "Support 24h/24", desc: "Notre équipe est joignable à toute heure en cas d'urgence ou de question pendant votre navigation." },
+      { title: "Annulation flexible", desc: "Politique d'annulation claire. Remboursement possible jusqu'à 30 jours avant la date de départ." },
+      { title: "Avis 100% vérifiés", desc: "Tous les avis proviennent de locataires ayant réellement effectué la location. Aucun faux avis possible." },
+      { title: "Identités vérifiées", desc: "Locataires et propriétaires sont vérifiés par pièce d'identité. Vous savez à qui vous avez affaire." },
+    ],
+
+    ownerBadge: "Pour les propriétaires",
+    ownerTitle: "Rentabilisez votre bateau",
+    ownerSub: "Gagnez jusqu'à 40 000 € par an en louant votre bateau inutilisé",
+    ownerSteps: [
+      { title: "Créez votre annonce", desc: "Photos, description, équipements, tarifs, disponibilités. En 15 minutes." },
+      { title: "Recevez des demandes", desc: "Locataires vérifiés vous contactent. Vous lisez leur profil et choisissez." },
+      { title: "Confirmez & préparez", desc: "Contrat automatique, caution prélevée, check-list d'embarquement fournie." },
+      { title: "Encaissez vos revenus", desc: "Virement automatique sous 24h après l'embarquement confirmé." },
+    ],
+    ownerCta: "Devenir propriétaire",
+
+    faqTitle: "Questions fréquentes",
+    faqs: [
+      { q: "Ai-je besoin d'un permis bateau ?", r: "Cela dépend du type de bateau. Les voiliers et bateaux à moteur de puissance importante nécessitent un permis côtier ou hauturier. Les bateaux électriques et certains petits moteurs peuvent être utilisés sans permis. Chaque annonce précise les exigences." },
+      { q: "Quelle est la politique d'annulation ?", r: "Annulation plus de 30 jours avant : remboursement à 100%. Entre 15 et 30 jours : 50% remboursé. Moins de 15 jours : non remboursable. Certains propriétaires proposent des conditions plus souples." },
+      { q: "Comment fonctionne la caution ?", r: "La caution est prélevée par empreinte bancaire au moment de la réservation. Elle est restituée dans les 5 jours ouvrés après retour du bateau en bon état. En cas de dommage, seul le montant correspondant est débité." },
+      { q: "Peut-on naviguer sans expérience ?", r: "Oui, si le bateau est proposé sans permis ou avec skipper inclus. Pour les autres bateaux, un niveau d'expérience minimum est demandé. Certains propriétaires proposent un briefing ou un skipper en option." },
+      { q: "Comment est calculée la commission SailingLoc ?", r: "SailingLoc prélève 15% côté propriétaire et 8% côté locataire. Ces commissions incluent l'assurance, la sécurisation du paiement, le contrat et le support." },
+    ],
+    faqMore: "Une autre question ?",
+    faqMoreLink: "Contactez notre équipe",
+  },
+
   catalog: {
     countBoat: "bateau",
     countBoats: "bateaux",

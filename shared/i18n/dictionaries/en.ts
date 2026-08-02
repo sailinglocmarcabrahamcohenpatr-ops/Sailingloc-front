@@ -311,6 +311,61 @@ export const en: Dictionary = {
     mapModalClose: "Close map",
   },
 
+  howItWorksPage: {
+    metaTitle: "How It Works — SailingLoc",
+    metaDescription: "Rent or list your boat in a few easy steps. Search, secure booking, set sail. Peer-to-peer boat rental made simple.",
+
+    heroEyebrow: "Transparent & secure",
+    heroTitle: "How does it work?",
+    heroSub: "From search to boarding, SailingLoc secures every step. Simple for renters, profitable for owners.",
+    heroSearch: "Search a boat",
+    heroOwnerBtn: "I'm an owner",
+
+    renterBadge: "For renters",
+    renterTitle: "Book your boat in 4 steps",
+    renterSub: "A journey designed to be simple, safe and enjoyable",
+    renterCta: "Start my search",
+    renterSteps: [
+      { title: "Search for your boat", desc: "Filter by destination, boat type, dates and number of passengers. Compare listings with HD photos, detailed equipment and verified reviews.", bullets: ["Destination, dates, capacity", "Types: sailboat, catamaran, motorboat…", "Options: with or without licence, skipper"] },
+      { title: "Contact the owner", desc: "Send your booking request via our secure messaging. Ask questions, introduce yourself, discuss the details.", bullets: ["Integrated messaging", "Owner profile visible", "Response within 24h on average"] },
+      { title: "Book with confidence", desc: "100% secure payment by bank card. Your money is held and protected until boarding. The rental contract is generated automatically.", bullets: ["SSL online payment", "Automatic legal contract", "Deposit via bank pre-authorisation"] },
+      { title: "Sail & enjoy", desc: "Board and live your nautical adventure in the Mediterranean or beyond. On your return, leave a review to help the community.", bullets: ["Check-in with the owner", "24/7 assistance at sea", "Leave a review on your return"] },
+    ],
+
+    guaranteesTitle: "Our guarantees",
+    guaranteesSub: "Sail with complete peace of mind",
+    guarantees: [
+      { title: "Comprehensive insurance", desc: "Every rental includes damage and liability insurance. Your boat and your responsibility are covered." },
+      { title: "Automatic contract", desc: "A legal rental contract is generated automatically for every booking. No manual paperwork." },
+      { title: "24/7 support", desc: "Our team is reachable at any hour in case of emergency or question during your voyage." },
+      { title: "Flexible cancellation", desc: "Clear cancellation policy. Refund possible up to 30 days before the departure date." },
+      { title: "100% verified reviews", desc: "All reviews come from renters who have actually completed the rental. No fake reviews possible." },
+      { title: "Verified identities", desc: "Renters and owners are verified by identity document. You know who you're dealing with." },
+    ],
+
+    ownerBadge: "For owners",
+    ownerTitle: "Make your boat profitable",
+    ownerSub: "Earn up to €40,000 a year by renting out your unused boat",
+    ownerSteps: [
+      { title: "Create your listing", desc: "Photos, description, equipment, rates, availability. In 15 minutes." },
+      { title: "Receive requests", desc: "Verified renters contact you. You read their profile and choose." },
+      { title: "Confirm & prepare", desc: "Automatic contract, deposit collected, boarding checklist provided." },
+      { title: "Collect your earnings", desc: "Automatic transfer within 24h after confirmed boarding." },
+    ],
+    ownerCta: "Become an owner",
+
+    faqTitle: "Frequently asked questions",
+    faqs: [
+      { q: "Do I need a boating licence?", r: "It depends on the type of boat. Sailboats and high-powered motorboats require a coastal or offshore licence. Electric boats and some small motors can be used without a licence. Each listing specifies the requirements." },
+      { q: "What is the cancellation policy?", r: "Cancellation more than 30 days before: 100% refund. Between 15 and 30 days: 50% refunded. Less than 15 days: non-refundable. Some owners offer more flexible conditions." },
+      { q: "How does the deposit work?", r: "The deposit is taken by bank pre-authorisation at the time of booking. It is released within 5 business days after the boat is returned in good condition. In case of damage, only the corresponding amount is charged." },
+      { q: "Can I sail without experience?", r: "Yes, if the boat is offered without a licence or with a skipper included. For other boats, a minimum level of experience is required. Some owners offer a briefing or an optional skipper." },
+      { q: "How is the SailingLoc commission calculated?", r: "SailingLoc charges 15% on the owner side and 8% on the renter side. These commissions include insurance, payment security, the contract and support." },
+    ],
+    faqMore: "Another question?",
+    faqMoreLink: "Contact our team",
+  },
+
   catalog: {
     countBoat: "boat",
     countBoats: "boats",
