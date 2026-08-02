@@ -678,7 +678,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .filter-panel-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); }
 @media (max-width: 640px) {
   .filter-panel-row { grid-template-columns: 1fr; }
-  .filter-panel { right: 0; left: auto; width: calc(100vw - 24px); }
+  .filter-panel { left: 50%; right: auto; transform: translateX(-50%); width: calc(100vw - 24px); }
 }
 .results-layout { display: grid; grid-template-columns: 1fr 340px; gap: 28px; padding: 28px 0 80px; align-items: start; }
 .results-layout > * { min-width: 0; }
