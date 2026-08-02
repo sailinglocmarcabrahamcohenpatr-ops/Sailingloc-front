@@ -33,10 +33,21 @@
 
 @media (max-width: 768px) {
   .search-card { border-radius: var(--radius-lg); }
-  .search-fields { flex-direction: column; }
-  .search-field { border-right: none; border-bottom: 1px solid var(--border); }
-  .search-field:last-of-type { border-bottom: none; }
-  .search-btn-wrap { padding: 6px; }
+  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ] */
+  .search-fields { flex-wrap: wrap; }
+  .search-field {
+    flex: 1 1 50%;
+    min-width: 0;
+    border-right: 1px solid rgba(255,255,255,.28);
+    border-bottom: 1px solid rgba(255,255,255,.28);
+  }
+  /* Colonne droite (champs pairs) : pas de border-right */
+  .search-field:nth-child(2),
+  .search-field:nth-child(4) { border-right: none; }
+  /* Dernière ligne (champs 3 et 4) : pas de border-bottom */
+  .search-field:nth-child(3),
+  .search-field:nth-child(4) { border-bottom: none; }
+  .search-btn-wrap { flex: 1 1 100%; padding: 6px; }
   .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
 }
 
