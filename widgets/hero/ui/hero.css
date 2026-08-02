@@ -8,9 +8,10 @@
   min-height: calc(100vh - 64px);
   display: flex;
   align-items: center;
-  overflow: hidden;
+  /* overflow:hidden retiré — il clippait les popovers de la searchbar.
+     Le clip de l'animation Ken Burns est délégué à .hero-bg ci-dessous. */
 }
-.hero-bg { position: absolute; inset: 0; z-index: 0; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
 .hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
 .hero-video {
   position: absolute; inset: 0;
