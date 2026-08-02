@@ -174,44 +174,58 @@ export default function RadarContent() {
 
   return (
     <div className="radar-layout">
-      <div className="dash-card radar-live-map-card">
-        <div className="dash-card-hd">
-          <h3>Trafic maritime en direct</h3>
+      <div className="radar-panel radar-live-map-card">
+        <div className="radar-panel-hd">
+          <div className="radar-panel-title">
+            <span className="radar-panel-icon radar-panel-icon-teal">
+              <i className="fa-solid fa-globe" aria-hidden="true" />
+            </span>
+            <div>
+              <h3>Trafic maritime en direct</h3>
+              <span className="radar-panel-subtitle">Tous les navires AIS autour de vous</span>
+            </div>
+          </div>
           <div className="radar-live-map-controls">
-            <select
-              className="radar-range-select"
-              value={mapZoom}
-              onChange={(e) => setMapZoom(Number(e.target.value))}
-              aria-label="Zoom de la carte"
-            >
-              {MAP_ZOOM_OPTIONS.map((z) => (
-                <option key={z} value={z}>
-                  Zoom {z}
-                </option>
-              ))}
-            </select>
-            <button type="button" className="btn btn-outline btn-sm" onClick={recenterLiveMap} disabled={!position}>
+            <div className="radar-select-wrap">
+              <i className="fa-solid fa-magnifying-glass-plus" aria-hidden="true" />
+              <select
+                className="radar-range-select"
+                value={mapZoom}
+                onChange={(e) => setMapZoom(Number(e.target.value))}
+                aria-label="Zoom de la carte"
+              >
+                {MAP_ZOOM_OPTIONS.map((z) => (
+                  <option key={z} value={z}>
+                    Zoom {z}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button type="button" className="radar-btn-recenter" onClick={recenterLiveMap} disabled={!position}>
               <i className="fa-solid fa-location-crosshairs" /> Recentrer sur ma position
             </button>
           </div>
         </div>
 
         <p className="radar-live-map-hint">
-          Position de tous les navires environnants détectés par AIS (trafic public mondial, pas seulement les
-          bateaux SailingLoc) — nécessite une connexion internet à bord.
+          <i className="fa-solid fa-circle-info" aria-hidden="true" /> Position de tous les navires environnants
+          détectés par AIS (trafic public mondial, pas seulement les bateaux SailingLoc) — nécessite une connexion
+          internet à bord.
           {geoStatus === "locating" && " Localisation en cours…"}
           {geoStatus === "denied" && ` ${geoError}`}
           {geoStatus === "unsupported" && " Géolocalisation non disponible sur cet appareil."}
         </p>
 
-        <iframe
-          key={`${mapCenter.lat.toFixed(3)},${mapCenter.lng.toFixed(3)},${mapZoom},${recenterNonce}`}
-          src={`/marine-radar-widget.html?lat=${mapCenter.lat}&lng=${mapCenter.lng}&zoom=${mapZoom}&height=${MAP_HEIGHT_PX}`}
-          className="radar-live-map-iframe"
-          style={{ height: MAP_HEIGHT_PX }}
-          title="Trafic maritime en direct"
-          loading="lazy"
-        />
+        <div className="radar-map-frame">
+          <iframe
+            key={`${mapCenter.lat.toFixed(3)},${mapCenter.lng.toFixed(3)},${mapZoom},${recenterNonce}`}
+            src={`/marine-radar-widget.html?lat=${mapCenter.lat}&lng=${mapCenter.lng}&zoom=${mapZoom}&height=${MAP_HEIGHT_PX}`}
+            className="radar-live-map-iframe"
+            style={{ height: MAP_HEIGHT_PX }}
+            title="Trafic maritime en direct"
+            loading="lazy"
+          />
+        </div>
 
         <p className="radar-live-map-credit">
           Données AIS fournies par{" "}
@@ -222,15 +236,27 @@ export default function RadarContent() {
         </p>
       </div>
 
-      <div className="dash-card">
-        <div className="dash-card-hd">
-          <h3>Mes bateaux réservés</h3>
+      <div className="radar-panel radar-targets-card">
+        <div className="radar-panel-hd">
+          <div className="radar-panel-title">
+            <span className="radar-panel-icon radar-panel-icon-navy">
+              <i className="fa-solid fa-sailboat" aria-hidden="true" />
+            </span>
+            <div>
+              <h3>Mes bateaux réservés</h3>
+              <span className="radar-panel-subtitle">
+                {targets.length > 0 ? `${targets.length} bateau${targets.length > 1 ? "x" : ""} suivi${targets.length > 1 ? "s" : ""}` : "Distance & cap en direct"}
+              </span>
+            </div>
+          </div>
         </div>
 
         {loadingTargets ? (
-          <p style={{ color: "var(--text-2)" }}>Chargement…</p>
+          <p className="radar-panel-note">
+            <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Chargement…
+          </p>
         ) : geoStatus !== "active" ? (
-          <p style={{ color: "var(--text-2)" }}>
+          <p className="radar-panel-note">
             Activez la géolocalisation pour calculer la distance et le cap vers vos bateaux réservés.
           </p>
         ) : targets.length === 0 ? (
@@ -245,13 +271,22 @@ export default function RadarContent() {
           <ul className="radar-target-list">
             {targets.map((t) => (
               <li key={t.id}>
-                <Link href={`/profil/reservations/${t.id}`}>
-                  <strong>{t.name}</strong>
-                  {t.ville && <span className="radar-target-ville"> · {t.ville}</span>}
+                <Link href={`/profil/reservations/${t.id}`} className="radar-target-card">
+                  <span className="radar-target-avatar">
+                    <i className="fa-solid fa-sailboat" aria-hidden="true" />
+                  </span>
+                  <span className="radar-target-body">
+                    <strong>{t.name}</strong>
+                    {t.ville && <span className="radar-target-ville">{t.ville}</span>}
+                  </span>
+                  <span className="radar-target-metrics">
+                    <span className="radar-target-distance">{t.distanceKm.toFixed(1)} km</span>
+                    <span className="radar-target-bearing">
+                      <i className="fa-solid fa-compass" aria-hidden="true" /> {Math.round(t.bearingDeg)}° (
+                      {cardinalFor(t.bearingDeg)})
+                    </span>
+                  </span>
                 </Link>
-                <span>
-                  {t.distanceKm.toFixed(1)} km · cap {Math.round(t.bearingDeg)}° ({cardinalFor(t.bearingDeg)})
-                </span>
               </li>
             ))}
           </ul>
