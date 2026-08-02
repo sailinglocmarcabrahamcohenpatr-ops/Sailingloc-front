@@ -1,0 +1,147 @@
+/* ─────────────────────────────────────────────────
+   Admin · Détail d'une réservation (modal)
+───────────────────────────────────────────────── */
+.res-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+  animation: res-modal-fade-in .18s ease;
+}
+@keyframes res-modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.res-modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: res-modal-slide-in .2s ease;
+}
+@keyframes res-modal-slide-in {
+  from { opacity: 0; transform: translateY(-16px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.res-modal-hd {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.res-modal-hd-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.0625rem;
+  flex-shrink: 0;
+}
+.res-modal-hd-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.res-modal-hd-text h3 { font-size: 1.0625rem; font-weight: 700; }
+.res-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: .8125rem;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.res-modal-close:hover { border-color: var(--text); color: var(--text); }
+
+.res-modal-status { display: flex; align-items: center; gap: 10px; padding: 16px 24px 0; }
+
+.res-modal-body {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.res-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.res-modal-body > .res-modal-section:first-child { padding-top: 0; border-top: none; }
+.res-modal-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-3);
+}
+.res-modal-section h4 i { color: var(--primary); font-size: .8125rem; }
+.res-modal-section p { font-size: .9375rem; }
+.res-modal-muted { color: var(--text-2); font-size: .8125rem !important; font-weight: 400; }
+
+.res-modal-row { display: flex; align-items: center; gap: 12px; }
+.res-modal-row strong { display: block; font-size: .9375rem; }
+.res-modal-row > div:last-child { display: flex; flex-direction: column; gap: 3px; }
+.res-modal-row span { font-size: .8125rem; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.res-modal-row span i { width: 12px; color: var(--text-3); font-size: .75rem; }
+.res-modal-photo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.res-modal-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  background: var(--primary-light);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+.res-modal-amount { font-size: 1.375rem; font-weight: 800; color: var(--primary); }
+
+.res-modal-payments { display: flex; flex-direction: column; gap: 8px; }
+.res-modal-payment-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: .8438rem;
+}
+.res-modal-payment-date { color: var(--text-2); }
+.res-modal-payment-row .badge-status { white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .res-modal-row { flex-wrap: wrap; }
+  .res-modal-payment-row { grid-template-columns: 1fr; text-align: left; gap: 4px; }
+}

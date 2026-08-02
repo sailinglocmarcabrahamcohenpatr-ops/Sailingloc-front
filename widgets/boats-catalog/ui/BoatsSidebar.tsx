@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { MAP_FOCUS_EVENT, type MapFocusPort } from "../model/map-focus";
 
 /* ── Types ──────────────────────────────────────────── */
 interface CurrentWeather {
@@ -102,21 +102,51 @@ export default function BoatsSidebar() {
 
   const [geo, setGeo] = useState<GeoLocation>(DEFAULT_LOC);
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [mapFocus, setMapFocus] = useState<MapFocusPort | null>(null);
+
+  // Vue carte (widgets/boats-catalog) : quand on zoome sur un port, sa météo
+  // prend le pas sur la destination tapée dans la barre de recherche.
+  useEffect(() => {
+    const onMapFocus = (e: Event) => {
+      setMapFocus((e as CustomEvent<MapFocusPort | null>).detail ?? null);
+    };
+    window.addEventListener(MAP_FOCUS_EVENT, onMapFocus);
+    return () => window.removeEventListener(MAP_FOCUS_EVENT, onMapFocus);
+  }, []);
 
   useEffect(() => {
+    if (mapFocus) {
+      setLoading(true);
+      setWeather(null);
+      (async () => {
+        try {
+          setGeo({ latitude: mapFocus.lat, longitude: mapFocus.lng, name: mapFocus.name });
+          setWeather(await fetchWeather(mapFocus.lat, mapFocus.lng));
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
+    }
+
+    if (!destination) {
+      setWeather(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setWeather(null);
     (async () => {
       try {
-        const loc = destination ? await geocode(destination) : DEFAULT_LOC;
+        const loc = await geocode(destination);
         setGeo(loc);
         setWeather(await fetchWeather(loc.latitude, loc.longitude));
       } finally {
         setLoading(false);
       }
     })();
-  }, [destination]);
+  }, [mapFocus, destination]);
 
   const cw    = weather?.current_weather;
   const daily = weather?.daily;
@@ -127,6 +157,17 @@ export default function BoatsSidebar() {
     <aside className="sidebar" aria-label="Informations complémentaires">
 
       {/* ── Weather card ───────────────────────────────── */}
+      {!destination && !mapFocus ? (
+        <div className="weather-card weather-card-empty" role="region" aria-label="Météo locale">
+          <div className="weather-empty-badge">
+            <i className="fa-solid fa-cloud-sun" aria-hidden="true" />
+          </div>
+          <div className="weather-empty-title">Météo locale</div>
+          <p className="weather-empty-text">
+            Tapez une destination ou zoomez sur un port dans la vue carte pour afficher la météo
+          </p>
+        </div>
+      ) : (
       <div className="weather-card" role="region" aria-label="Météo locale">
         <div className="weather-location">
           <i className="fa-solid fa-location-dot" aria-hidden="true" />
@@ -214,23 +255,7 @@ export default function BoatsSidebar() {
           </>
         )}
       </div>
-
-      {/* ── Map card ───────────────────────────────────── */}
-      <div className="map-card" role="region" aria-label="Carte">
-        <div className="map-placeholder">
-          <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
-          <span>Voir sur la carte</span>
-        </div>
-        <div className="map-card-foot">
-          <span>
-            <i className="fa-solid fa-map-pin" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-            140 bateaux
-          </span>
-          <Link href="#" className="btn btn-primary btn-sm">
-            <i className="fa-solid fa-map" aria-hidden="true" /> Carte
-          </Link>
-        </div>
-      </div>
+      )}
 
       {/* ── Info card ──────────────────────────────────── */}
       <div className="info-card" role="region" aria-label="Informations utiles">

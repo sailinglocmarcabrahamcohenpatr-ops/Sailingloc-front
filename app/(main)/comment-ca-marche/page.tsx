@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import "./comment-ca-marche.css";
+import OwnerCtaLink from "./OwnerCtaLink";
+import OwnerDashboardButton from "./OwnerDashboardButton";
 
 export const metadata: Metadata = {
   title: "Comment ça marche — SailingLoc",
@@ -12,8 +15,6 @@ const RENTER_STEPS = [
   {
     num: "01",
     icon: "fa-magnifying-glass",
-    color: "#1866F2",
-    bg: "#EEF3FE",
     title: "Recherchez votre bateau",
     desc: "Filtrez par destination, type de bateau, dates et nombre de passagers. Comparez les annonces avec photos HD, équipements détaillés et avis vérifiés.",
     bullets: ["Destination, dates, capacité", "Types : voilier, catamaran, moteur…", "Options : avec ou sans permis, skipper"],
@@ -21,8 +22,6 @@ const RENTER_STEPS = [
   {
     num: "02",
     icon: "fa-envelope",
-    color: "#8B5CF6",
-    bg: "#F5F3FF",
     title: "Contactez le propriétaire",
     desc: "Envoyez votre demande de réservation via notre messagerie sécurisée. Posez vos questions, présentez-vous, discutez des modalités.",
     bullets: ["Messagerie intégrée", "Profil du propriétaire visible", "Réponse sous 24h en moyenne"],
@@ -30,8 +29,6 @@ const RENTER_STEPS = [
   {
     num: "03",
     icon: "fa-lock",
-    color: "#10B981",
-    bg: "#D1FAE5",
     title: "Réservez en toute sécurité",
     desc: "Paiement 100% sécurisé par carte bancaire. Votre argent est bloqué et protégé jusqu'à l'embarquement. Le contrat de location est généré automatiquement.",
     bullets: ["Paiement en ligne SSL", "Contrat légal automatique", "Caution par empreinte bancaire"],
@@ -39,8 +36,6 @@ const RENTER_STEPS = [
   {
     num: "04",
     icon: "fa-sailboat",
-    color: "#F59E0B",
-    bg: "#FEF3C7",
     title: "Naviguez & profitez",
     desc: "Embarquez et vivez votre aventure nautique en Méditerranée ou ailleurs. À votre retour, laissez un avis pour aider la communauté.",
     bullets: ["Check-in avec le propriétaire", "Assistance 24h/24 en mer", "Laisser un avis à votre retour"],
@@ -73,13 +68,13 @@ const FAQS = [
 
 export default function HowItWorksPage() {
   return (
-    <>
+    <div className="hiw-page">
       {/* ── Hero photo ── */}
       <section className="hiw-page-hero">
         <div className="hiw-page-hero-bg">
           <Image
-            src="https://picsum.photos/seed/sailing-howto/1600/700"
-            alt="Voilier en mer"
+            src="/images/destinations/corse/pexels-slimmars-13-197677686-38525042.jpg"
+            alt=""
             fill
             sizes="100vw"
             style={{ objectFit: "cover" }}
@@ -88,8 +83,8 @@ export default function HowItWorksPage() {
           <div className="hiw-page-hero-overlay" />
         </div>
         <div className="container hiw-page-hero-content">
-          <p className="hero-eyebrow" style={{ color: "rgba(255,255,255,.8)" }}>Transparent &amp; sécurisé</p>
-          <h1 style={{ color: "var(--white)" }}>Comment ça marche ?</h1>
+          <p className="hero-eyebrow">Transparent &amp; sécurisé</p>
+          <h1>Comment ça marche ?</h1>
           <p className="hiw-page-hero-sub">
             De la recherche à l'embarquement, SailingLoc sécurise chaque étape.
             Simple pour les locataires, rentable pour les propriétaires.
@@ -98,9 +93,7 @@ export default function HowItWorksPage() {
             <Link href="/bateaux" className="btn btn-primary btn-lg">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Rechercher un bateau
             </Link>
-            <a href="#proprietaires" className="btn btn-ghost-white btn-lg">
-              Je suis propriétaire
-            </a>
+            <OwnerDashboardButton />
           </div>
         </div>
       </section>
@@ -117,12 +110,12 @@ export default function HowItWorksPage() {
           </div>
           <div className="hiw-page-steps">
             {RENTER_STEPS.map((step) => (
-              <div key={step.num} className="hiw-page-step fade-in">
+              <div key={step.num} className="hiw-page-step reveal reveal-up">
                 <div className="hiw-page-step-left">
-                  <div className="hiw-page-step-icon" style={{ background: step.bg, color: step.color }}>
+                  <div className="hiw-page-step-num">{step.num}</div>
+                  <div className="hiw-page-step-icon">
                     <i className={`fa-solid ${step.icon}`} aria-hidden="true" />
                   </div>
-                  <div className="hiw-page-step-num">{step.num}</div>
                 </div>
                 <div className="hiw-page-step-content">
                   <h3>{step.title}</h3>
@@ -130,7 +123,7 @@ export default function HowItWorksPage() {
                   <ul className="hiw-page-step-bullets">
                     {step.bullets.map((b) => (
                       <li key={b}>
-                        <i className="fa-solid fa-check" style={{ color: step.color }} aria-hidden="true" /> {b}
+                        <i className="fa-solid fa-check" aria-hidden="true" /> {b}
                       </li>
                     ))}
                   </ul>
@@ -189,9 +182,7 @@ export default function HowItWorksPage() {
             ))}
           </div>
           <div className="hiw-home-cta fade-in">
-            <Link href="/proprietaire" className="btn btn-white btn-lg">
-              <i className="fa-solid fa-plus" /> En savoir plus sur la location propriétaire
-            </Link>
+            <OwnerCtaLink />
           </div>
         </div>
       </section>
@@ -216,6 +207,6 @@ export default function HowItWorksPage() {
           </p>
         </div>
       </section>
-    </>
+    </div>
   );
 }

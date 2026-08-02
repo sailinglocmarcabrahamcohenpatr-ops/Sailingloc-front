@@ -1,0 +1,112 @@
+/* ─────────────────────────────────────────────────
+   Messages — layout plein écran dashboard
+───────────────────────────────────────────────── */
+
+/* Annule le padding du dashboard-main pour remplir tout l'espace */
+.messages-full-wrap {
+  margin: -32px -40px;
+  height: calc(100vh - 64px); /* 64px = topbar */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Le dashboard-main est plafonné à 1200px et centré (voir DashboardTopbar.css) :
+   sur cette page, on annule ce plafond pour que la messagerie occupe toute la
+   largeur disponible au lieu de laisser des bandes blanches de chaque côté. */
+.dashboard-main-wrapper .dashboard-main:has(> .messages-full-wrap) {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.messages-full-wrap .messages-layout {
+  flex: 1;
+  min-height: unset;
+  height: 100%;
+  gap: 0;
+  grid-template-columns: 1fr 2fr;
+}
+
+/* Retire les bords arrondis et ombres — on est collé aux bords */
+.messages-full-wrap .messages-list {
+  border-radius: 0;
+  border-top: none;
+  border-left: none;
+  border-bottom: none;
+  border-right: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.messages-full-wrap .messages-thread {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Le corps du fil doit remplir l'espace restant sans limite de hauteur */
+.messages-full-wrap .messages-thread-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+/* Zone de saisie — padding plus aéré, pill plus haute */
+.messages-full-wrap .messages-reply-form {
+  padding: 14px 20px;
+  gap: 12px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+}
+
+.messages-full-wrap .messages-reply-input-wrap {
+  padding: 8px 10px 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  gap: 6px;
+}
+
+.messages-full-wrap .messages-reply-input {
+  font-size: .9375rem;
+  padding: 4px 0;
+}
+
+.messages-full-wrap .messages-reply-send {
+  width: 42px;
+  height: 42px;
+  border: none;
+  cursor: pointer;
+}
+
+.messages-full-wrap .messages-empty {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Responsive — adapte les marges négatives au padding réel */
+@media (max-width: 1024px) {
+  .messages-full-wrap {
+    margin: -24px -16px;
+    height: calc(100vh - 56px); /* topbar 56px sur mobile */
+  }
+}
+
+@media (max-width: 900px) {
+  .messages-full-wrap .messages-layout {
+    grid-template-columns: 1fr;
+  }
+  /* Vue mobile façon appli de chat : la liste des contacts et la conversation
+     ne s'affichent jamais en même temps — seule la sélection courante décide. */
+  .messages-full-wrap .messages-layout:not(.conv-open) .messages-thread,
+  .messages-full-wrap .messages-layout:not(.conv-open) .messages-empty { display: none; }
+  .messages-full-wrap .messages-layout.conv-open .messages-list { display: none; }
+  .messages-full-wrap .messages-thread-back { display: flex; }
+}
+
+@media (max-width: 600px) {
+  .messages-full-wrap {
+    margin: -16px -12px;
+  }
+}

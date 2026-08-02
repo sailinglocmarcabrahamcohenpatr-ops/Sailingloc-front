@@ -1,0 +1,22 @@
+/* ──────────────────────────────────────────────────────────────
+   Section « Destinations populaires » (home).
+   - Au survol : la carte double légèrement (×1.2) sur place, au-dessus.
+   - Pas d'animation d'apparition au scroll : les cartes sont visibles
+     immédiatement.
+   Isolé dans le widget (hors app/globals.css) → aucun conflit de merge.
+   ────────────────────────────────────────────────────────────── */
+
+.destinations-home-grid { position: relative; }
+
+.dest-home-card {
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* ── Survol : ×1.2 sur place, au-dessus (pas de transparence sur les autres) ── */
+@media (hover: hover) {
+  .destinations-home-grid.is-zooming .dest-home-card.is-active {
+    transform: scale(1.2);
+    transform-origin: center center;
+    z-index: 10;
+  }
+}

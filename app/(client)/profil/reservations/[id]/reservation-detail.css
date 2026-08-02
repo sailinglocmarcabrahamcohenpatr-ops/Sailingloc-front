@@ -1,0 +1,69 @@
+/* ──────────────────────────────────────────────────────────────
+   Page de détail d'une réservation
+   (app/(client)/profil/reservations/[id]).
+   ────────────────────────────────────────────────────────────── */
+.res-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .8125rem;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.res-detail-back:hover { color: var(--primary); }
+
+.res-detail-gallery {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+  height: 340px;
+}
+.res-detail-gallery-main {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg);
+}
+.res-detail-gallery-thumbs {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  height: 100%;
+}
+.res-detail-gallery-thumb {
+  position: relative;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg);
+  opacity: .65;
+  transition: var(--transition);
+}
+.res-detail-gallery-thumb:hover { opacity: .9; }
+.res-detail-gallery-thumb.active { opacity: 1; outline: 2px solid var(--primary); outline-offset: -2px; }
+
+@media (max-width: 768px) {
+  .res-detail-gallery { grid-template-columns: 1fr; height: auto; }
+  .res-detail-gallery-main { height: 220px; }
+  .res-detail-gallery-thumbs { grid-template-columns: repeat(3, 1fr); grid-template-rows: none; height: 70px; }
+}
+
+.res-detail-rows { display: flex; flex-direction: column; gap: 12px; }
+.res-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .875rem;
+}
+.res-detail-row span:first-child { color: var(--text-2); }
+.res-detail-row strong { text-align: right; }
+.res-detail-amount { color: var(--primary); font-size: 1.125rem; }
+
+.res-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

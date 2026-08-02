@@ -6,6 +6,15 @@ export const APP_URL =
 export const SUPPORT_EMAIL = "contact@sailingloc.com";
 export const SUPPORT_PHONE = "+33 1 23 45 67 89";
 export const SUPPORT_WHATSAPP = "+33 6 12 34 56 78";
+
+// Identité légale de l'éditeur — doit rester synchronisée avec app/(main)/mentions-legales.
+export const LEGAL_COMPANY_NAME = `${APP_NAME} SAS`;
+export const LEGAL_ADDRESS = "12 quai du Port, 13002 Marseille, France";
+export const LEGAL_SIRET = "123 456 789 00012";
+export const LEGAL_SIREN = LEGAL_SIRET.slice(0, 11);
+export const LEGAL_RCS = "Marseille B 123 456 789";
+export const LEGAL_TVA = "FR 12 123456789";
+
 export const SERVICE_FEE_RATE = 0.069;
 export const DEFAULT_BOOKING_DAYS = 7;
 

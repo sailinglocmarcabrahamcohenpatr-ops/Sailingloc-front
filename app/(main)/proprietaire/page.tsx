@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { LoginForm } from "@/features/auth";
+import "./proprietaire.css";
 
 export const metadata: Metadata = {
   title: "Louez votre bateau — SailingLoc Propriétaires",
@@ -18,8 +20,8 @@ const BENEFITS = [
   },
   {
     icon: "fa-shield-halved",
-    color: "#1866F2",
-    bg: "#EEF3FE",
+    color: "#114B6B",
+    bg: "#EAF0F4",
     title: "Assurance tous risques",
     desc: "Chaque location est couverte par une assurance tous risques dommages et responsabilité civile. Votre bateau est protégé.",
   },
@@ -300,6 +302,41 @@ export default function ProprietairePage() {
                 <div className="prop-faq-answer">{faq.r}</div>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Connexion espace propriétaire ── */}
+      <section className="prop-login-section" id="connexion-proprietaire">
+        <div className="container">
+          <div className="prop-login-inner">
+            <div className="prop-revenue-text prop-login-text fade-in">
+              <p className="home-eyebrow home-eyebrow--gold">Déjà des annonces ?</p>
+              <h2>Accédez à votre espace propriétaire</h2>
+              <p>
+                Gérez vos bateaux, suivez vos réservations et vos revenus, et
+                échangez avec vos locataires depuis un seul tableau de bord.
+              </p>
+              <ul className="owner-cta-home-list">
+                <li><i className="fa-solid fa-check" /> Vos réservations en temps réel</li>
+                <li><i className="fa-solid fa-check" /> Suivi des revenus et virements sous 24h</li>
+                <li><i className="fa-solid fa-check" /> Messagerie directe avec vos locataires</li>
+              </ul>
+              <p className="prop-login-signup">
+                Pas encore inscrit ?{" "}
+                <Link href="/inscription">Créer un compte propriétaire</Link>
+              </p>
+            </div>
+
+            <div className="auth-card prop-login-card fade-in">
+              <div className="auth-card-header">
+                <h1>Connexion propriétaire</h1>
+                <p className="auth-card-sub">
+                  Entrez vos identifiants pour accéder à votre espace
+                </p>
+              </div>
+              <LoginForm />
+            </div>
           </div>
         </div>
       </section>

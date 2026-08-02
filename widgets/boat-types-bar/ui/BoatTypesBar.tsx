@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { BOAT_TYPES } from "@/shared/config";
 import type { BoatType } from "@/shared/types";
+import "./boat-types-bar.css";
 
 export default function BoatTypesBar() {
   const router = useRouter();

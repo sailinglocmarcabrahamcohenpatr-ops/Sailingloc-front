@@ -1,6 +1,8 @@
 import { api, setToken, removeToken, ApiError } from "./api-client";
+import type { UtilisateurAPI } from "./referentiels-api";
 
 export type { ApiError };
+export type { UtilisateurAPI };
 
 export type BackendRole = "ROLE_USER" | "ROLE_PROPRIETAIRE" | "ROLE_ADMIN";
 
@@ -22,6 +24,7 @@ interface LoginResponse {
 }
 
 interface JwtPayload {
+  id?: number;
   sub?: string;
   email?: string;
   username?: string;
@@ -46,7 +49,7 @@ function decodeJwt(token: string): JwtPayload {
   }
 }
 
-function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
+function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" | "admin" {
   const roles: string[] = [];
 
   if (Array.isArray(payload.roles)) {
@@ -57,8 +60,11 @@ function extractRoleFromJwt(payload: JwtPayload): "locataire" | "proprietaire" {
       roles.push(typeof a === "string" ? a : a.authority);
     }
   }
+  console.log("JWT roles:", roles);
 
-  return roles.some((r) => r.includes("PROPRIETAIRE")) ? "proprietaire" : "locataire";
+  if (roles.some((r) => r === "ROLE_ADMIN")) return "admin";
+  if (roles.some((r) => r.includes("PROPRIETAIRE"))) return "proprietaire";
+  return "locataire";
 }
 
 function extractNameFromJwt(payload: JwtPayload, fallbackEmail: string): string {
@@ -77,17 +83,53 @@ export async function apiLogin(payload: LoginPayload) {
 
   const jwt = decodeJwt(token);
   const email = jwt.sub ?? jwt.email ?? jwt.username ?? payload.email;
+  const role = extractRoleFromJwt(jwt);
+
+  // Fetch real user data from DB — c'est aussi la seule source fiable de
+  // l'id numérique (le JWT n'embarque aucune claim `id`) et du statut du
+  // compte (le JWT n'embarque pas non plus `statutCompte`).
+  let name = extractNameFromJwt(jwt, email);
+  let telephone: string | undefined;
+  let userId = jwt.id ?? 0;
+  let user: UtilisateurAPI | undefined;
+  try {
+    user = await apiGetUserByEmail(email);
+  } catch {
+    // fallback to JWT data if fetch fails (ex: endpoint réservé aux admins
+    // pour un compte propriétaire/locataire — userId reste 0 dans ce cas)
+  }
+
+  if (user?.statutCompte === "inactif") {
+    removeToken();
+    throw new ApiError(403, "Votre compte a été désactivé. Contactez le support pour plus d'informations.");
+  }
+
+  if (user) {
+    name = [user.prenom, user.nom].filter(Boolean).join(" ") || name;
+    telephone = user.telephone;
+    userId = user.id ?? userId;
+  }
 
   return {
     token,
     email,
-    name: extractNameFromJwt(jwt, email),
-    role: extractRoleFromJwt(jwt),
+    name,
+    role,
+    userId,
+    telephone,
   };
+}
+
+export async function apiGetUserByEmail(email: string): Promise<UtilisateurAPI> {
+  return api.get<UtilisateurAPI>(`/api/utilisateurs/search/email?email=${encodeURIComponent(email)}`);
 }
 
 export async function apiRegister(payload: RegisterPayload) {
   await api.post<unknown>("/api/auth/register", payload, false);
+}
+
+export async function apiForgotPassword(email: string): Promise<void> {
+  await api.post<unknown>("/api/auth/forgot-password", { email }, false);
 }
 
 export function apiLogout() {

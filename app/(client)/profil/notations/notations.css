@@ -1,0 +1,79 @@
+/* ──────────────────────────────────────────────────────────────
+   Page "Mes notations" (app/(client)/profil/notations).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   Section "Bateaux à noter" : réservations confirmées par le
+   propriétaire (ou terminées), pas encore notées par le locataire.
+   ────────────────────────────────────────────────────────────── */
+.torate-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.torate-section-hd { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+.torate-section-icon {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  background: #FEF9C3; color: #CA8A04; font-size: 1rem;
+}
+.torate-section-hd h2 { font-size: 1.0625rem; font-weight: 700; }
+.torate-section-hd h2 span { font-weight: 600; color: var(--text-2); }
+.torate-section-hd p { font-size: .875rem; color: var(--text-2); margin-top: 2px; }
+
+.torate-list { display: flex; flex-direction: column; gap: 14px; }
+.torate-card {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--card-bg); overflow: hidden;
+  transition: var(--transition);
+}
+.torate-card:hover { box-shadow: var(--shadow-lg); border-color: var(--primary); }
+
+.torate-card-img { position: relative; width: 160px; flex-shrink: 0; }
+.torate-card-badge {
+  position: absolute; top: 10px; left: 10px;
+  font-size: .6875rem; padding: 3px 9px; box-shadow: var(--shadow);
+}
+
+.torate-card-body { flex: 1; min-width: 0; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.torate-card-name { color: inherit; }
+.torate-card-name h3 { font-size: 1.0625rem; font-weight: 700; transition: var(--transition); }
+.torate-card-name:hover h3 { color: var(--primary); }
+.torate-card-meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: .8125rem; color: var(--text-2); }
+.torate-card-meta span { display: flex; align-items: center; gap: 6px; }
+.torate-card-meta i { color: var(--text-3); }
+
+.torate-card-action { display: flex; align-items: center; padding: 16px 20px; flex-shrink: 0; }
+.torate-card-action .btn { white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .torate-card { flex-direction: column; }
+  .torate-card-img { width: 100%; height: 160px; }
+  .torate-card-action { padding: 4px 20px 20px; }
+}
+
+/* Suppression d'un avis déjà laissé (pas d'endpoint d'édition côté backend :
+   supprimer + re-noter est l'équivalent "modifier", voir page.tsx). */
+.notation-card-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.notation-card-delete { color: var(--text-3); }
+.notation-card-delete:hover { color: var(--red); }
+
+.cancel-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+}
+.cancel-modal {
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 420px; padding: 28px; text-align: center;
+}
+.cancel-modal-icon {
+  width: 56px; height: 56px; border-radius: 50%; background: #FEE2E2; color: var(--red);
+  display: flex; align-items: center; justify-content: center; font-size: 1.375rem;
+  margin: 0 auto 16px;
+}
+.cancel-modal h2 { font-size: 1.0625rem; font-weight: 700; margin-bottom: 8px; }
+.cancel-modal p { font-size: .875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+.cancel-modal-actions { display: flex; gap: 10px; }
+.cancel-modal-actions .btn { flex: 1; justify-content: center; }

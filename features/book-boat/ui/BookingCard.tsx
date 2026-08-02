@@ -1,10 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { DateRange } from "react-day-picker";
+import { useAuth, boatsApi } from "@/shared/lib";
 import GuestCounter from "./GuestCounter";
+import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
 import { BOOKING_GUARANTEES } from "../model/constants";
-import { DEFAULT_BOOKING_DAYS } from "@/shared/config";
-import { formatPrice, calculateBookingTotal } from "@/shared/lib/utils";
+import { formatPrice, calculateBookingTotal, toLocalIsoDate } from "@/shared/lib/utils";
+
+function isCancelled(libelle?: string): boolean {
+  return (libelle ?? "").toLowerCase().includes("annul");
+}
+
+function daysBetween(start: string, end: string): number {
+  const diff = Math.ceil(
+    (new Date(end + "T00:00:00").getTime() - new Date(start + "T00:00:00").getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+  return Math.max(1, diff);
+}
 
 interface BookingCardProps {
+  boatId: string;
   pricePerDay: number;
   rating: number;
   reviewCount: number;
@@ -13,16 +32,64 @@ interface BookingCardProps {
 }
 
 export default function BookingCard({
+  boatId,
   pricePerDay,
   rating,
   reviewCount,
   capacity,
   ownerName = "le propriétaire",
 }: BookingCardProps) {
-  const { subtotal, serviceFee, total, days } = calculateBookingTotal(
-    pricePerDay,
-    DEFAULT_BOOKING_DAYS
-  );
+  const { user } = useAuth();
+  const router = useRouter();
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
+  const [guests, setGuests] = useState(Math.min(4, capacity));
+
+  const [blockedRanges, setBlockedRanges] = useState<DateSpan[]>([]);
+  const [bookedRanges, setBookedRanges] = useState<DateSpan[]>([]);
+  const [calLoading, setCalLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([boatsApi.getDisponibilitesParBateau(boatId), boatsApi.getReservations(boatId)])
+      .then(([disponibilites, reservations]) => {
+        // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
+        // Toutes les autres dates sont réservables par défaut.
+        setBlockedRanges(
+          disponibilites
+            .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
+            .map((d) => ({
+              from: new Date(d.dateDebut),
+              to: new Date(d.dateFin ?? d.dateDebut),
+            }))
+        );
+        setBookedRanges(
+          reservations
+            .filter((r) => !isCancelled(r.statutReservation))
+            .map((r) => ({ from: new Date(r.dateDebut), to: new Date(r.dateFin) }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setCalLoading(false));
+  }, [boatId]);
+
+  const startDate = range?.from ? toLocalIsoDate(range.from) : "";
+  const endDate = range?.to ? toLocalIsoDate(range.to) : "";
+  const hasAvailability = !calLoading;
+  const canBook = Boolean(startDate && endDate);
+
+  const days = canBook ? daysBetween(startDate, endDate) : 0;
+  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
+
+  const isOwnerAccount = user?.role === "proprietaire" || user?.role === "admin";
+
+  const handleBook = () => {
+    if (!canBook || isOwnerAccount) return;
+    const destination = `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`;
+    if (!user) {
+      router.push(`/connexion?redirect=${encodeURIComponent(destination)}`);
+      return;
+    }
+    router.push(destination);
+  };
 
   return (
     <aside>
@@ -39,31 +106,38 @@ export default function BookingCard({
           </div>
         </div>
         <div className="booking-body">
-          <div className="booking-dates">
-            <div className="booking-date-field">
-              <label htmlFor="book-arrival">Arrivée</label>
-              <input type="date" id="book-arrival" defaultValue="2025-07-10" />
-            </div>
-            <div className="booking-date-field">
-              <label htmlFor="book-departure">Départ</label>
-              <input type="date" id="book-departure" defaultValue="2025-07-17" />
-            </div>
+          <div className="booking-dates booking-dates-cal">
+            <label>Dates de location</label>
+            <AvailabilityCalendar
+              value={range}
+              onChange={setRange}
+              blockedRanges={blockedRanges}
+              bookedRanges={bookedRanges}
+              loading={calLoading}
+            />
           </div>
 
-          <GuestCounter max={capacity} />
+          <GuestCounter
+            max={capacity}
+            initial={Math.min(4, capacity)}
+            onChange={setGuests}
+          />
 
           <div className="booking-info">
-            <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
             <span>
-              Ce bateau est très demandé. Il ne reste que 2 disponibilités ce
-              mois-ci.
+              {calLoading
+                ? "Vérification des disponibilités…"
+                : hasAvailability
+                ? "Cliquez sur le calendrier pour choisir vos dates de location."
+                : "Aucune date disponible pour ce bateau."}
             </span>
           </div>
 
           <div className="booking-total">
             <div className="booking-total-row">
               <span>
-                {formatPrice(pricePerDay)} × {days} jours
+                {formatPrice(pricePerDay)} × {days} jour{days > 1 ? "s" : ""}
               </span>
               <strong>{formatPrice(subtotal)}</strong>
             </div>
@@ -82,12 +156,32 @@ export default function BookingCard({
             </div>
           </div>
 
-          <button className="btn btn-primary booking-cta" type="button">
+          <button
+            className="btn btn-primary booking-cta"
+            type="button"
+            onClick={handleBook}
+            disabled={!canBook || isOwnerAccount}
+            title={
+              isOwnerAccount
+                ? "La réservation est réservée aux comptes locataires"
+                : !canBook
+                ? "Choisissez vos dates sur le calendrier"
+                : undefined
+            }
+          >
             <i className="fa-solid fa-calendar-check" aria-hidden="true" />
-            Réserver maintenant
+            {isOwnerAccount
+              ? "Réservé aux locataires"
+              : !canBook
+              ? "Choisir des dates"
+              : user
+              ? "Réserver maintenant"
+              : "Se connecter pour réserver"}
           </button>
           <p className="booking-note">
-            Vous ne serez débité qu&apos;après confirmation du propriétaire
+            {isOwnerAccount
+              ? "Basculez vers l'espace locataire pour réserver ce bateau."
+              : "Vous ne serez débité qu'après confirmation du propriétaire"}
           </p>
           <div className="booking-contact">
             <Link href="/contact">

@@ -1,54 +1,140 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ALL_BOATS } from "@/entities/boat";
-import { PRODUCT_REVIEWS } from "@/entities/review";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
+import { LocationMapLoader } from "@/features/list-boat";
+import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI } from "@/shared/lib";
+
+interface RatingSummary {
+  rating: number;
+  count: number;
+  proprietaire: number;
+  bateau: number;
+  lieu: number;
+}
+
+function summarizeAvis(avis: AvisAPI[]): RatingSummary {
+  const count = avis.length;
+  if (count === 0) return { rating: 0, count: 0, proprietaire: 0, bateau: 0, lieu: 0 };
+
+  const avg = (key: "note" | "noteProprietaire" | "noteBateau" | "noteLieu") =>
+    avis.reduce((sum, a) => sum + a[key], 0) / count;
+
+  return {
+    rating: Math.round(avg("note") * 10) / 10,
+    count,
+    proprietaire: avg("noteProprietaire"),
+    bateau: avg("noteBateau"),
+    lieu: avg("noteLieu"),
+  };
+}
+
+const fmtReviewDate = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const boat = ALL_BOATS.find((b) => b.id === id);
-  if (!boat) return { title: "Bateau introuvable" };
+interface BoatPageData {
+  id: string;
+  name: string;
+  location: string;
+  coordinates?: { lat: number; lng: number };
+  type: string;
+  rating: number;
+  reviewCount: number;
+  pricePerDay: number;
+  capacity: number;
+  cabins: number;
+  taille: string;
+  motorisation: string;
+  permisRequis: boolean;
+  carburantInclus: boolean;
+  avecSkipper: boolean;
+  description: string | null;
+  caution: number;
+  ownerId: number | null;
+  ownerName: string;
+  ownerInitials: string;
+  galleryImages: { src: string; alt: string }[];
+}
+
+function adaptBoat(b: BoatAPI): BoatPageData {
+  const sortedPhotos = (b.photos ?? [])
+    .slice()
+    .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99));
+
+  const galleryImages =
+    sortedPhotos.length > 0
+      ? sortedPhotos.slice(0, 3).map((p, i) => ({
+          src: resolvePhotoUrl(p.url),
+          alt: p.description ?? (i === 0 ? `${b.nomBateau} vue principale` : `Photo ${i + 1}`),
+        }))
+      : [
+          { src: `https://picsum.photos/seed/${b.id}-main/1200/800`, alt: `${b.nomBateau} vue principale` },
+          { src: `https://picsum.photos/seed/${b.id}-cockpit/600/400`, alt: "Cockpit" },
+          { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: "Cabine principale" },
+        ];
+
+  const owner = b.proprietaire ?? b.utilisateur;
+  const ownerId = owner?.id ?? b.id_utilisateur ?? null;
+  const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : "Propriétaire";
+  const ownerInitials = owner
+    ? `${owner.prenom?.[0] ?? ""}${owner.nom?.[0] ?? ""}`.toUpperCase() || "?"
+    : "?";
+
+  const lat = b.port?.latitude != null ? Number(b.port.latitude) : NaN;
+  const lng = b.port?.longitude != null ? Number(b.port.longitude) : NaN;
+
   return {
-    title: boat.name,
-    description: `Louez le ${boat.name} à ${boat.location} — ${boat.pricePerDay.toLocaleString("fr-FR")} € / jour. ${boat.reviewCount} avis.`,
+    id: String(b.id),
+    name: b.nomBateau,
+    location: b.port ? b.port.ville : "France",
+    coordinates: !Number.isNaN(lat) && !Number.isNaN(lng) ? { lat, lng } : undefined,
+    type: b.typeBateau?.labelTypeBateau ?? "Voilier",
+    rating: 0,
+    reviewCount: 0,
+    pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    capacity: b.capacite ?? 0,
+    cabins: b.nombreCabines ?? 0,
+    taille: b.taille ?? "—",
+    motorisation: b.motorisation ?? "—",
+    permisRequis: b.permisRequis ?? false,
+    carburantInclus: b.carburantInclus ?? false,
+    avecSkipper: b.avecSkipper,
+    description: b.description ?? null,
+    caution: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? 0),
+    ownerId,
+    ownerName,
+    ownerInitials,
+    galleryImages,
   };
 }
 
-const SPECS = (boat: (typeof ALL_BOATS)[0]) =>
-  [
-    { icon: "fa-ruler-horizontal", val: boat.length ?? "—", label: "Longueur" },
-    { icon: "fa-arrows-left-right", val: boat.width ?? "—", label: "Largeur" },
-    { icon: "fa-users", val: boat.capacity ? `${boat.capacity} pers.` : "—", label: "Capacité" },
-    { icon: "fa-bed", val: boat.cabins ? `${boat.cabins} cab.` : "—", label: "Couchettes" },
-    { icon: "fa-calendar", val: boat.year?.toString() ?? "—", label: "Année" },
-    { icon: "fa-id-card", val: boat.license ?? "—", label: "Permis" },
-    { icon: "fa-gas-pump", val: boat.fuel ?? "—", label: "Carburant" },
-    { icon: "fa-gauge-high", val: boat.speed ?? "—", label: "Vitesse" },
-  ];
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const b = await boatsApi.getOne(id);
+    const boat = adaptBoat(b);
+    return {
+      title: boat.name,
+      description: `Louez le ${boat.name} à ${boat.location} — ${boat.pricePerDay.toLocaleString("fr-FR")} € / jour.`,
+    };
+  } catch {
+    return { title: "Bateau introuvable" };
+  }
+}
 
-const EQUIPMENT = [
-  "GPS & chartplotter",
-  "Wi-Fi à bord",
-  "Climatisation",
-  "Pilote automatique",
-  "Réfrigérateur",
-  "Cuisinière au gaz (3 feux)",
-  "Panneau solaire",
-  "Dessalinisateur",
-  "Dinghy + moteur HB",
-  "Équipements de plongée",
-  "VHF portatif",
-  "Équipements de sécurité",
-  "Draps & serviettes",
-  "Antifouling récent",
-];
+const SPECS = (boat: BoatPageData) =>
+  [
+    { icon: "fa-ruler-horizontal", val: boat.taille, label: "Longueur" },
+    { icon: "fa-table-cells", val: boat.cabins ? `${boat.cabins}` : "—", label: "Cabines" },
+    { icon: "fa-bed", val: boat.capacity ? `${boat.capacity}` : "—", label: "Couchages" },
+    { icon: "fa-gas-pump", val: boat.motorisation, label: "Motorisation" },
+    { icon: "fa-anchor", val: boat.location, label: "Port d'attache" },
+  ];
 
 const RULES = [
   {
@@ -59,7 +145,7 @@ const RULES = [
   {
     icon: "fa-shield-halved",
     title: "Caution",
-    desc: "Caution de 5 000 € par empreinte bancaire. Restituée sous 5 jours après le retour.",
+    desc: "Caution par empreinte bancaire. Restituée sous 5 jours après le retour.",
   },
   {
     icon: "fa-gas-pump",
@@ -75,14 +161,26 @@ const RULES = [
 
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
-  const boat = ALL_BOATS.find((b) => b.id === id);
-  if (!boat) notFound();
 
-  const galleryImages = [
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-main/1200/800`, alt: `${boat.name} vue principale` },
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-cockpit/600/400`, alt: "Cockpit" },
-    { src: `https://picsum.photos/seed/${boat.imageSeed}-cabin/600/400`, alt: "Cabine principale" },
-  ];
+  let boat: BoatPageData;
+  let statut: string;
+  try {
+    const data = await boatsApi.getOne(id);
+    statut = data.statut;
+    boat = adaptBoat(data);
+  } catch {
+    notFound();
+  }
+
+  // Un bateau qui n'est pas publié (en attente, suspendu, refusé, en
+  // maintenance) ne doit pas être consultable par un visiteur/locataire,
+  // même via un lien direct.
+  if (statut !== "disponible") notFound();
+
+  const avis = await avisApi.getByBateau(id).catch(() => [] as AvisAPI[]);
+  const summary = summarizeAvis(avis);
+  boat.rating = summary.rating;
+  boat.reviewCount = summary.count;
 
   return (
     <div className="container">
@@ -94,20 +192,20 @@ export default async function ProductPage({ params }: PageProps) {
         <span aria-current="page">{boat.name}</span>
       </nav>
 
-      <Gallery images={galleryImages} />
+      <Gallery images={boat.galleryImages} title={boat.name} boatId={boat.id} />
 
       <div className="product-layout">
         <div style={{ position: "relative" }}>
           <div className="product-header">
             <div className="product-type-tag">
               <i className="fa-solid fa-sailboat" aria-hidden="true" />{" "}
-              {boat.type.charAt(0).toUpperCase() + boat.type.slice(1)}
+              {boat.type}
             </div>
             <h1 className="product-title">{boat.name}</h1>
             <div className="product-meta">
               <div className="product-rating">
                 <i className="fa-solid fa-star" aria-hidden="true" />
-                {boat.rating} &nbsp;·&nbsp;
+                {boat.rating > 0 ? boat.rating : "Nouveau"} &nbsp;·&nbsp;
                 <a href="#avis">{boat.reviewCount} avis</a>
               </div>
               <div className="product-loc">
@@ -116,61 +214,56 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
             </div>
             <div className="product-owner">
-              <Image
-                src="https://i.pravatar.cc/96?u=marc-owner"
-                alt="Photo du propriétaire Marc"
-                width={48}
-                height={48}
-                className="product-owner-avatar"
-                style={{ borderRadius: "50%", objectFit: "cover" }}
-              />
+              <div className="product-owner-avatar" aria-hidden="true">
+                {boat.ownerInitials}
+              </div>
               <div className="product-owner-info">
                 <small>Proposé par</small>
-                <strong>Marc D.</strong>
-                <Link href="#">
-                  Voir le profil{" "}
-                  <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
-                </Link>
+                <strong>{boat.ownerName}</strong>
+                {boat.ownerId != null && (
+                  <Link href={`/proprietaires/${boat.ownerId}`}>
+                    Voir le profil{" "}
+                    <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
+                  </Link>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="specs-grid" role="list" aria-label="Caractéristiques du bateau">
-            {SPECS(boat).map((spec) => (
-              <div key={spec.label} className="spec-card" role="listitem">
-                <div className="spec-icon">
-                  <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+          <div className="characteristics">
+            <h3>Caractéristiques</h3>
+            <div className="char-grid" role="list" aria-label="Caractéristiques du bateau">
+              {SPECS(boat).map((spec) => (
+                <div key={spec.label} className="char-item" role="listitem">
+                  <div className="char-icon">
+                    <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+                  </div>
+                  <div className="char-text">
+                    <div className="char-label">{spec.label}</div>
+                    <div className="char-value">{spec.val}</div>
+                  </div>
                 </div>
-                <div className="spec-val">{spec.val}</div>
-                <div className="spec-lbl">{spec.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div className="description">
             <h3>Description</h3>
-            <p>
-              Le {boat.name} est un voilier moderne et confortable, idéal pour une croisière en
-              famille ou entre amis en Méditerranée. Alliant performance et habitabilité grâce à
-              son large cockpit ouvert et ses {boat.cabins} cabines indépendantes, chacune avec
-              sa propre salle de bains.
-            </p>
-            <p>
-              Basé à {boat.location}, ce bateau vous permettra d'explorer les calanques, les îles
-              du Frioul et de rejoindre facilement la Corse ou la Côte d'Azur. Un vrai bijou de
-              navigation pour les passionnés de voile.
-            </p>
-          </div>
-
-          <div className="equipment">
-            <h3>Équipements &amp; confort</h3>
-            <div className="equip-grid">
-              {EQUIPMENT.map((item) => (
-                <div key={item} className="equip-item">
-                  <i className="fa-solid fa-check" aria-hidden="true" /> {item}
-                </div>
-              ))}
-            </div>
+            {boat.description ? (
+              <p>{boat.description}</p>
+            ) : (
+              <>
+                <p>
+                  Le {boat.name} est un bateau moderne et confortable, idéal pour une croisière en
+                  famille ou entre amis. Alliant performance et habitabilité grâce à son large
+                  cockpit ouvert{boat.cabins > 0 ? ` et ses ${boat.cabins} cabines indépendantes` : ""}.
+                </p>
+                <p>
+                  Basé à {boat.location}, ce bateau vous permettra d'explorer les plus belles
+                  destinations de la région. Un vrai bijou de navigation pour les passionnés.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="rules">
@@ -190,104 +283,101 @@ export default async function ProductPage({ params }: PageProps) {
           <section className="reviews-section" id="avis" aria-labelledby="reviews-title">
             <h3 id="reviews-title">
               <i className="fa-solid fa-star" style={{ color: "var(--star)" }} aria-hidden="true" />{" "}
-              {boat.rating} · {boat.reviewCount} avis
+              {boat.reviewCount > 0 ? `${boat.rating} · ${boat.reviewCount} avis` : "Aucun avis pour l'instant"}
             </h3>
 
-            <div className="reviews-overview">
-              <div className="reviews-score-big">
-                <div className="reviews-score-num">{boat.rating}</div>
-                <div className="reviews-score-max">/ 5</div>
-                <div className="stars" aria-hidden="true">
-                  {[...Array(5)].map((_, i) => (
-                    <i
-                      key={i}
-                      className={
-                        i < Math.floor(boat.rating)
-                          ? "fa-solid fa-star"
-                          : i < boat.rating
-                          ? "fa-solid fa-star-half-stroke"
-                          : "fa-regular fa-star"
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="reviews-bars">
-                {[
-                  { label: "État général", pct: 96 },
-                  { label: "Confort", pct: 98 },
-                  { label: "Équipements", pct: 94 },
-                  { label: "Communication", pct: 100 },
-                  { label: "Rapport qualité/prix", pct: 90 },
-                ].map((bar) => (
-                  <div key={bar.label} className="review-bar-row">
-                    <span className="review-bar-label">{bar.label}</span>
-                    <div className="review-bar-track">
-                      <div
-                        className="review-bar-fill"
-                        style={{ width: `${bar.pct}%` }}
-                        role="progressbar"
-                        aria-valuenow={bar.pct}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      />
-                    </div>
-                    <span className="review-bar-pct">{(bar.pct / 20).toFixed(1)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {PRODUCT_REVIEWS.map((review) => (
-              <article key={review.id} className="review-card">
-                <div className="review-author">
-                  <div className="review-author-avatar" aria-hidden="true">{review.initial}</div>
-                  <div className="review-author-info">
-                    <strong>{review.author}</strong>
-                    <span>{review.date}</span>
-                  </div>
-                </div>
-                <div className="review-rating" aria-label={`Note : ${review.rating} sur 5`}>
-                  {[...Array(5)].map((_, i) => (
-                    <i
-                      key={i}
-                      className={i < review.rating ? "fa-solid fa-star" : "fa-solid fa-star-half-stroke"}
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <p className="review-body">{review.body}</p>
-                {review.images && (
-                  <div className="review-imgs">
-                    {review.images.map((img) => (
-                      <Image
-                        key={img.src}
-                        src={img.src}
-                        alt={img.alt}
-                        width={80}
-                        height={60}
-                        style={{ objectFit: "cover", borderRadius: "var(--radius)" }}
+            {boat.reviewCount > 0 && (
+              <div className="reviews-overview">
+                <div className="reviews-score-big">
+                  <div className="reviews-score-num">{boat.rating}</div>
+                  <div className="reviews-score-max">/ 5</div>
+                  <div className="stars" aria-hidden="true">
+                    {[...Array(5)].map((_, i) => (
+                      <i
+                        key={i}
+                        className={
+                          i < Math.floor(boat.rating)
+                            ? "fa-solid fa-star"
+                            : i < boat.rating
+                            ? "fa-solid fa-star-half-stroke"
+                            : "fa-regular fa-star"
+                        }
                       />
                     ))}
                   </div>
-                )}
-              </article>
-            ))}
+                </div>
+                <div className="reviews-bars">
+                  {[
+                    { label: "Propriétaire", pct: (summary.proprietaire / 5) * 100 },
+                    { label: "Bateau", pct: (summary.bateau / 5) * 100 },
+                    { label: "Lieu visité", pct: (summary.lieu / 5) * 100 },
+                  ].map((bar) => (
+                    <div key={bar.label} className="review-bar-row">
+                      <span className="review-bar-label">{bar.label}</span>
+                      <div className="review-bar-track">
+                        <div
+                          className="review-bar-fill"
+                          style={{ width: `${bar.pct}%` }}
+                          role="progressbar"
+                          aria-valuenow={bar.pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        />
+                      </div>
+                      <span className="review-bar-pct">{(bar.pct / 20).toFixed(1)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            <div style={{ textAlign: "center", marginTop: "24px" }}>
-              <button className="btn btn-outline" type="button">
-                <i className="fa-solid fa-comments" aria-hidden="true" /> Voir les{" "}
-                {boat.reviewCount} avis
-              </button>
-            </div>
+            {avis.length === 0 ? (
+              <p style={{ color: "var(--text-2)" }}>
+                Ce bateau n&apos;a pas encore reçu d&apos;avis. Soyez le premier à le noter après votre location !
+              </p>
+            ) : (
+              avis.map((a) => {
+                const reviewer = a.utilisateur;
+                const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Locataire SailingLoc";
+                const initial = reviewer?.prenom?.[0]?.toUpperCase() ?? "?";
+
+                return (
+                  <article key={a.id} className="review-card">
+                    <div className="review-author">
+                      <div className="review-author-avatar" aria-hidden="true">{initial}</div>
+                      <div className="review-author-info">
+                        <strong>{authorName}</strong>
+                        <span>{fmtReviewDate(a.dateAvis)}</span>
+                      </div>
+                    </div>
+                    <div className="review-rating" aria-label={`Note : ${a.note} sur 5`}>
+                      {[...Array(5)].map((_, i) => (
+                        <i
+                          key={i}
+                          className={i < a.note ? "fa-solid fa-star" : "fa-regular fa-star"}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </div>
+                    <p className="review-body">{a.commentaire}</p>
+                  </article>
+                );
+              })
+            )}
           </section>
 
           <section className="location-section" aria-labelledby="location-title">
             <h3 id="location-title">Localisation</h3>
-            <div className="location-map" role="img" aria-label={`Carte : ${boat.location}`}>
-              <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
-              <span>{boat.location}</span>
-            </div>
+            {boat.coordinates ? (
+              <div className="location-map location-map--interactive">
+                <LocationMapLoader lat={boat.coordinates.lat} lng={boat.coordinates.lng} />
+              </div>
+            ) : (
+              <div className="location-map" role="img" aria-label={`Carte : ${boat.location}`}>
+                <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
+                <span>{boat.location}</span>
+              </div>
+            )}
             <p className="location-label">
               <i className="fa-solid fa-location-dot" aria-hidden="true" />
               {boat.location} — L'adresse exacte vous sera communiquée après confirmation de la réservation.
@@ -296,11 +386,12 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
 
         <BookingCard
+          boatId={boat.id}
           pricePerDay={boat.pricePerDay}
           rating={boat.rating}
           reviewCount={boat.reviewCount}
-          capacity={boat.capacity ?? 8}
-          ownerName="Marc"
+          capacity={boat.capacity || 8}
+          ownerName={boat.ownerName}
         />
       </div>
     </div>

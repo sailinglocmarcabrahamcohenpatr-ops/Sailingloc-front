@@ -1,0 +1,117 @@
+/* ─────────────────────────────────────────────────
+   Admin · Gestion des avis
+   Même langage visuel que la page Ports
+   (app/(dashboard)/admin/ports/ports.css) :
+   cartes de stats, carte-liste unique à lignes séparées,
+   badges arrondis, bouton d'action icône.
+───────────────────────────────────────────────── */
+
+.avis-page {
+  --avis-900: #7C2D12;
+  --avis-800: #92400E;
+  --avis-600: #D97706;
+  --avis-100: #FEF3C7;
+}
+
+/* ── Cartes de statistiques ── */
+.avis-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.avis-stat-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avis-stat-hero { background: linear-gradient(155deg, var(--avis-900), var(--avis-800)); color: #fff; }
+.avis-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--avis-100);
+  color: var(--avis-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+.avis-stat-hero .avis-stat-icon { background: rgba(255,255,255,.14); color: #fff; }
+.avis-stat-icon-alt { background: #EFF6FF; color: #2563EB; }
+.avis-stat-value { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.avis-stat-label { font-size: .8125rem; color: var(--text-2); margin-top: 2px; }
+.avis-stat-hero .avis-stat-label { color: rgba(255,255,255,.75); }
+
+/* ── Carte liste des avis ── */
+.avis-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.avis-card-hd { margin-bottom: 4px; }
+.avis-card-hd h3 { font-size: 1rem; font-weight: 700; }
+
+.avis-list { display: flex; flex-direction: column; }
+
+.avis-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+.avis-row:last-child { border-bottom: none; }
+
+.avis-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.avis-row-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.avis-row-name { font-size: .9375rem; font-weight: 700; }
+.avis-row-boat { font-weight: 400; color: var(--text-2); }
+
+.avis-row-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.avis-row-date { font-size: .8125rem; color: var(--text-3); white-space: nowrap; }
+
+.avis-row-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8125rem;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.avis-row-action-btn:hover { border-color: var(--red); color: var(--red); background: #FEF2F2; }
+
+.avis-comment {
+  font-size: .9375rem;
+  color: var(--text-2);
+  line-height: 1.6;
+  background: var(--avis-100);
+  border-left: 3px solid var(--avis-600);
+  padding: 10px 14px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .avis-row { flex-wrap: wrap; }
+  .avis-row-meta { margin-left: 54px; }
+}

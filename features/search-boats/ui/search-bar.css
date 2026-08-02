@@ -1,0 +1,285 @@
+/* ──────────────────────────────────────────────────────────────
+   Barre de recherche du hero (features/search-boats/SearchBar).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.search-card {
+  background: rgba(8,20,40,.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 16px 48px rgba(0,0,0,.35);
+  padding: 8px; max-width: 920px; margin: 0 auto 36px;
+}
+.search-fields { display: flex; align-items: center; gap: 0; background: transparent; border-radius: var(--radius-lg); }
+.search-field { position: relative; flex: 1; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid rgba(255,255,255,.28); }
+.search-field:last-of-type { border-right: none; }
+.search-field label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 5px; }
+.search-field label i { color: #93C5FD; }
+.search-field input { border: none; outline: none; font-size: .9375rem; font-weight: 500; color: var(--white); background: transparent; padding: 0; width: 100%; }
+.search-field input::placeholder { color: rgba(255,255,255,.6); font-weight: 400; }
+.search-field input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .8; }
+.search-field select {
+  border: none; outline: none; font-size: .9375rem; font-weight: 500;
+  color: var(--white); background: transparent; padding: 0; width: 100%;
+  cursor: pointer;
+}
+.search-field select option { color: var(--text); background: var(--white); }
+.search-btn-wrap { padding: 6px; flex-shrink: 0; }
+.search-btn { border-radius: var(--radius-lg); padding: 14px 24px; }
+.search-opts { display: flex; gap: 20px; padding: 12px 16px 4px; }
+
+@media (max-width: 768px) {
+  .search-card { border-radius: var(--radius-lg); }
+  /* 1 champ par ligne : Destination, Type de bateau, Durée empilés. */
+  .search-fields { flex-wrap: wrap; align-items: stretch; }
+  .search-field {
+    flex: 1 1 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,.28);
+  }
+  .search-field:last-of-type { border-bottom: none; }
+  .search-btn-wrap { flex: 1 1 100%; padding: 6px; }
+  .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Contrôles custom de la barre de recherche (select type de bateau
+   + champs date) : déclencheurs alignés sur le style des champs, et
+   popovers habillés au style du site (carte claire arrondie).
+   Co-localisé (hors app/globals.css) → anti-conflit.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Wrappers : la popover se positionne par rapport au champ ── */
+.sb-select {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Déclencheur select : même rendu que .search-field input (texte blanc) ── */
+.sb-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  font-size: .9375rem;
+  font-weight: 500;
+  color: var(--white);
+  text-align: left;
+}
+/* ── Déclencheur Durée (shadcn Popover) : même rendu, état actif quand une date est choisie ── */
+.sb-duree-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  font-size: .9375rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, .6);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-duree-trigger.is-active {
+  color: var(--white);
+  font-weight: 500;
+}
+.sb-select-caret {
+  font-size: .7rem;
+  color: rgba(255, 255, 255, .7);
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+
+/* ── Popover commune (carte claire style site) ── */
+.sb-popover {
+  position: absolute;
+  bottom: calc(100% + 14px); /* s'ouvre vers le HAUT de la barre de recherche */
+  left: 0;
+  z-index: 60;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 -14px 44px rgba(8, 20, 40, .22); /* ombre projetée vers le haut */
+  padding: 8px;
+  animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
+}
+.sb-popover--right {
+  left: auto;
+  right: 0;
+}
+@keyframes sb-pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── En-tête du popover : contient le bouton fermer ── */
+.sb-popover-hd {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+.sb-popover-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: .85rem;
+  border-radius: 6px;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sb-popover-close:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+/* ── Liste du select ── */
+.sb-select-list {
+  list-style: none;
+  margin: 0;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sb-select-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sb-select-option:hover {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--primary);
+}
+.sb-select-option.is-selected {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.sb-select-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--primary);
+}
+.sb-select-option-label { flex: 1; white-space: nowrap; }
+.sb-select-check {
+  font-size: .8rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── Suggestions destination (ports dynamiques) ── */
+.sb-suggestions {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 60;
+  min-width: 280px;
+  max-width: 360px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+  padding: 8px;
+  animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
+}
+.sb-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color .15s ease;
+}
+.sb-suggestion-item:hover,
+.sb-suggestion-item:focus {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  outline: none;
+}
+.sb-suggestion-item i {
+  color: var(--text-3);
+  flex-shrink: 0;
+  font-size: .8rem;
+}
+.sb-suggestion-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sb-suggestion-name {
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-suggestion-sub {
+  font-size: .75rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Mobile : popovers repositionnés en overlay sur la carte de recherche ──
+   .search-card (position:relative) sert de référence ; .sb-select
+   repasse en static pour ne pas en devenir une lui-même.
+   Le popover part du bord supérieur de la carte (top:0) et s'étend sur
+   toute la largeur de celle-ci (left:0, right:0). */
+@media (max-width: 768px) {
+  .search-card { position: relative; }
+  .sb-select { position: static; }
+  .sb-popover {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+    animation: none;
+  }
+  .sb-popover--right { left: 0; right: 0; }
+  .sb-select-list { min-width: 0; width: 100%; }
+  .sb-suggestions { left: 0; right: 0; min-width: unset; max-width: none; }
+}

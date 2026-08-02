@@ -15,23 +15,19 @@ export async function getFeaturedBoats(): Promise<Boat[]> {
 }
 
 export async function searchBoats(params: {
-  query?: string;
-  type?: BoatType;
-  minPrice?: number;
+  destination?: string;
+  types?: BoatType[];
   maxPrice?: number;
+  minCapacity?: number;
+  minRating?: number;
 }): Promise<Boat[]> {
+  const { destination, types, maxPrice, minCapacity, minRating } = params;
   return ALL_BOATS.filter((b) => {
-    const { query, type, minPrice, maxPrice } = params;
-    if (type && type !== "tous" && b.type !== type) return false;
-    if (minPrice && b.pricePerDay < minPrice) return false;
-    if (maxPrice && b.pricePerDay > maxPrice) return false;
-    if (query) {
-      const q = query.toLowerCase();
-      return (
-        b.name.toLowerCase().includes(q) ||
-        b.location.toLowerCase().includes(q)
-      );
-    }
+    if (types && types.length > 0 && !types.includes(b.type)) return false;
+    if (destination && !b.location.toLowerCase().includes(destination.toLowerCase())) return false;
+    if (maxPrice != null && b.pricePerDay > maxPrice) return false;
+    if (minCapacity != null && (b.capacity ?? 0) < minCapacity) return false;
+    if (minRating != null && b.rating < minRating) return false;
     return true;
   });
 }

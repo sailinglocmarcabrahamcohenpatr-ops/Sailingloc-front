@@ -1,22 +1,18 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Boat } from "../model/types";
+import BoatTypeIcon from "./BoatTypeIcon";
+import BoatCardGallery from "./BoatCardGallery";
 import { cn, formatPrice } from "@/shared/lib/utils";
+import "./boat-card.css";
 
 interface BoatCardProps {
   boat: Boat;
   className?: string;
-  showMeta?: boolean;
   action?: React.ReactNode;
 }
 
-export default function BoatCard({
-  boat,
-  className = "",
-  showMeta = false,
-  action,
-}: BoatCardProps) {
-  const imgSrc = `https://picsum.photos/seed/${boat.imageSeed}/600/450`;
+export default function BoatCard({ boat, className = "", action }: BoatCardProps) {
+  const typeLabel = boat.type.charAt(0).toUpperCase() + boat.type.slice(1);
 
   return (
     <Link
@@ -24,14 +20,7 @@ export default function BoatCard({
       className={cn("boat-card", className)}
       aria-label={`${boat.name} — ${boat.location}`}
     >
-      <div className="boat-card-img">
-        <Image
-          src={imgSrc}
-          alt={boat.name}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          style={{ objectFit: "cover" }}
-        />
+      <BoatCardGallery boat={boat}>
         {boat.badge && (
           <div
             className={cn(
@@ -46,33 +35,47 @@ export default function BoatCard({
           </div>
         )}
         {action}
-      </div>
+      </BoatCardGallery>
+
       <div className="boat-card-body">
-        <div className="boat-card-name">{boat.name}</div>
-        <div className="boat-card-loc">
+        <div className="boat-card-head">
+          <h3 className="boat-card-name">{boat.name}</h3>
+          <span className="boat-card-rating">
+            <i className="fa-solid fa-star" aria-hidden="true" />
+            {boat.reviewCount > 0 ? boat.rating.toFixed(1) : "Nouveau"}
+          </span>
+        </div>
+
+        <div className="boat-card-sub">
+          <BoatTypeIcon type={boat.type} />
+          {typeLabel}
+        </div>
+
+        <p className="boat-card-port" title={boat.location}>
           <i className="fa-solid fa-location-dot" aria-hidden="true" />
           {boat.location}
-        </div>
-        {showMeta && (
-          <div className="boat-card-meta">
-            {[
-              boat.cabins && `${boat.cabins} cabines`,
-              boat.toilets && `${boat.toilets} toilettes`,
-              boat.year,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </div>
-        )}
+        </p>
+
+        <ul className="boat-card-specs">
+          {boat.capacity != null && (
+            <li>
+              <i className="fa-solid fa-user-group" aria-hidden="true" />
+              {boat.capacity} pers.
+            </li>
+          )}
+          {boat.cabins != null && (
+            <li>
+              <i className="fa-solid fa-bed" aria-hidden="true" />
+              {boat.cabins} cabine{boat.cabins > 1 ? "s" : ""}
+            </li>
+          )}
+        </ul>
+
         <div className="boat-card-foot">
-          <div className="boat-card-rating">
-            <i className="fa-solid fa-star" aria-hidden="true" />
-            <strong>{boat.rating.toFixed(1)}</strong>
-            <span className="reviews">({boat.reviewCount} avis)</span>
-          </div>
-          <div className="boat-card-price">
+          <span className="boat-card-price">
             {formatPrice(boat.pricePerDay)} <span>/ jour</span>
-          </div>
+          </span>
+          <span className="boat-card-cta">Réserver</span>
         </div>
       </div>
     </Link>

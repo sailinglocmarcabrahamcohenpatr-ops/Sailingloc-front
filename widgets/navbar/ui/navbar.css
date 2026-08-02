@@ -1,0 +1,120 @@
+/* ──────────────────────────────────────────────────────────────
+   Refonte visuelle de la barre de navigation (inspirée des références :
+   nav centrée en pilule segmentée, rubrique active en pilule pleine,
+   CTA marqué). Verre translucide conservé.
+   Co-localisé (HORS app/globals.css) → aucun conflit de merge.
+   Thème-aware (--card-bg / --primary / --border / --text*).
+   ────────────────────────────────────────────────────────────── */
+
+/* ── CONCEPT « Pont flottant » : navbar liquid-glass détachée des bords,
+   arrondie, translucide — en écho au shell arrondi du contenu. ── */
+.navbar {
+  position: sticky;
+  top: 0; /* collée au haut de la page */
+  z-index: 1000;
+  height: auto; /* neutralise le height:64px fixe de globals → hauteur = contenu + padding (symétrique) */
+  width: auto; /* les marges latérales réduisent la largeur (pas de débordement) */
+  margin: 0 16px; /* collée en haut et en bas (espacement vertical égal), marges latérales */
+  padding: 12px 0; /* haut/bas égaux — hauteur ≈ contenu (38px) + 24px ≈ 62px */
+  border-radius: 0; /* angles droits */
+  background: var(--card-bg);
+  border: none;
+  box-shadow: none;
+  transition: background-color .3s ease, backdrop-filter .3s ease, box-shadow .3s ease;
+}
+
+/* ── Au scroll : fond translucide + flou (frosted glass) ── */
+.navbar--scrolled {
+  background: color-mix(in srgb, var(--card-bg) 55%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--navy) 8%, transparent);
+}
+
+/* Répartition symétrique : colonnes latérales égales (1fr) → logo (gauche) et
+   actions (droite) toujours à distance égale des bords, nav centrée, même au
+   rétrécissement. Évite le débordement asymétrique du flex. */
+.navbar-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  /* Mêmes marges latérales que .home-shell (16px desktop / 10px mobile) →
+     le contenu de la nav s'aligne exactement sur le contenu de la page. */
+  margin: 0 16px;
+  padding: 0;
+  width: auto;     /* remplit la navbar full-bleed moins les marges */
+  max-width: none; /* neutralise le max-width 1600 de .container */
+  height: auto;    /* neutralise le height:100% de globals → hauteur = contenu (calcul prévisible) */
+}
+.navbar-logo  { justify-self: start; grid-column: 1; }
+.navbar-nav   { grid-column: 2; }
+.navbar-actions { justify-self: end; grid-column: 3; }
+
+/* ── Navigation centrée, dans une pilule segmentée ── */
+.navbar-nav {
+  justify-self: center;
+  margin: 0;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px;
+  /* Opaque (même teinte que sur fond blanc) → la pilule garde le même aspect
+     quand le fond de la barre devient transparent au scroll. */
+  background: color-mix(in srgb, var(--card-bg), var(--text) 6%);
+  border-radius: 999px;
+}
+
+.navbar-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  font-size: .9375rem;
+  font-weight: 600;
+  color: var(--text-2);
+  border-radius: 999px;
+  transition: color .2s ease, background-color .2s ease;
+  white-space: nowrap;
+}
+.navbar-nav a i { font-size: .8125rem; }
+.navbar-nav a:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+/* Rubrique active : pilule pleine en couleur primaire */
+.navbar-nav a.active,
+.navbar-nav a.active:hover {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ── « Se connecter » réduit à l'icône : bouton circulaire plein ── */
+.navbar-actions .btn-ghost {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--primary) 30%, transparent);
+  transition: var(--transition);
+}
+.navbar-actions .btn-ghost:hover {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+  color: #fff;
+}
+
+/* ── Logo ── */
+.navbar-logo { letter-spacing: -.5px; }
+
+/* ── Mobile : marges de .navbar-inner alignées sur .home-shell (10px). ── */
+@media (max-width: 640px) {
+  .navbar-inner { margin: 0 10px; }
+}

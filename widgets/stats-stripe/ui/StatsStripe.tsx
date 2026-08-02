@@ -1,4 +1,5 @@
 import { STATS } from "@/shared/config";
+import "./stats-stripe.css";
 
 export default function StatsStripe() {
   return (

@@ -1,103 +1,220 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { format } from "date-fns";
+import { type DateRange } from "react-day-picker";
+import { fr } from "date-fns/locale";
+import { MapPin, CalendarRange, Search } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { api } from "@/shared/lib/api-client";
+import type { PortAPI } from "@/shared/lib/referentiels-api";
+import s from "./SearchBarCompact.module.css";
 
 export default function SearchBarCompact() {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
-  const [dest,      setDest]      = useState(searchParams.get("destination") ?? "");
-  const [dateRange, setDateRange] = useState("");
-  const [boatType,  setBoatType]  = useState(searchParams.get("type") ?? "");
-  const [skipper,   setSkipper]   = useState("");
+  const [dest,        setDest]        = useState(searchParams.get("destination") ?? "");
+  const [range,       setRange]       = useState<DateRange | undefined>(undefined);
+  const [calOpen,     setCalOpen]     = useState(false);
+  const [ports,       setPorts]       = useState<PortAPI[]>([]);
+  const [showSug,     setShowSug]     = useState(false);
+  const destRef = useRef<HTMLDivElement>(null);
+
+  /* Charge tous les ports une seule fois */
+  useEffect(() => {
+    api.get<unknown>("/api/ports", false)
+      .then((res) => {
+        if (Array.isArray(res)) return res as PortAPI[];
+        if (res && typeof res === "object") {
+          const r = res as Record<string, unknown>;
+          if (Array.isArray(r["hydra:member"])) return r["hydra:member"] as PortAPI[];
+          if (Array.isArray(r["data"]))         return r["data"]         as PortAPI[];
+          if (Array.isArray(r["member"]))       return r["member"]       as PortAPI[];
+        }
+        return [] as PortAPI[];
+      })
+      .then(setPorts)
+      .catch(() => {});
+  }, []);
+
+  /* Ferme sur clic extérieur */
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (destRef.current && !destRef.current.contains(e.target as Node))
+        setShowSug(false);
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  /* Filtre les cards en direct pendant la frappe (debounce pour éviter une navigation par lettre) */
+  useEffect(() => {
+    const current = searchParams.get("destination") ?? "";
+    const next = dest.trim();
+    if (next === current) return;
+
+    const id = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (next) params.set("destination", next);
+      else params.delete("destination");
+      router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, 350);
+
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dest]);
+
+  /* Filtrage local instantané — sans saisie : tous les ports disponibles */
+  const query = dest.trim().toLowerCase();
+  const suggestions = (
+    query.length < 2
+      ? ports
+      : ports.filter((p) =>
+          p.nom.toLowerCase().includes(query) ||
+          p.ville.toLowerCase().includes(query) ||
+          p.pays?.toLowerCase().includes(query)
+        )
+  ).slice(0, 8);
+
+  const pickSuggestion = (p: PortAPI) => {
+    setDest(p.ville);
+    setShowSug(false);
+    // Met à jour l'URL immédiatement → BoatsSidebar réagit et charge la météo du port
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("destination", p.ville);
+    router.push(`/bateaux?${params.toString()}`);
+  };
+
+  const dateLabel = range?.from
+    ? range.to
+      ? `${format(range.from, "d MMM", { locale: fr })} – ${format(range.to, "d MMM", { locale: fr })}`
+      : format(range.from, "d MMM yyyy", { locale: fr })
+    : "Sélectionnez vos dates";
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (dest.trim())   params.set("destination", dest.trim());
-    if (boatType)      params.set("type", boatType);
-    if (skipper)       params.set("skipper", skipper);
+    setShowSug(false);
+    const params = new URLSearchParams(searchParams.toString());
+    if (dest.trim()) params.set("destination", dest.trim());
+    else params.delete("destination");
+    if (range?.from) params.set("arrivee", format(range.from, "yyyy-MM-dd"));
+    else params.delete("arrivee");
+    if (range?.to)   params.set("depart",  format(range.to,   "yyyy-MM-dd"));
+    else params.delete("depart");
     const qs = params.toString();
     router.push(`/bateaux${qs ? "?" + qs : ""}`);
   };
 
   return (
-    <div className="search-pill">
+    <div className={s.bar}>
 
-      {/* Destination */}
-      <div className="search-pill-field">
-        <i className="fa-solid fa-location-dot search-pill-icon" aria-hidden="true" />
-        <input
-          type="text"
-          placeholder="Destination"
-          value={dest}
-          onChange={e => setDest(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && handleSearch()}
-          aria-label="Destination"
-        />
-        {dest && (
-          <button className="search-pill-clear" onClick={() => setDest("")} type="button" aria-label="Effacer">
-            <i className="fa-solid fa-xmark" />
-          </button>
-        )}
+      {/* ── DESTINATION ── */}
+      <div className={`${s.section} ${s["section--dest"]}`}>
+        <span className={s.label}>Destination</span>
+        <div className={s.destWrap} ref={destRef}>
+          <div className={s.destRow}>
+            <MapPin className={s.destIcon} aria-hidden="true" />
+            <input
+              className={s.destInput}
+              placeholder="Où souhaitez-vous naviguer ?"
+              value={dest}
+              onChange={e => { setDest(e.target.value); setShowSug(true); }}
+              onFocus={() => ports.length > 0 && setShowSug(true)}
+              onKeyDown={e => {
+                if (e.key === "Enter")  handleSearch();
+                if (e.key === "Escape") setShowSug(false);
+              }}
+              aria-label="Destination"
+              aria-autocomplete="list"
+              aria-expanded={showSug}
+              autoComplete="off"
+            />
+            {dest && (
+              <button
+                type="button"
+                aria-label="Effacer"
+                className={s.clearBtn}
+                onClick={() => { setDest(""); setShowSug(false); }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Suggestions dropdown */}
+          {showSug && suggestions.length > 0 && (
+            <div className={s.suggestions} role="listbox" aria-label="Ports disponibles">
+              {suggestions.map((p) => (
+                <button
+                  key={p.id}
+                  role="option"
+                  type="button"
+                  className={s.suggestionItem}
+                  onMouseDown={e => { e.preventDefault(); pickSuggestion(p); }}
+                >
+                  <MapPin className={s.suggestionIcon} aria-hidden="true" />
+                  <span className={s.suggestionText}>
+                    <span className={s.suggestionName}>{p.nom}</span>
+                    <span className={s.suggestionSub}>
+                      {[p.ville, p.pays].filter(Boolean).join(", ")}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="search-pill-sep" />
+      <div className={s.sep} />
 
-      {/* Dates */}
-      <div className="search-pill-field">
-        <i className="fa-regular fa-calendar search-pill-icon" aria-hidden="true" />
-        <input
-          type="text"
-          placeholder="Dates"
-          value={dateRange}
-          onChange={e => setDateRange(e.target.value)}
-          aria-label="Dates"
-        />
+      {/* ── DURÉE ── */}
+      <div className={s.section}>
+        <span className={s.label}>Durée</span>
+        <Popover open={calOpen} onOpenChange={setCalOpen}>
+          <PopoverTrigger
+            className={`${s.dateTrigger}${range?.from ? ` ${s["dateTrigger--active"]}` : ""}`}
+            aria-label="Sélectionner les dates"
+          >
+            <CalendarRange className={s.dateIcon} aria-hidden="true" />
+            {dateLabel}
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={range}
+              onSelect={setRange}
+              numberOfMonths={2}
+              disabled={{ before: new Date() }}
+              locale={fr}
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "10px 12px", borderTop: "1px solid #f1f5f9" }}>
+              <Button variant="ghost" size="sm" onClick={() => { setRange(undefined); setCalOpen(false); }}>
+                Réinitialiser
+              </Button>
+              <Button size="sm" onClick={() => setCalOpen(false)}>
+                Confirmer
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
-      <div className="search-pill-sep" />
-
-      {/* Type de bateau */}
-      <div className="search-pill-select-wrap">
-        <select
-          className="search-pill-select"
-          value={boatType}
-          onChange={e => setBoatType(e.target.value)}
-          aria-label="Type de bateau"
-        >
-          <option value="">Bateau</option>
-          <option value="voilier">Voilier</option>
-          <option value="catamaran">Catamaran</option>
-          <option value="moteur">Moteur</option>
-          <option value="sans-permis">Sans permis</option>
-          <option value="habitable">Habitable</option>
-          <option value="semi-rigide">Semi-rigide</option>
-        </select>
-        <i className="fa-solid fa-chevron-down search-pill-chevron" aria-hidden="true" />
+      {/* ── RECHERCHER ── */}
+      <div className={s.submitWrap}>
+        <button type="button" className={s.submitBtn} onClick={handleSearch}>
+          <Search className={s.submitIcon} aria-hidden="true" />
+          Rechercher
+        </button>
       </div>
-
-      <div className="search-pill-sep" />
-
-      {/* Type de location */}
-      <div className="search-pill-select-wrap">
-        <select
-          className="search-pill-select"
-          value={skipper}
-          onChange={e => setSkipper(e.target.value)}
-          aria-label="Type de location"
-        >
-          <option value="">Location</option>
-          <option value="avec">Avec skipper</option>
-          <option value="sans">Sans skipper</option>
-        </select>
-        <i className="fa-solid fa-chevron-down search-pill-chevron" aria-hidden="true" />
-      </div>
-
-      {/* Search button (hidden visually, triggered by Enter or FiltersBar icon) */}
-      <button className="search-pill-submit" onClick={handleSearch} type="button" aria-label="Rechercher">
-        <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-      </button>
 
     </div>
   );

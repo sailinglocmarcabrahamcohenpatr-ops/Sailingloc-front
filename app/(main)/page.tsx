@@ -4,8 +4,18 @@ import Image from "next/image";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
-import { FEATURED_BOATS } from "@/entities/boat";
-import { getDestinations } from "@/entities/destination";
+import { BoatTypeIcon } from "@/entities/boat";
+import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
+import { DestinationsHome } from "@/widgets/destinations-home";
+import StatsCounters from "./StatsCounters";
+import { getHomeStats } from "./getHomeStats";
+import { getTestimonials } from "./getTestimonials";
+import { getFeaturedBoats } from "./getFeaturedBoats";
+import { getBoatCategoryCounts } from "./getBoatCategoryCounts";
+import "./home-shell.css";
+import "./home.css";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
@@ -14,12 +24,12 @@ export const metadata: Metadata = {
 };
 
 const BOAT_CATEGORIES = [
-  { type: "voilier", icon: "fa-sailboat", label: "Voilier", count: "1 240 annonces" },
-  { type: "catamaran", icon: "fa-ship", label: "Catamaran", count: "480 annonces" },
-  { type: "moteur", icon: "fa-gauge-high", label: "Moteur", count: "720 annonces" },
-  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide", count: "310 annonces" },
-  { type: "habitable", icon: "fa-house", label: "Habitable", count: "195 annonces" },
-  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis", count: "255 annonces" },
+  { type: "voilier", icon: "fa-sailboat", label: "Voilier" },
+  { type: "catamaran", icon: "fa-ship", label: "Catamaran" },
+  { type: "moteur", icon: "fa-gauge-high", label: "Moteur" },
+  { type: "semi-rigide", icon: "fa-person-rowing", label: "Semi-rigide" },
+  { type: "habitable", icon: "fa-house", label: "Habitable" },
+  { type: "sans-permis", icon: "fa-circle-check", label: "Sans permis" },
 ];
 
 const HOW_IT_WORKS = [
@@ -43,37 +53,24 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const TRUST_BADGES = [
-  { icon: "fa-shield-halved", label: "Assurance incluse", desc: "Tous risques sur chaque location" },
-  { icon: "fa-lock", label: "Paiement sécurisé", desc: "Cryptage SSL & fonds bloqués" },
-  { icon: "fa-circle-check", label: "Propriétaires vérifiés", desc: "Identité & documents contrôlés" },
-  { icon: "fa-headset", label: "Support 24h/24", desc: "Assistance en mer si besoin" },
-];
-
 export default async function HomePage() {
-  const destinations = await getDestinations();
+  const [destinations, homeStats, testimonials, featuredBoats, categoryCounts] = await Promise.all([
+    getDestinationsWithLiveBoatCounts(),
+    getHomeStats(),
+    getTestimonials(),
+    getFeaturedBoats(),
+    getBoatCategoryCounts(),
+  ]);
 
   return (
-    <>
+    <div className="home-shell">
       {/* ── Hero ── */}
       <HeroSection />
 
-      {/* ── Trust badges ── */}
-      <section className="trust-section" aria-label="Nos garanties">
+      {/* ── Stats ── */}
+      <section className="stats-dark-section" aria-label="Chiffres clés">
         <div className="container">
-          <div className="trust-grid">
-            {TRUST_BADGES.map((b) => (
-              <div key={b.label} className="trust-badge">
-                <div className="trust-badge-icon">
-                  <i className={`fa-solid ${b.icon}`} aria-hidden="true" />
-                </div>
-                <div>
-                  <strong>{b.label}</strong>
-                  <span>{b.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <StatsCounters stats={homeStats} />
         </div>
       </section>
 
@@ -90,17 +87,20 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="categories-grid fade-in">
-            {BOAT_CATEGORIES.map((cat) => (
-              <Link
-                key={cat.type}
-                href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
-                className="category-card"
-              >
-                <span className="category-icon" aria-hidden="true"><i className={`fa-solid ${cat.icon}`} /></span>
-                <strong>{cat.label}</strong>
-                <span>{cat.count}</span>
-              </Link>
-            ))}
+            {BOAT_CATEGORIES.map((cat) => {
+              const count = categoryCounts[cat.type] ?? 0;
+              return (
+                <Link
+                  key={cat.type}
+                  href={`/bateaux${cat.type !== "sans-permis" ? `?type=${cat.type}` : ""}`}
+                  className="category-card"
+                >
+                  <span className="category-icon" aria-hidden="true"><BoatTypeIcon type={cat.type} style={{ fontSize: "2.1rem" }} /></span>
+                  <strong>{cat.label}</strong>
+                  <span>{count.toLocaleString("fr-FR")} annonce{count !== 1 ? "s" : ""}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -108,7 +108,7 @@ export default async function HomePage() {
       {/* ── Destinations populaires ── */}
       <section className="home-section" aria-labelledby="dest-title">
         <div className="container">
-          <div className="home-section-hd fade-in">
+          <div className="home-section-hd">
             <div>
               <h2 id="dest-title">Destinations populaires</h2>
               <p>Trouvez le bateau idéal en Méditerranée, Atlantique et au-delà</p>
@@ -117,53 +117,31 @@ export default async function HomePage() {
               Toutes les destinations <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </Link>
           </div>
-          <div className="destinations-home-grid fade-in">
-            {destinations.slice(0, 6).map((dest, i) => (
-              <Link
-                key={dest.slug}
-                href={`/destinations/${dest.slug}`}
-                className={`dest-home-card${i === 0 ? " dest-home-card--large" : ""}`}
-              >
-                <div className="dest-home-img">
-                  <Image
-                    src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
-                    alt={dest.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-                <div className="dest-home-overlay" />
-                <div className="dest-home-content">
-                  <span className="dest-home-flag" aria-hidden="true">{dest.flag}</span>
-                  <h3>{dest.name}</h3>
-                  <p>{dest.boatCount} bateaux · dès {dest.priceFrom} €/j</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <DestinationsHome destinations={destinations} />
         </div>
       </section>
 
       {/* ── Bateaux vedettes ── */}
-      <section className="home-section bg-surface" aria-labelledby="featured-title">
-        <div className="container">
-          <div className="home-section-hd fade-in">
-            <div>
-              <h2 id="featured-title">Bateaux en vedette</h2>
-              <p>Une sélection de nos meilleures annonces du moment</p>
+      {featuredBoats.length > 0 && (
+        <section className="home-section bg-surface" aria-labelledby="featured-title">
+          <div className="container">
+            <div className="home-section-hd fade-in">
+              <div>
+                <h2 id="featured-title">Bateaux en vedette</h2>
+                <p>Une sélection de nos meilleures annonces du moment</p>
+              </div>
+              <Link href="/bateaux" className="btn btn-outline">
+                Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </Link>
             </div>
-            <Link href="/bateaux" className="btn btn-outline">
-              Voir tout <i className="fa-solid fa-arrow-right" aria-hidden="true" />
-            </Link>
+            <div className="boats-grid fade-in">
+              {featuredBoats.map((boat) => (
+                <FavoriteBoatCard key={boat.id} boat={boat} />
+              ))}
+            </div>
           </div>
-          <div className="boats-grid fade-in">
-            {FEATURED_BOATS.map((boat) => (
-              <FavoriteBoatCard key={boat.id} boat={boat} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Comment ça marche ── */}
       <section className="home-section home-hiw" aria-labelledby="hiw-title">
@@ -202,28 +180,68 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Avis clients ── */}
-      <Testimonials />
-
-      {/* ── Stats ── */}
-      <section className="stats-dark-section" aria-label="Chiffres clés">
+      {/* ── Application mobile ── */}
+      <section className="home-section app-teaser" aria-labelledby="app-title">
         <div className="container">
-          <div className="stats-dark-grid">
-            {[
-              { val: "3 200+", label: "Bateaux disponibles", icon: "fa-sailboat" },
-              { val: "15", label: "Pays en Europe", icon: "fa-earth-europe" },
-              { val: "50 000+", label: "Voyages réalisés", icon: "fa-anchor" },
-              { val: "4.9 / 5", label: "Note de satisfaction", icon: "fa-star" },
-            ].map((s) => (
-              <div key={s.label} className="stats-dark-item fade-in">
-                <i className={`fa-solid ${s.icon} stats-dark-icon`} aria-hidden="true" />
-                <strong>{s.val}</strong>
-                <span>{s.label}</span>
+          <div className="app-teaser-grid">
+            <div className="app-teaser-text fade-in">
+              <p className="home-eyebrow">Application mobile</p>
+              <h2 id="app-title">SailingLoc dans votre poche</h2>
+              <p className="app-teaser-lead">
+                Réservez, gérez vos locations et recevez vos notifications où que vous
+                soyez. L&rsquo;application native iOS et Android arrive bientôt. Installez déjà
+                le site sur votre écran d&rsquo;accueil.
+              </p>
+              <ul className="app-teaser-features">
+                <li><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Recherche instantanée</li>
+                <li><i className="fa-solid fa-calendar-check" aria-hidden="true" /> Réservations & calendrier</li>
+                <li><i className="fa-solid fa-bell" aria-hidden="true" /> Notifications en direct</li>
+              </ul>
+              <div className="app-teaser-stores">
+                <div className="app-store-btn app-store-btn--dark">
+                  <span className="app-store-btn-badge">Prochainement</span>
+                  <i className="fa-brands fa-apple" aria-hidden="true" />
+                  <span className="app-store-btn-text"><small>Télécharger sur l&rsquo;</small>App Store</span>
+                </div>
+                <div className="app-store-btn app-store-btn--outline">
+                  <span className="app-store-btn-badge">Prochainement</span>
+                  <i className="fa-brands fa-google-play" aria-hidden="true" />
+                  <span className="app-store-btn-text"><small>Disponible sur</small>Google Play</span>
+                </div>
               </div>
-            ))}
+              <div className="app-teaser-note">
+                <div className="app-teaser-note-icon">
+                  <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" />
+                </div>
+                <div>
+                  <strong>Disponible dès maintenant sur mobile</strong>
+                  <p>Ajoutez SailingLoc à votre écran d&rsquo;accueil (Safari, Chrome) pour une expérience proche d&rsquo;une application.</p>
+                  <Link href="/bateaux" className="app-teaser-note-link">
+                    Explorer les bateaux <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="app-teaser-visual fade-in" aria-hidden="true">
+              <div className="app-phone-shot">
+                <Image
+                  src="/images/tel-cutout.png"
+                  alt=""
+                  width={543}
+                  height={737}
+                  sizes="(max-width: 1024px) 260px, 300px"
+                  priority={false}
+                />
+              </div>
+              <span className="app-teaser-badge">Prochainement</span>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ── Avis clients ── */}
+      <Testimonials testimonials={testimonials} />
 
       {/* ── Owner CTA ── */}
       <section className="owner-cta-home" aria-labelledby="owner-cta-title">
@@ -288,12 +306,12 @@ export default async function HomePage() {
             <p>
               SailingLoc est la plateforme de référence pour la location de bateaux entre particuliers.
               Réservez un voilier, un catamaran ou un bateau à moteur au meilleur prix, avec assurance
-              incluse et paiement sécurisé. Trouvez le bateau idéal pour vos vacances en Méditerranée,
-              sur l'Atlantique ou à l'étranger — Côte d'Azur, Corse, Cyclades, Baléares, Croatie et plus encore.
+              incluse et paiement sécurisé. Trouvez le bateau idéal pour vos vacances en Méditerranée
+              ou sur l'Atlantique — Côte d'Azur, Corse, Bretagne et plus encore.
             </p>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

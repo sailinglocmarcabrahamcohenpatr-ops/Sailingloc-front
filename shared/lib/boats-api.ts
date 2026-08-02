@@ -1,50 +1,108 @@
 import { api } from "./api-client";
+import type { ReservationAPI } from "./reservations-api";
 
-export interface BoatAPI {
-  id: number;
-  nom_bateau: string;
-  motorisation: string;
-  taille: string;
-  prix_jour: number;
-  capacite: number;
-  avec_skipper: boolean;
-  statut: "disponible" | "indisponible" | "en_attente";
-  id_port: number;
-  id_utilisateur: number;
-  id_type_bateau: number;
-  port?: { id: number; nom: string; ville: string };
-  type_bateau?: { id: number; libelle: string };
-  photos?: PhotoAPI[];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+/** Résout une URL photo relative (ex: /uploads/…) vers une URL absolue */
+export function resolvePhotoUrl(url: string): string {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 export interface PhotoAPI {
   id: number;
-  url: string;
-  principale: boolean;
-  id_bateau: number;
+  url: string;             // peut être relatif → utiliser resolvePhotoUrl
+  description?: string;
+  ordreAffichage?: number; // 0 = principale
 }
 
 export interface DisponibiliteAPI {
   id: number;
-  date_debut: string;
-  date_fin: string;
-  id_bateau: number;
-}
-
-export interface CreateBoatPayload {
-  nom_bateau: string;
-  motorisation: string;
-  taille: string;
-  prix_jour: number;
-  id_port: number;
-  id_utilisateur: number;
-  id_type_bateau: number;
-  capacite: number;
-  avec_skipper: boolean;
+  dateDebut: string;
+  dateFin?: string | null;
+  idBateau?: number;
   statut?: string;
 }
 
-type BoatListResponse = BoatAPI[] | { "hydra:member": BoatAPI[] } | { data: BoatAPI[] } | { member: BoatAPI[] };
+/** Statuts de bateau utilisés dans le module Publication */
+export const StatutBateau = {
+  EN_ATTENTE_VALIDATION: "en attente de validation",
+  DISPONIBLE: "disponible",
+  LOUE: "loué",
+  MAINTENANCE: "maintenance",
+  SUSPENDU: "suspendu",
+  REFUSE: "refusé",
+} as const;
+export type StatutBateauValue = typeof StatutBateau[keyof typeof StatutBateau];
+
+export interface DocumentAPI {
+  id: number;
+  urlDocument: string | null;
+  nom?: string;
+  id_type_document?: number;
+  typeDocument?: { id: number; labelTypeDocument?: string };
+  created_at?: string;
+}
+
+export interface BoatAPI {
+  id: number;
+  nomBateau: string;
+  motorisation: string;
+  taille: string;
+  prixJour: string | number;   // l'API renvoie une string "175.00"
+  prixHeure?: string | number | null;
+  capacite?: number | null;
+  avecSkipper: boolean;
+  description?: string | null;
+  statut: string; // "disponible" | "en attente de validation" | "suspendu" | "loué" | "maintenance" | …
+  caution?: string | number | null;
+  carburantInclus?: boolean;
+  permisRequis?: boolean;
+  nombreCabines?: number | null;
+  id_port?: number;
+  id_type_bateau?: number;
+  id_utilisateur?: number;
+  /** `/api/ports` exige ROLE_USER : on ne peut pas le rappeler pour les visiteurs anonymes,
+   *  d'où l'usage direct de ces champs (déjà embarqués par le backend dans chaque bateau). */
+  port?: { id: number; nom: string; ville: string; pays?: string; latitude?: number | string; longitude?: number | string };
+  typeBateau?: { id?: number; labelTypeBateau: string };
+  /** Champs calculés côté backend (jamais stockés) à partir des avis réels du bateau. */
+  noteMoyenne?: number;
+  nombreAvis?: number;
+  /** Champ retourné par l'API pour les routes /bateaux */
+  proprietaire?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; statutCompte?: boolean };
+  /** Alias alternatif selon certains endpoints */
+  utilisateur?: { id: number; prenom: string; nom: string; email: string; telephone?: string; created_at?: string; roles?: string[]; statutCompte?: boolean };
+  photos?: PhotoAPI[];
+  disponibilites?: DisponibiliteAPI[];
+  documents?: DocumentAPI[];
+}
+
+export interface CreateBoatPayload {
+  nom_bateau:       string;
+  motorisation:     string;
+  taille:           string;
+  prix_jour:        number;
+  id_port:          number;
+  id_utilisateur:   number;
+  id_type_bateau:   number;
+  capacite?:        number;
+  avec_skipper?:    boolean;
+  statut?:          string;
+  description?:     string;
+  caution?:         number;
+  permis_requis?:   boolean;
+  nombre_cabines?:  number;
+  carburant_inclus?: boolean;
+  prix_heure?:      number;
+}
+
+type BoatListResponse =
+  | BoatAPI[]
+  | { "hydra:member": BoatAPI[] }
+  | { data: BoatAPI[]; pagination?: unknown }
+  | { member: BoatAPI[] };
 
 function extractBoatArray(res: BoatListResponse): BoatAPI[] {
   if (Array.isArray(res)) return res;
@@ -58,7 +116,6 @@ export const boatsApi = {
   getAll: async (params?: Record<string, string>): Promise<BoatAPI[]> => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     const res = await api.get<BoatListResponse>(`/api/bateaux${qs}`);
-    console.log("boatsApi.getAll response:", res);
     return extractBoatArray(res);
   },
   getOne: (id: number | string) =>
@@ -73,8 +130,20 @@ export const boatsApi = {
     api.delete<void>(`/api/bateaux/${id}`),
   getPhotos: (id: number | string) =>
     api.get<PhotoAPI[]>(`/api/bateaux/${id}/photos`),
+  /**
+   * ⚠️ Ce sous-endpoint renvoie une sérialisation incomplète côté backend
+   * (seuls `id`/`dateDebut` sont exposés — `dateFin` et `statut` manquent).
+   * Pour lire les disponibilités d'un bateau, préférer le champ
+   * `disponibilites` embarqué dans `getOne()` / `getAll()`, qui est complet.
+   */
   getDisponibilites: (id: number | string) =>
     api.get<DisponibiliteAPI[]>(`/api/bateaux/${id}/disponibilites`),
+  getDisponibilitesParBateau: (id: number | string) =>
+    api.get<DisponibiliteAPI[]>(`/api/disponibilites/bateau/${id}`),
   getReservations: (id: number | string) =>
-    api.get<unknown[]>(`/api/bateaux/${id}/reservations`),
+    api.get<ReservationAPI[]>(`/api/bateaux/${id}/reservations`),
+  getDocuments: (id: number | string) =>
+    api.get<DocumentAPI[]>(`/api/bateaux/${id}/documents`),
+  updateStatut: (id: number | string, statut: string) =>
+    api.patch<BoatAPI>(`/api/bateaux/${id}`, { statut }),
 };

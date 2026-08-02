@@ -1,18 +1,12 @@
-import Image from "next/image";
 import { SearchBar } from "@/features/search-boats";
+import HeroVideo from "./HeroVideo";
+import "./hero.css";
 
 export default function HeroSection() {
   return (
     <section className="hero" aria-label="Bannière principale">
       <div className="hero-bg">
-        <Image
-          src="https://picsum.photos/seed/sailing-mediterranean-blue/1920/1000"
-          alt="Voilier naviguant en Méditerranée"
-          fill
-          priority
-          sizes="100vw"
-          style={{ objectFit: "cover", objectPosition: "center 35%" }}
-        />
+        <HeroVideo />
         <div className="hero-overlay" aria-hidden="true" />
       </div>
 
@@ -34,28 +28,6 @@ export default function HeroSection() {
           </p>
 
           <SearchBar />
-
-          <div className="hero-trust">
-            <div className="hero-trust-item">
-              <strong>3 200+</strong>
-              <span>Bateaux disponibles</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>15</strong>
-              <span>Pays couverts</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>4.9 / 5</strong>
-              <span>Satisfaction client</span>
-            </div>
-            <div className="hero-trust-sep" aria-hidden="true" />
-            <div className="hero-trust-item">
-              <strong>50 000+</strong>
-              <span>Voyages réalisés</span>
-            </div>
-          </div>
         </div>
       </div>
     </section>

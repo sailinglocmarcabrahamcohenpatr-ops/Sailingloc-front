@@ -2,19 +2,27 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { apiForgotPassword, ApiError } from "@/shared/lib";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    setSent(true);
+    setError("");
+    try {
+      await apiForgotPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Une erreur est survenue. Réessayez dans un instant.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sent) {
@@ -50,6 +58,7 @@ export default function ForgotPasswordForm() {
           autoComplete="email"
         />
       </div>
+      {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
         {loading ? <><i className="fa-solid fa-circle-notch fa-spin" /> Envoi…</> : <><i className="fa-solid fa-paper-plane" /> Envoyer le lien</>}
       </button>

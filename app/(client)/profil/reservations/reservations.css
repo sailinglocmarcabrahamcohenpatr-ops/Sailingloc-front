@@ -1,0 +1,70 @@
+/* ──────────────────────────────────────────────────────────────
+   Page "Mes réservations" (app/(client)/profil/reservations).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   Note : .booking-card lui-même reste global (fiche bateau + dashboard) ;
+   ici on ne cible que les sélecteurs propres à la liste des réservations.
+   ────────────────────────────────────────────────────────────── */
+.bookings-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+.bookings-list .booking-card {
+  /* .booking-card est une classe globale utilisée par la sidebar sticky de la
+     fiche bateau (position: sticky; top: 88px — app/globals.css) : on l'annule
+     ici, sinon les cartes de cette liste héritent d'un contexte d'empilement
+     sticky qui casse le z-index de la modale d'annulation. */
+  position: static;
+  box-shadow: var(--shadow);
+  display: flex;
+  overflow: hidden;
+}
+.booking-card-img { position: relative; width: 180px; flex-shrink: 0; }
+@media (max-width: 768px) { .booking-card-img { width: 100%; height: 180px; } .bookings-list .booking-card { flex-direction: column; } }
+.booking-card-info { flex: 1; padding: 20px 24px; }
+.booking-card-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.booking-card-hd h3 { font-size: 1.0625rem; margin-top: 6px; }
+.booking-card-hd p { font-size: .875rem; color: var(--text-2); margin-top: 4px; }
+.bookings-list .booking-price { font-size: 1.375rem; color: var(--primary); white-space: nowrap; }
+.booking-card-dates { font-size: .875rem; color: var(--text-2); display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+.booking-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.booking-card-actions .btn { border-color: var(--border); }
+.booking-card-actions .btn-primary { border-color: var(--primary); }
+.booking-card-actions .btn:hover { border-color: var(--primary); }
+
+/* Accordéon "À venir" / "Historique" — grid-template-rows gère une hauteur
+   de contenu variable (nombre de réservations), contrairement à un max-height fixe. */
+.res-accordion { margin-bottom: 32px; }
+.res-accordion-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  transition: var(--transition);
+}
+.res-accordion-btn:hover { color: var(--primary); }
+.res-accordion-btn i { font-size: .8125rem; color: var(--text-2); transition: transform .25s ease; flex-shrink: 0; }
+.res-accordion-btn.open i { transform: rotate(180deg); }
+.res-accordion-body-inner { padding-top: 16px; }
+.res-accordion-body-inner .bookings-list { display: flex; flex-direction: column; gap: 15px; margin-bottom: 0; }
+
+/* Modale de confirmation d'annulation */
+.cancel-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+  animation: doc-modal-fade-in .18s ease;
+}
+.cancel-modal {
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 420px; padding: 28px; animation: doc-modal-slide-in .2s ease;
+  text-align: center;
+}
+.cancel-modal-icon {
+  width: 56px; height: 56px; border-radius: 50%; background: #FEE2E2; color: var(--red);
+  display: flex; align-items: center; justify-content: center; font-size: 1.375rem;
+  margin: 0 auto 16px;
+}
+.cancel-modal h2 { font-size: 1.0625rem; font-weight: 700; margin-bottom: 8px; }
+.cancel-modal p { font-size: .875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+.cancel-modal-actions { display: flex; gap: 10px; }
+.cancel-modal-actions .btn { flex: 1; justify-content: center; }

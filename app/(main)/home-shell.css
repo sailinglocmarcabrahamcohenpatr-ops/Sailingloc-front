@@ -1,0 +1,188 @@
+/* ──────────────────────────────────────────────────────────────
+   « Shell » flottant de l'accueil (esprit 2e référence) :
+   contenu avec marges latérales + coins arrondis en haut et en bas.
+   Volontairement SANS overflow:hidden sur le conteneur → les menus
+   déroulants (recherche, etc.) ne sont jamais coupés.
+   Scopé à la home. Co-localisé (hors app/globals.css).
+   ────────────────────────────────────────────────────────────── */
+
+.home-shell {
+  margin: 0 16px;
+}
+
+/* ── Coins hauts arrondis ──
+   On arrondit le FOND vidéo du hero (il ne contient que la vidéo →
+   overflow:hidden 100% sûr, aucun dropdown à l'intérieur).
+   La zone de contenu (barre de recherche) n'est pas rognée. */
+.home-shell > .hero {
+  border-radius: 28px;
+}
+.home-shell .hero-bg {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+/* Section « Quel bateau recherchez-vous ? » en bloc arrondi visible */
+.home-shell section[aria-labelledby="cat-title"] {
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+/* ── Section « garanties » : carte blanche FLOTTANTE qui chevauche le bas
+   du hero (A), avec pastilles d'icônes à CODE COULEUR sémantique (D). ── */
+.home-shell .trust-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 22px 0; /* flux normal : plus de chevauchement */
+}
+.home-shell .trust-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  /* plus de carte flottante : ni fond, ni bordure, ni ombre */
+}
+.home-shell .trust-badge {
+  align-items: flex-start; /* icône alignée avec le titre, pas centrée sur le bloc */
+  gap: 13px;
+  padding: 18px 20px;
+  border-right: none; /* plus de filets : la couleur porte la séparation */
+  border-radius: 18px;
+  transition: background-color .2s ease;
+}
+.home-shell .trust-badge-icon { margin-top: 1px; }
+/* Pastilles uniformes (couleurs sémantiques retirées) */
+.home-shell .trust-badge { --accent: var(--primary); }
+.home-shell .trust-badge-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 0;
+  background: transparent; /* fond bleu clair retiré : icône seule */
+  color: var(--accent);
+  font-size: 1.5rem; /* icône plus présente sans pastille */
+  transition: color .2s ease, transform .2s ease;
+}
+.home-shell .trust-badge:hover .trust-badge-icon {
+  transform: scale(1.08);
+}
+
+/* Responsive (surcharge des media queries de globals, moins spécifiques) */
+@media (max-width: 900px) {
+  .home-shell .trust-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .home-shell .trust-section { margin: 16px 0; }
+}
+@media (max-width: 520px) {
+  .home-shell .trust-grid { grid-template-columns: 1fr; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Cartes de catégories (« Quel bateau recherchez-vous ? ») :
+   pastille d'icône ronde à CODE COULEUR par type de bateau, coins
+   arrondis, survol travaillé (remplissage + tint + lift).
+   ────────────────────────────────────────────────────────────── */
+.home-shell .categories-grid { gap: 16px; }
+
+.home-shell .category-card {
+  gap: 14px;
+  padding: 26px 16px;
+  border: none;
+  border-radius: 20px;
+  background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(15, 30, 55, .06), 0 8px 20px rgba(15, 30, 55, .05);
+  transition: transform .22s ease, box-shadow .22s ease,
+    background-color .22s ease;
+}
+
+/* Couleur sémantique par type (ordre de BOAT_CATEGORIES) */
+.home-shell .category-card:nth-child(1) { --accent: #1866F2; } /* voilier     */
+.home-shell .category-card:nth-child(2) { --accent: #0EA5A5; } /* catamaran   */
+.home-shell .category-card:nth-child(3) { --accent: #F59E0B; } /* moteur      */
+.home-shell .category-card:nth-child(4) { --accent: #8B5CF6; } /* semi-rigide */
+.home-shell .category-card:nth-child(5) { --accent: #10B981; } /* habitable   */
+.home-shell .category-card:nth-child(6) { --accent: #EC4899; } /* sans-permis */
+
+.home-shell .category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%; /* pastille ronde */
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  transition: background-color .22s ease, color .22s ease, transform .22s ease;
+}
+.home-shell .category-card strong { font-size: .95rem; color: var(--text); }
+
+.home-shell .category-card:hover {
+  transform: translateY(-4px);
+  background: color-mix(in srgb, var(--accent) 6%, var(--card-bg));
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text); /* neutralise le color:primary de globals */
+}
+.home-shell .category-card:hover .category-icon {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* Section « Bateaux en vedette » en bloc arrondi */
+.home-shell section[aria-labelledby="featured-title"] {
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  margin: 14px 0;
+}
+
+/* Section « Réservez en 3 étapes » (Simple, rapide, sécurisé) en bloc arrondi */
+.home-shell section[aria-labelledby="hiw-title"] {
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  margin: 14px 0;
+  overflow: hidden;
+}
+
+/* Section « Ce que disent nos navigateurs » : fond blanc */
+.home-shell .testimonials-section {
+  background: var(--white);
+}
+
+/* Section stats : NOIR SUR BLANC + bloc arrondi (cohérence avec les autres) */
+.home-shell .stats-dark-section {
+  background: var(--white);
+  border-radius: 28px;
+  margin: 14px 0;
+  overflow: hidden;
+}
+.home-shell .stats-dark-icon { color: var(--primary); }
+.home-shell .stats-dark-item strong { color: var(--text); }
+.home-shell .stats-dark-item span { color: var(--text-2); }
+
+/* Section « Pour les propriétaires » (…40 000 €) : coins arrondis */
+.home-shell .owner-cta-home {
+  border-radius: 28px;
+  overflow: hidden;
+  margin: 14px 0;
+}
+
+/* ── Coins bas arrondis sur la dernière section ── */
+.home-shell > *:last-child {
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
+/* ── Mobile : marges et rayons réduits ── */
+@media (max-width: 640px) {
+  .home-shell { margin: 0 10px; }
+  .home-shell > .hero,
+  .home-shell .hero-bg {
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+  .home-shell > *:last-child {
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+  }
+}

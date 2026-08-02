@@ -1,0 +1,19 @@
+/* ──────────────────────────────────────────────────────────────
+   Section « Pourquoi SailingLoc » (widgets/why-sailingloc).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.why-img { border-radius: var(--radius-2xl); overflow: hidden; aspect-ratio: 4/3; box-shadow: var(--shadow-lg); position: relative; }
+.why-img img { width: 100%; height: 100%; object-fit: cover; }
+.why-tag { display: inline-block; background: var(--primary-light); color: var(--primary); padding: 5px 14px; border-radius: 20px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+.why-text h2 { margin-bottom: 16px; }
+.why-text > p { margin-bottom: 32px; font-size: .9375rem; line-height: 1.75; }
+.why-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+.why-item { display: flex; gap: 14px; }
+.why-item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; margin-top: 2px; }
+.why-item-text h5 { color: var(--text); margin-bottom: 4px; }
+.why-item-text p { font-size: .875rem; color: var(--text-2); line-height: 1.65; }
+
+@media (max-width: 1024px) {
+  .why-grid { grid-template-columns: 1fr; gap: 40px; }
+}

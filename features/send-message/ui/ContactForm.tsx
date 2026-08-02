@@ -130,7 +130,7 @@ export default function ContactForm() {
           <input type="checkbox" id="rgpd" required className="form-rgpd-checkbox" />
           <label htmlFor="rgpd" className="form-rgpd-label">
             J&apos;accepte que mes données soient traitées conformément à la{" "}
-            <a href="#" className="form-rgpd-link">politique de confidentialité</a>{" "}
+            <a href="/confidentialite" target="_blank" className="form-rgpd-link">politique de confidentialité</a>{" "}
             de SailingLoc.
           </label>
         </div>

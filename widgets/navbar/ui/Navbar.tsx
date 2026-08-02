@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/shared/lib";
+import { useAuth, useMessages, useFavoris } from "@/shared/lib";
+import { Logo } from "@/shared/ui";
+import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
+import "./navbar.css";
 
 const navLinks = [
-  { href: "/bateaux", label: "Bateaux" },
-  { href: "/destinations", label: "Destinations" },
-  { href: "/comment-ca-marche", label: "Comment ça marche" },
-  { href: "/proprietaire", label: "Propriétaires" },
+  { href: "/", label: "Accueil", icon: "fa-house" },
+  { href: "/bateaux", label: "Bateaux", icon: "fa-sailboat" },
+  { href: "/destinations", label: "Destinations", icon: "fa-map-location-dot" },
+  { href: "/comment-ca-marche", label: "Comment ça marche", icon: "fa-circle-question" },
+  { href: "/proprietaire", label: "Propriétaires", icon: "fa-key" },
 ];
 
 function isActive(href: string, pathname: string): boolean {
@@ -22,10 +26,21 @@ function isActive(href: string, pathname: string): boolean {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, switchRole } = useAuth();
+  const { unreadCount } = useMessages();
+  const { count: favorisCount } = useFavoris();
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
+  // sur le compte — pour qu'on ne se retrouve jamais renvoyé vers l'espace
+  // propriétaire alors qu'on navigue dans l'espace locataire (ou l'inverse).
+  const isOwnerSection = pathname.startsWith("/proprietaire");
+  // Un administrateur n'a pas d'espace locataire/propriétaire : il n'a accès
+  // qu'au dashboard admin, donc le menu ne doit proposer que ça.
+  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -37,6 +52,14 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Transparence au scroll : fond translucide/frosted dès qu'on quitte le haut.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const handleLogout = () => {
     logout();
     setUserMenuOpen(false);
@@ -45,11 +68,10 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
         <div className="container navbar-inner">
           <Link href="/" className="navbar-logo">
-            <i className="fa-solid fa-anchor" aria-hidden="true" />
-            SailingLoc
+            <Logo />
           </Link>
 
           <nav className="navbar-nav" aria-label="Navigation principale">
@@ -59,6 +81,7 @@ export default function Navbar() {
                 href={link.href}
                 className={isActive(link.href, pathname) ? "active" : ""}
               >
+                <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
                 {link.label}
               </Link>
             ))}
@@ -67,14 +90,23 @@ export default function Navbar() {
           <div className="navbar-actions">
             {user ? (
               <>
-                <Link
-                  href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
-                  className="navbar-icon-btn"
-                  aria-label="Messages"
-                >
-                  <i className="fa-solid fa-envelope" />
-                  <span className="navbar-badge">1</span>
-                </Link>
+                {!isAdmin && (
+                  <>
+                    <Link href="/profil/favoris" className="navbar-icon-btn" aria-label="Favoris">
+                      <i className="fa-solid fa-heart" />
+                      {favorisCount > 0 && <span className="navbar-badge">{favorisCount}</span>}
+                    </Link>
+                    <NotificationsBell />
+                    <Link
+                      href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                      className="navbar-icon-btn"
+                      aria-label="Messages"
+                    >
+                      <i className="fa-solid fa-envelope" />
+                      {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
+                    </Link>
+                  </>
+                )}
 
                 <div className="navbar-user-menu" ref={userMenuRef}>
                   <button
@@ -93,28 +125,61 @@ export default function Navbar() {
                       <div className="navbar-dropdown-user">
                         <span className="navbar-dropdown-name">{user.name}</span>
                         <span className="navbar-dropdown-role">
-                          {user.role === "proprietaire" ? "Propriétaire" : "Locataire"}
+                          {isAdmin
+                            ? "Administrateur"
+                            : isOwnerSection || user.role === "proprietaire"
+                            ? "Propriétaire"
+                            : "Locataire"}
                         </span>
                       </div>
                       <div className="navbar-dropdown-sep" />
-                      {user.role === "locataire" ? (
+                      {isAdmin ? (
+                        <Link href="/admin/dashboard" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <i className="fa-solid fa-gauge" /> Tableau de bord admin
+                        </Link>
+                      ) : !isOwnerSection ? (
                         <>
-                          <Link href="/profil" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          {user.role === "proprietaire" ? (
+                            <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("proprietaire"); setUserMenuOpen(false); }} role="menuitem">
+                              <i className="fa-solid fa-sailboat" /> Espace propriétaire
+                            </Link>
+                          ) : (
+                            <Link href="/profil/devenir-proprietaire" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                              <i className="fa-solid fa-sailboat" /> Devenir propriétaire
+                            </Link>
+                          )}
+                          <div className="navbar-dropdown-sep" />
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/dashboard" : "/profil"}
+                            className="navbar-dropdown-item"
+                            onClick={() => { if (user.role === "proprietaire") switchRole("proprietaire"); setUserMenuOpen(false); }}
+                            role="menuitem"
+                          >
                             <i className="fa-solid fa-user" /> Mon profil
                           </Link>
-                          <Link href="/profil/reservations" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-calendar-check" /> Mes réservations
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/reservations" : "/profil/reservations"}
+                            className="navbar-dropdown-item"
+                            onClick={() => setUserMenuOpen(false)}
+                            role="menuitem"
+                          >
+                            <i className="fa-solid fa-calendar-check" /> {user.role === "proprietaire" ? "Réservations" : "Mes réservations"}
                           </Link>
-                          <Link href="/profil/messages" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                          <Link
+                            href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
+                            className="navbar-dropdown-item"
+                            onClick={() => setUserMenuOpen(false)}
+                            role="menuitem"
+                          >
                             <i className="fa-solid fa-envelope" /> Messages
-                          </Link>
-                          <div className="navbar-dropdown-sep" />
-                          <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-sailboat" /> Espace propriétaire
                           </Link>
                         </>
                       ) : (
                         <>
+                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("locataire"); setUserMenuOpen(false); }} role="menuitem">
+                            <i className="fa-solid fa-user" /> Espace locataire
+                          </Link>
+                          <div className="navbar-dropdown-sep" />
                           <Link href="/proprietaire/bateaux" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-sailboat" /> Mes bateaux
                           </Link>
@@ -124,13 +189,22 @@ export default function Navbar() {
                           <Link href="/proprietaire/revenus" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <i className="fa-solid fa-chart-line" /> Revenus
                           </Link>
-                          <div className="navbar-dropdown-sep" />
-                          <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-user" /> Espace locataire
-                          </Link>
                         </>
                       )}
                       <div className="navbar-dropdown-sep" />
+                      {!isAdmin && (
+                        <>
+                          <Link href="/contact" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> Aide et assistance</span>
+                            <i className="fa-solid fa-chevron-right" />
+                          </Link>
+                          <Link href="/profil/affichage" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-moon" /> Affichage et accessibilité</span>
+                            <i className="fa-solid fa-chevron-right" />
+                          </Link>
+                          <div className="navbar-dropdown-sep" />
+                        </>
+                      )}
                       <button className="navbar-dropdown-item navbar-dropdown-item--danger" onClick={handleLogout} role="menuitem">
                         <i className="fa-solid fa-right-from-bracket" /> Déconnexion
                       </button>
@@ -139,8 +213,8 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <Link href="/connexion" className="btn btn-ghost">
-                <i className="fa-solid fa-user" aria-hidden="true" /> Se connecter
+              <Link href="/connexion" className="btn btn-ghost" aria-label="Se connecter">
+                <i className="fa-solid fa-user" aria-hidden="true" />
               </Link>
             )}
 
@@ -159,12 +233,13 @@ export default function Navbar() {
       <div className={`mobile-nav${mobileOpen ? " open" : ""}`} role="dialog" aria-label="Menu de navigation">
         {navLinks.map((link) => (
           <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)}>
+            <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
             {link.label}
           </Link>
         ))}
         {user ? (
           <>
-            <Link href={user.role === "locataire" ? "/profil" : "/proprietaire/bateaux"} onClick={() => setMobileOpen(false)}>
+            <Link href={isAdmin ? "/admin/dashboard" : isOwnerSection ? "/proprietaire/bateaux" : "/profil"} onClick={() => setMobileOpen(false)}>
               Mon espace
             </Link>
             <button className="btn btn-outline mobile-cta" onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}>

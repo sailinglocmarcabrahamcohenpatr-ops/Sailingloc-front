@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { COUNTRIES } from "@/shared/config";
+import "./countries-section.css";
 
 export default function CountriesSection() {
   return (

@@ -1,0 +1,17 @@
+/* ──────────────────────────────────────────────────────────────
+   Barre de types de bateaux (widgets/boat-types-bar).
+   Isolée hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+.boat-types-section { padding: 40px 0 24px; background: var(--card-bg); border-bottom: 1px solid var(--border); }
+.boat-types-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.boat-types-row::-webkit-scrollbar { display: none; }
+.boat-type-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 14px 20px; border-radius: var(--radius-lg);
+  border: 2px solid var(--border); background: var(--card-bg);
+  font-size: .875rem; font-weight: 600; color: var(--text-2);
+  transition: var(--transition); white-space: nowrap; cursor: pointer; flex-shrink: 0;
+}
+.boat-type-btn .icon { font-size: 1.5rem; }
+.boat-type-btn:hover { border-color: var(--primary); color: var(--primary); }
+.boat-type-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }

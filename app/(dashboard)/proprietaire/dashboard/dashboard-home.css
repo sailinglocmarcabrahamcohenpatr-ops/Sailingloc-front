@@ -1,0 +1,79 @@
+/* ──────────────────────────────────────────────────────────────
+   Page tableau de bord propriétaire (app/(dashboard)/proprietaire/dashboard).
+   Isolée hors de app/globals.css pour éviter les conflits de merge —
+   même langage visuel que la page revenus (app/(dashboard)/proprietaire/revenus).
+   ────────────────────────────────────────────────────────────── */
+.dh-page {
+  --dh-900: #0E3B2E;
+  --dh-800: #16543F;
+  --dh-600: #1B8A5A;
+  --dh-500: #1FA971;
+  --dh-100: #E3F6EC;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dh-header h1 { font-size: 1.625rem; font-weight: 800; margin-bottom: 4px; }
+.dh-header p { color: var(--text-2); font-size: .9375rem; }
+
+/* KPI row */
+.dh-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; align-items: start; }
+.dh-stat-card {
+  background: var(--card-bg); border-radius: 20px; padding: 22px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 14px; text-decoration: none; color: inherit; transition: var(--transition);
+}
+.dh-stat-card:hover { box-shadow: var(--shadow-md); }
+.dh-stat-card.dh-hero { background: linear-gradient(155deg, var(--dh-900), var(--dh-800)); color: #fff; }
+.dh-stat-top { display: flex; align-items: center; justify-content: space-between; }
+.dh-stat-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.125rem; flex-shrink: 0; }
+.dh-stat-card.dh-hero .dh-stat-icon { background: rgba(255,255,255,.14); color: #fff; }
+.dh-stat-nav { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: .75rem; color: var(--text-2); flex-shrink: 0; }
+.dh-stat-card.dh-hero .dh-stat-nav { background: rgba(255,255,255,.14); color: #fff; }
+.dh-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.2; }
+.dh-stat-label { font-size: .8125rem; color: var(--text-2); margin-top: 2px; }
+.dh-stat-card.dh-hero .dh-stat-label { color: rgba(255,255,255,.75); }
+
+.dh-icon-boats { background: #EFF6FF; color: #2563EB; }
+.dh-icon-reservations { background: var(--dh-100); color: var(--dh-600); }
+.dh-icon-messages { background: #FEF3C7; color: #D97706; }
+
+/* Two column row */
+.dh-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: stretch; }
+@media (max-width: 900px) { .dh-row { grid-template-columns: 1fr; } }
+
+/* Upcoming reservations list */
+.dh-list { display: flex; flex-direction: column; }
+.dh-list-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.dh-list-row:last-child { border-bottom: none; }
+.dh-avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: var(--dh-100); color: var(--dh-800);
+  font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: .8125rem; flex-shrink: 0;
+}
+.dh-list-info { flex: 1; min-width: 0; }
+.dh-list-info strong { display: block; font-size: .9rem; }
+.dh-list-info span { font-size: .8125rem; color: var(--text-2); }
+.dh-list-amount { text-align: right; flex-shrink: 0; }
+.dh-list-amount strong { display: block; font-size: .9375rem; font-weight: 800; }
+.dh-empty { color: var(--text-2); padding: 12px 0 4px; font-size: .875rem; }
+.dh-card-link {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-size: .8125rem; font-weight: 700;
+  color: var(--dh-600); text-decoration: none;
+}
+.dh-card-link:hover { color: var(--dh-800); }
+
+/* Dark summary card */
+.dh-dark-card {
+  background: linear-gradient(155deg, var(--dh-900), var(--dh-800)); color: #fff; border-radius: 20px; padding: 22px;
+  display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-md); height: 100%;
+}
+.dh-dark-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+.dh-dark-card h4 { font-size: .875rem; font-weight: 600; opacity: .85; margin-top: 4px; }
+.dh-dark-card p { font-size: .8125rem; color: rgba(255,255,255,.7); }
+.dh-dark-amount { font-size: 1.75rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dh-dark-btn {
+  align-self: flex-start; margin-top: auto; background: #fff; color: var(--dh-900); border: none;
+  padding: 9px 16px; border-radius: 999px; font-size: .8125rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+}
+.dh-dark-btn:hover { opacity: .9; }
