@@ -51,7 +51,6 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
           <Link href="/" className="client-space-logo">
             <Logo />
           </Link>
-          <NotificationsBell />
         </div>
 
         <div className="client-profile-card">
@@ -94,6 +93,9 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
       </aside>
 
       <div className="client-space-main">
+        <div className="client-space-main-topbar">
+          <NotificationsBell />
+        </div>
         <main className="client-space-content">{children}</main>
       </div>
     </div>
