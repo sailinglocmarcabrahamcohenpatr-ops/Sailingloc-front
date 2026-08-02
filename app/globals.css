@@ -262,6 +262,8 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 }
 .mobile-nav a:hover { background: var(--bg); color: var(--primary); }
 .mobile-nav .mobile-cta { margin-top: 12px; border-bottom: none; }
+.mobile-nav .mobile-cta.btn-primary { color: var(--white); }
+.mobile-nav .mobile-cta.btn-primary:hover { color: var(--white); }
 
 /* ── Footer ─────────────────────────────────────── */
 footer {
