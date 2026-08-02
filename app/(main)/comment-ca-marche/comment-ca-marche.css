@@ -83,7 +83,9 @@
 .hiw-page .home-section.bg-surface,
 .hiw-page .hiw-owner-bg {
   border-radius: 28px;
-  margin: 16px;
+  /* Gouttière horizontale fournie par .site-main → on ne garde que la marge
+     verticale pour ne pas doubler l'inset latéral. */
+  margin: 16px 0;
   overflow: hidden;
 }
 .hiw-page .home-section.bg-surface { background: var(--surface); }

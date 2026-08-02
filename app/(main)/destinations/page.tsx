@@ -34,7 +34,7 @@ export default async function DestinationsPage() {
 
   return (
     <>
-      <section className="dest-hero fade-in">
+      <section className="dest-hero fade-in full-bleed">
         <div className="dest-hero-bg">
           {/* Vidéo de fond : vue aérienne d'une côte méditerranéenne, en accord
               avec une app de location de bateaux. muted + playsInline pour un

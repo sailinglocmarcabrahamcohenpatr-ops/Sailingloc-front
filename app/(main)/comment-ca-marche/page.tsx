@@ -17,7 +17,7 @@ export default async function HowItWorksPage() {
   return (
     <div className="hiw-page">
       {/* ── Hero photo ── */}
-      <section className="hiw-page-hero">
+      <section className="hiw-page-hero full-bleed">
         <div className="hiw-page-hero-bg">
           <Image
             src="/images/destinations/corse/pexels-slimmars-13-197677686-38525042.jpg"

@@ -1,0 +1,15 @@
+/* ──────────────────────────────────────────────────────────────
+   Styles co-localisés du catalogue /bateaux (hors globals.css pour
+   éviter les conflits de merge).
+   ────────────────────────────────────────────────────────────── */
+
+/* Alignement sur la gouttière de la home (16px, via .site-main) :
+   la section résultats (grille des bateaux + carte météo) est enveloppée dans
+   un .container (95% + 24px) qui la rentrait à ~71px du bord. On neutralise ce
+   container pour qu'elle remplisse la largeur — même espacement au bord que le
+   héros de la home — comme le carousel/la grille de /destinations. */
+.container:has(> .results-layout) {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}

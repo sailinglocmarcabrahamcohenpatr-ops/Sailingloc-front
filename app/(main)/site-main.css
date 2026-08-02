@@ -1,0 +1,40 @@
+/* ──────────────────────────────────────────────────────────────
+   Gouttière latérale uniforme des pages du groupe (main).
+   Objectif : aligner les marges de TOUTES les pages sur celles de la
+   home. La home obtient sa gouttière via .home-shell (margin: 0 16px) ;
+   les autres pages n'avaient pas d'équivalent → bandes pleine largeur
+   collées aux bords, contenu légèrement plus large. On applique donc
+   la même gouttière de 16px directement sur <main>.
+
+   Conséquence (identique à la home) :
+   - bandes/héros pleine largeur → 16px du bord
+   - conteneurs de contenu (.container) → mêmes marges que la home
+
+   La home est EXEMPTÉE : elle porte déjà sa propre marge via .home-shell,
+   on évite ainsi de doubler la gouttière.
+   ────────────────────────────────────────────────────────────── */
+.site-main {
+  --page-gutter: 16px;
+  padding-inline: var(--page-gutter);
+}
+
+/* Home : .home-shell fournit déjà margin: 0 16px → pas de double marge. */
+.site-main:has(.home-shell) {
+  padding-inline: 0;
+}
+
+/* Mobile : aligné sur .home-shell mobile (margin: 0 10px). */
+@media (max-width: 640px) {
+  .site-main {
+    --page-gutter: 10px;
+  }
+}
+
+/* ── Exceptions « pleine largeur » ──
+   Certains héros doivent aller bord-à-bord malgré la gouttière : on annule
+   celle-ci par une marge négative égale à --page-gutter. Les éléments héritent
+   de la variable depuis .site-main (fallback 16px), donc l'ajustement mobile
+   suit automatiquement. */
+.site-main .full-bleed {
+  margin-inline: calc(-1 * var(--page-gutter, 16px));
+}

@@ -67,7 +67,16 @@
 }
 
 /* ── Section — bateaux disponibles au port ── */
-.port-boats-section { position: relative; }
+/* Alignement sur la gouttière de la home (16px, via .site-main), comme le
+   carousel et la grille de /destinations : on neutralise le .container pour que
+   le panneau des bateaux remplisse la section. overflow-x: clip contient les
+   halos décoratifs (::before/::after débordant à -120px) devenus trop larges. */
+.port-boats-section { position: relative; overflow-x: clip; }
+.port-boats-section > .container {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}
 .port-section-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;

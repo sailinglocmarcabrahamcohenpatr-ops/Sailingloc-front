@@ -7,6 +7,7 @@ import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from 
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
+import "./catalog.css";
 
 const adaptBoat = adaptBoatFromApi;
 

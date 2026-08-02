@@ -66,6 +66,24 @@
 @media (max-width: 640px) { .dest-detail-hero-scroll { display: none; } }
 
 .dest-featured-section { padding: 48px 0 0; }
+
+/* ── Alignement sur la gouttière de la home (16px, via .site-main) ──
+   Le carousel et la grille des destinations sont enveloppés dans un .container
+   (95% + 24px) qui les rentrait à ~59px du bord. On neutralise cette contrainte
+   pour que la carte / la grille remplissent la section : elles tombent alors au
+   même espacement du bord que le héros de la home (la gouttière .site-main). */
+.dest-featured-section > .container,
+.dest-grid-section > .container {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}
+/* La grille étant désormais alignée sur la gouttière (16px), l'état initial des
+   cartes en apparition au scroll (translate: ±56px) déborderait la fenêtre. On
+   clippe l'axe horizontal ; l'axe vertical reste visible (lift au survol). */
+.dest-grid-section {
+  overflow-x: clip;
+}
 .dest-featured-carousel {
   position: relative;
   height: 620px;
