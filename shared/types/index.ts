@@ -99,7 +99,7 @@ export interface FullDestination {
   avgWind: string;
   priceFrom: number;
   activities: string[];
-  highlights: { title: string; desc: string; icon: string; image?: string }[];
+  highlights: { title: string; desc: string; icon: string; image?: string; images?: string[] }[];
   tags: string[];
   gallerySeeds: string[];
   galleryImages?: string[];

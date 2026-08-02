@@ -59,36 +59,19 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         .map((h, i) => getCoherentPhoto(h.title, dest.gallerySeeds[i] ?? `${dest.slug}-${i}`))
     ));
 
-  // Pool de photos pour la lightbox.
-  // Chaque point fort obtient une photo dédiée (h.image) ou la photo de galerie
-  // correspondante par position — légendée avec son propre titre, pas le nom de la destination.
-  // Les photos de galerie restantes sont ajoutées en queue avec le nom de la destination.
-  const placePhotos: PlacePhoto[] = [];
-  const seenPhotos = new Set<string>();
-  let galleryFallbackIdx = 0;
-
-  for (const h of dest.highlights) {
-    if (h.image && !seenPhotos.has(h.image)) {
-      seenPhotos.add(h.image);
-      placePhotos.push({ src: h.image, caption: h.title });
-    } else if (!h.image) {
-      while (galleryFallbackIdx < galleryPhotos.length && seenPhotos.has(galleryPhotos[galleryFallbackIdx])) {
-        galleryFallbackIdx++;
-      }
-      if (galleryFallbackIdx < galleryPhotos.length) {
-        const src = galleryPhotos[galleryFallbackIdx];
-        seenPhotos.add(src);
-        placePhotos.push({ src, caption: h.title });
-        galleryFallbackIdx++;
-      }
+  const highlightPhotos: PlacePhoto[][] = dest.highlights.map((h, i) => {
+    const photos: PlacePhoto[] = [];
+    if (h.image) {
+      photos.push({ src: h.image, caption: h.title });
+    } else {
+      const src = galleryPhotos[i] ?? null;
+      if (src) photos.push({ src, caption: h.title });
     }
-  }
-  for (const src of galleryPhotos) {
-    if (!seenPhotos.has(src)) {
-      seenPhotos.add(src);
-      placePhotos.push({ src, caption: dest.name });
+    for (const src of h.images ?? []) {
+      photos.push({ src, caption: h.title });
     }
-  }
+    return photos;
+  });
 
   return (
     <>
@@ -135,7 +118,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
               <h2>{t.highlightsTitle}</h2>
               <DestinationHighlights
                 highlights={dest.highlights}
-                photos={placePhotos}
+                highlightPhotos={highlightPhotos}
                 destName={dest.name}
               />
             </div>
