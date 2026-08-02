@@ -61,11 +61,15 @@ export default function SearchBarCompact({ filters }: SearchBarCompactProps) {
     if (next === current) return;
 
     const id = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      /* Relit l'URL courante via window.location plutôt que le `searchParams`
+         capturé à l'ouverture du timer : sinon, un filtre (FiltersBar) ou un
+         tri/vue (ResultsControls) appliqué pendant les 350ms d'attente est
+         écrasé par ce replace, qui reconstruirait les params depuis un
+         instantané périmé. */
+      const params = new URLSearchParams(window.location.search);
       if (next) params.set("destination", next);
       else params.delete("destination");
       router.replace(localizeHref(`/bateaux?${params.toString()}`, locale), { scroll: false });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, 350);
 
     return () => clearTimeout(id);

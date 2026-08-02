@@ -1,2 +1,8 @@
 export { default as FiltersBar } from "./ui/FiltersBar";
-export { PRICE_OPTIONS, CAPACITY_OPTIONS, RATING_OPTIONS } from "./model/constants";
+export {
+  BUDGET_BOUNDS,
+  CAPACITY_BOUNDS,
+  SIZE_BOUNDS,
+  CABINS_BOUNDS,
+  RATING_BOUNDS,
+} from "./model/constants";

@@ -1,21 +1,5 @@
-export const PRICE_OPTIONS = [
-  { value: "", label: "Peu importe" },
-  { value: "500", label: "Jusqu'à 500 €/j" },
-  { value: "800", label: "Jusqu'à 800 €/j" },
-  { value: "1000", label: "Jusqu'à 1 000 €/j" },
-  { value: "1500", label: "Jusqu'à 1 500 €/j" },
-];
-
-export const CAPACITY_OPTIONS = [
-  { value: "", label: "Peu importe" },
-  { value: "2", label: "2 personnes et +" },
-  { value: "4", label: "4 personnes et +" },
-  { value: "6", label: "6 personnes et +" },
-  { value: "8", label: "8 personnes et +" },
-];
-
-export const RATING_OPTIONS = [
-  { value: "", label: "Peu importe" },
-  { value: "4", label: "4 étoiles et +" },
-  { value: "4.5", label: "4,5 étoiles et +" },
-];
+export const BUDGET_BOUNDS = { min: 0, max: 2500, step: 50 };
+export const CAPACITY_BOUNDS = { min: 1, max: 32, step: 1 };
+export const SIZE_BOUNDS = { min: 3, max: 30, step: 1 };
+export const CABINS_BOUNDS = { min: 0, max: 10, step: 1 };
+export const RATING_BOUNDS = { min: 0, max: 5, step: 1 };
