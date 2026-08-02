@@ -56,6 +56,19 @@ export function proxy(request: NextRequest) {
     return redirectTo(dashboardHomeFor(role));
   }
 
+  /* Ancienne route publique /inscrire-bateau : redirige vers le bon
+     formulaire selon le rôle du visiteur — création de bateau dans le
+     dashboard pour un propriétaire, demande d'accès propriétaire sinon. */
+  if (/^\/inscrire-bateau(\/|$)/.test(pathname)) {
+    if (!isAuth) {
+      const url = request.nextUrl.clone();
+      url.pathname = localizeHref("/connexion", locale);
+      url.searchParams.set("redirect", rawPath);
+      return NextResponse.redirect(url);
+    }
+    return redirectTo(role === "proprietaire" ? "/proprietaire/bateaux/nouveau" : "/profil/devenir-proprietaire");
+  }
+
   /* Routes privées */
   for (const rule of PROTECTED) {
     if (!rule.pattern.test(pathname)) continue;
