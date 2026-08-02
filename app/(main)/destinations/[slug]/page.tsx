@@ -61,25 +61,14 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   return (
     <>
       <section className="dest-detail-hero">
-        {dest.slug === "cote-azur" ? (
-          <video
-            className="hero-video"
-            src="/videos/azur.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-          />
-        ) : (
-          <Image
-            src={dest.heroImage ?? `https://picsum.photos/seed/${dest.heroSeed}/1600/700`}
-            alt={dest.name}
-            fill
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-            priority
-          />
-        )}
+        <Image
+          src={dest.heroImage ?? `https://picsum.photos/seed/${dest.heroSeed}/1600/700`}
+          alt={dest.name}
+          fill
+          sizes="100vw"
+          style={{ objectFit: "cover" }}
+          priority
+        />
         <div className="dest-detail-hero-overlay" />
         <div className="container dest-detail-hero-content">
           <div className="dest-detail-breadcrumb">
