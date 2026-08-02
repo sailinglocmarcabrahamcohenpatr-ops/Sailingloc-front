@@ -64,31 +64,40 @@ export default function SearchSelect({
       </button>
 
       {open && (
-        <ul
-          className={`sb-popover sb-select-list${align === "right" ? " sb-popover--right" : ""}`}
-          role="listbox"
-        >
-          {options.map((o) => (
-            <li key={o.value} role="option" aria-selected={o.value === value}>
-              <button
-                type="button"
-                className={`sb-select-option${o.value === value ? " is-selected" : ""}`}
-                onClick={() => {
-                  onChange(o.value);
-                  setOpen(false);
-                }}
-              >
-                {renderIcon && (
-                  <span className="sb-select-option-icon">{renderIcon(o.value)}</span>
-                )}
-                <span className="sb-select-option-label">{o.label}</span>
-                {o.value === value && (
-                  <i className="fa-solid fa-check sb-select-check" aria-hidden="true" />
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className={`sb-popover${align === "right" ? " sb-popover--right" : ""}`}>
+          <div className="sb-popover-hd">
+            <button
+              type="button"
+              className="sb-popover-close"
+              onClick={() => setOpen(false)}
+              aria-label="Fermer"
+            >
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+            </button>
+          </div>
+          <ul className="sb-select-list" role="listbox">
+            {options.map((o) => (
+              <li key={o.value} role="option" aria-selected={o.value === value}>
+                <button
+                  type="button"
+                  className={`sb-select-option${o.value === value ? " is-selected" : ""}`}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
+                >
+                  {renderIcon && (
+                    <span className="sb-select-option-icon">{renderIcon(o.value)}</span>
+                  )}
+                  <span className="sb-select-option-label">{o.label}</span>
+                  {o.value === value && (
+                    <i className="fa-solid fa-check sb-select-check" aria-hidden="true" />
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
