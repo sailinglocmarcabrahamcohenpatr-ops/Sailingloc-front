@@ -20,8 +20,8 @@ const BENEFITS = [
   },
   {
     icon: "fa-shield-halved",
-    color: "#1866F2",
-    bg: "#EEF3FE",
+    color: "#114B6B",
+    bg: "#EAF0F4",
     title: "Assurance tous risques",
     desc: "Chaque location est couverte par une assurance tous risques dommages et responsabilité civile. Votre bateau est protégé.",
   },

@@ -69,7 +69,7 @@
   padding-right: 32px;
 }
 .users-filter-select:hover  { border-color: var(--primary); }
-.users-filter-select:focus  { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(24,102,242,.1); }
+.users-filter-select:focus  { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(17,75,107,.1); }
 
 /* ── Table wrapper ── */
 .users-table-wrap {
@@ -239,7 +239,7 @@
 }
 .users-edit-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(24,102,242,.1);
+  box-shadow: 0 0 0 3px rgba(17,75,107,.1);
 }
 
 .users-edit-actions {
@@ -456,7 +456,7 @@
 }
 .users-modal-field input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(24,102,242,.1);
+  box-shadow: 0 0 0 3px rgba(17,75,107,.1);
 }
 .users-modal-field input:disabled {
   background: var(--bg);
