@@ -16,7 +16,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/profil/messages", icon: "fa-envelope", label: "Messages" },
   { href: "/profil/notations", icon: "fa-star", label: "Notations" },
   { href: "/profil/favoris", icon: "fa-heart", label: "Favoris" },
-  { href: "/profil/parametres", icon: "fa-sliders", label: "Paramètres" },
   { href: "/profil/affichage", icon: "fa-moon", label: "Affichage" },
 ];
 

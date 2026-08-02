@@ -14,7 +14,6 @@ const ownerLinks: NavLink[] = [
   { href: "/proprietaire/reservations",   icon: "fa-calendar-check", label: "Réservations" },
   { href: "/proprietaire/revenus",        icon: "fa-chart-line",     label: "Revenus" },
   { href: "/proprietaire/messages",       icon: "fa-envelope",       label: "Messages" },
-  { href: "/profil/parametres",           icon: "fa-sliders",        label: "Paramètres" },
   { href: "/profil/affichage",            icon: "fa-moon",           label: "Affichage et accessibilité" },
 ];
 
