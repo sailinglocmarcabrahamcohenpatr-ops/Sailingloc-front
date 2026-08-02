@@ -23,8 +23,9 @@ const NotificationsContext = createContext<NotificationsContextType>({
 
 /** Source unique des notifications pour toute l'app : un seul abonnement
  *  Mercure, monté ici (racine de l'app) plutôt que dans chaque page — voir
- *  MessagesProvider pour le même raisonnement. Pas de polling de secours :
- *  le temps réel passe entièrement par Mercure. */
+ *  MessagesProvider pour le même raisonnement. Le temps réel passe par
+ *  Mercure quand le hub est configuré ; sinon un poll de secours prend le
+ *  relais (voir plus bas). */
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -37,6 +38,21 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       .then((data) => setNotifications([...data].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, [userId]);
+
+  /* Filet de secours : sans NEXT_PUBLIC_MERCURE_URL configuré (hub pas
+     déployé sur cet environnement), useMercureNotifications ci-dessous ne
+     fait rien et rien ne revient rafraîchir l'état après le chargement
+     initial. On repasse alors en poll léger — désactivé de lui-même dès que
+     Mercure est configuré, pour ne jamais dupliquer le flux temps réel. */
+  useEffect(() => {
+    if (!userId || process.env.NEXT_PUBLIC_MERCURE_URL) return;
+    const id = setInterval(() => {
+      notificationsApi.getAll()
+        .then((data) => setNotifications([...data].sort((a, b) => new Date(b.dateCreation).getTime() - new Date(a.dateCreation).getTime())))
+        .catch(() => {});
+    }, 20000);
+    return () => clearInterval(id);
   }, [userId]);
 
   const handleRealtimeNotification = useCallback((notif: NotificationAPI) => {
