@@ -169,6 +169,23 @@ h3 { font-size: 1.4375rem; font-weight: 600; line-height: 1.35; }
 h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.45; }
 h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 
+/* Dashboard (admin/propriétaire) et espace profil (client) : titres en
+   Montserrat plutôt qu'en serif Fraunces — le serif ne passait pas dans
+   les back-offices. */
+.dashboard-layout h1,
+.dashboard-layout h2,
+.dashboard-layout h3,
+.dashboard-layout h4,
+.dashboard-layout h5,
+.profil-shell h1,
+.profil-shell h2,
+.profil-shell h3,
+.profil-shell h4,
+.profil-shell h5 {
+  font-family: var(--font-dashboard), Arial, sans-serif;
+  letter-spacing: -.01em;
+}
+
 /* ── Buttons ────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 8px;

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Geist } from "next/font/google";
+import { Fraunces, Geist, Montserrat } from "next/font/google";
 import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
 import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider, FavorisProvider, CookieConsentProvider } from "@/shared/lib";
@@ -32,6 +32,15 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
+  display: "swap",
+});
+
+/* Titres du dashboard (admin/propriétaire/profil) : Montserrat, en remplacement
+   du serif Fraunces utilisé sur le site public — demande du chef. */
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-dashboard",
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -70,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={cn("font-sans", geist.variable, fraunces.variable)} suppressHydrationWarning>
+    <html lang="fr" className={cn("font-sans", geist.variable, fraunces.variable, montserrat.variable)} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
