@@ -190,6 +190,13 @@
 .dest-featured-thumbs-track.is-shifting {
   transform: translateX(calc(-1 * (var(--thumb-w) + var(--thumb-gap))));
 }
+/* Reset instantané après le décalage : on repasse la piste à 0 avec le
+   nouveau jeu de vignettes SANS transition, sinon elle « rembobinerait »
+   visuellement de -1 cran vers 0. */
+.dest-featured-thumbs-track.no-anim,
+.dest-featured-thumbs-track.no-anim .dest-featured-thumb:first-child {
+  transition: none;
+}
 /* La vignette de tête s'efface en douceur pendant qu'elle sort — renforce
    l'impression qu'elle « passe » dans le grand hero plutôt que de filer. */
 .dest-featured-thumbs-track.is-shifting .dest-featured-thumb:first-child {
