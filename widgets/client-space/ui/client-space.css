@@ -26,7 +26,6 @@
 .client-space-topline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 .client-space-logo {
@@ -179,6 +178,13 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+/* Cloche de notifications : posée ici plutôt que dans la colonne de gauche
+   (280px, coincée contre le logo) pour finir tout à droite de la page,
+   comme sur un dashboard classique. */
+.client-space-main-topbar {
+  display: flex;
+  justify-content: flex-end;
 }
 .client-space-content { min-width: 0; }
 
