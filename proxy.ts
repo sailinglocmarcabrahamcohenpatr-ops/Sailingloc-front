@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 const PROTECTED: Array<{ pattern: RegExp; requiredRole?: string }> = [
   { pattern: /^\/admin(\/|$)/, requiredRole: "admin" },
   { pattern: /^\/profil(\/|$)/ },
-  { pattern: /^\/proprietaire(\/|$)/, requiredRole: "proprietaire" },
+  { pattern: /^\/proprietaire\//, requiredRole: "proprietaire" },
 ];
 
 const AUTH_ROUTES = ["/connexion", "/inscription"];

@@ -110,11 +110,6 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     }
 
     boats = filtered.map(adaptBoat);
-
-    if (tri === "prix-asc")   boats.sort((a, b) => a.pricePerDay - b.pricePerDay);
-    else if (tri === "prix-desc")  boats.sort((a, b) => b.pricePerDay - a.pricePerDay);
-    else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
-    else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
   } catch {
     const base = await searchBoats({
       types: types.length > 0 ? types : undefined,
@@ -134,12 +129,31 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     }
   }
 
+  if (tri === "prix-asc")        boats.sort((a, b) => a.pricePerDay - b.pricePerDay);
+  else if (tri === "prix-desc")  boats.sort((a, b) => b.pricePerDay - a.pricePerDay);
+  else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
+  else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
+
+  const fmtDate = (iso: string) => {
+    const [, m, d] = iso.split("-");
+    const months = ["jan.", "fév.", "mar.", "avr.", "mai", "jun.", "juil.", "aoû.", "sep.", "oct.", "nov.", "déc."];
+    return `${parseInt(d)} ${months[parseInt(m) - 1]}`;
+  };
+
   const subtitle = [
     types.length > 0 ? types.map((t) => TYPE_LABELS[t] ?? t).join(", ") : null,
     destination ? `à ${destination}` : null,
+    skipper === "avec" ? "avec skipper" : skipper === "sans" ? "sans skipper" : null,
+    arrivee && depart
+      ? `du ${fmtDate(arrivee)} au ${fmtDate(depart)}`
+      : arrivee
+      ? `dès le ${fmtDate(arrivee)}`
+      : depart
+      ? `jusqu'au ${fmtDate(depart)}`
+      : null,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" · ");
 
   return (
     <div className="container">
