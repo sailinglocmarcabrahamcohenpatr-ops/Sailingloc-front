@@ -185,7 +185,14 @@ export default function BookingCard({
               : t.ctaLoginToBook}
           </button>
           <p className="booking-note">
-            {isOwnerAccount ? t.noteOwner : t.noteDefault}
+            {isOwnerAccount ? (
+              <>
+                {t.noteOwner}{" "}
+                <Link href="/inscription">{t.noteOwnerCta}</Link>
+              </>
+            ) : (
+              t.noteDefault
+            )}
           </p>
           <div className="booking-contact">
             <Link href="/contact">
