@@ -38,7 +38,7 @@ type Props = { open?: boolean; onClose?: () => void };
 export default function DashboardSidebar({ open = false, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const { unreadCount } = useMessages();
 
   // Ce shell n'habille plus que l'admin et le propriétaire — l'espace
@@ -52,11 +52,6 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
   const displayName = user?.name ?? (isAdmin ? "Admin" : "Marc Dupont");
   const displayRole = isAdmin ? "Administrateur" : "Propriétaire";
   const initials = displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-
-  const handleSwitchRole = () => {
-    switchRole("locataire");
-    router.push("/profil");
-  };
 
   const handleLogout = () => {
     logout();
@@ -81,14 +76,6 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
           <span>{displayRole}</span>
         </div>
       </div>
-
-      {!isAdmin && (
-        <button className="dash-role-switch" onClick={handleSwitchRole} title="Changer d'espace">
-          <i className="fa-solid fa-user" aria-hidden="true" />
-          Espace locataire
-          <i className="fa-solid fa-arrow-right-arrow-left dash-role-switch-icon" aria-hidden="true" />
-        </button>
-      )}
 
       <nav className="dash-sidebar-nav" aria-label="Navigation dashboard">
         <span className="dash-nav-section">

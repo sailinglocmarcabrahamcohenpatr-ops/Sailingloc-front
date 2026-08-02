@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function ClientSpaceShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const { unreadCount } = useMessages();
 
   const displayName = user?.name ?? "Mon compte";
@@ -34,11 +34,6 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   const navItems = isOwner ? NAV_ITEMS : [...NAV_ITEMS, { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire" }];
-
-  const handleSwitchRole = () => {
-    switchRole("proprietaire");
-    router.push("/proprietaire/bateaux");
-  };
 
   const handleLogout = () => {
     logout();
@@ -68,13 +63,6 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
             <Link href="/profil" className="btn btn-outline btn-sm client-profile-edit">
               <i className="fa-solid fa-pen" /> Modifier le profil
             </Link>
-
-            {isOwner && (
-              <button className="client-profile-switch" onClick={handleSwitchRole}>
-                <i className="fa-solid fa-arrow-right-arrow-left" aria-hidden="true" />
-                Espace propriétaire
-              </button>
-            )}
           </div>
         </div>
 
