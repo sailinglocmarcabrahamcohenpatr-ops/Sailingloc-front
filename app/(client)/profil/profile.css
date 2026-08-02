@@ -80,5 +80,7 @@
 .profile-activity-content strong { display: block; font-size: .875rem; }
 .profile-activity-content span { font-size: .8125rem; color: var(--text-2); }
 .profile-activity-time { font-size: .75rem; color: var(--text-3); white-space: nowrap; flex-shrink: 0; }
+.profile-activity-loading { display: flex; justify-content: center; padding: 24px 0; color: var(--text-3); font-size: 1.125rem; }
+.profile-activity-empty { padding: 12px 0; color: var(--text-2); font-size: .875rem; }
 
 .profile-form { display: flex; flex-direction: column; gap: 16px; }

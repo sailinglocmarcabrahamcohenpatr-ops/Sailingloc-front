@@ -24,8 +24,8 @@ const MessagesContext = createContext<MessagesContextType>({
 /** Source unique des messages pour toute l'app : un seul abonnement Mercure,
  *  monté ici (racine de l'app) plutôt que dans chaque page — sans quoi la
  *  connexion SSE se referme et se rouvre à chaque fois qu'on entre/sort de
- *  l'onglet Messages. Pas de polling de secours : le temps réel passe
- *  entièrement par Mercure. */
+ *  l'onglet Messages. Le temps réel passe par Mercure quand le hub est
+ *  configuré ; sinon un poll de secours prend le relais (voir plus bas). */
 export function MessagesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -39,6 +39,19 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
       .then(setMessages)
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, [userId]);
+
+  /* Filet de secours : sans NEXT_PUBLIC_MERCURE_URL configuré (hub pas
+     déployé sur cet environnement), useMercureMessages ci-dessous ne fait
+     rien et rien ne revient rafraîchir l'état après le chargement initial.
+     On repasse alors en poll léger — désactivé de lui-même dès que Mercure
+     est configuré, pour ne jamais dupliquer le flux temps réel. */
+  useEffect(() => {
+    if (!userId || process.env.NEXT_PUBLIC_MERCURE_URL) return;
+    const id = setInterval(() => {
+      messagesApi.getAll().then(setMessages).catch(() => {});
+    }, 20000);
+    return () => clearInterval(id);
   }, [userId]);
 
   const handleRealtimeMessage = useCallback((msg: MessageAPI) => {

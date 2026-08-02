@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth, useMessages, utilisateursApi, ApiError } from "@/shared/lib";
+import { useAuth, useMessages, useNotifications, utilisateursApi, ApiError } from "@/shared/lib";
+import type { NotificationType } from "@/shared/lib";
 import "./profile.css";
 
 const MENU_BOXES = [
@@ -14,16 +15,54 @@ const MENU_BOXES = [
   { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire", desc: "Publiez votre bateau à la location", color: "#059669", bg: "#D1FAE5" },
 ];
 
-const ACTIVITY = [
-  { icon: "fa-calendar-check", color: "#114B6B", bg: "#EAF0F4", title: "Réservation confirmée", detail: "Voilier Excellence · Marseille", time: "il y a 2 j" },
-  { icon: "fa-envelope", color: "#10B981", bg: "#D1FAE5", title: "Nouveau message", detail: "Capitaine Léa vous a répondu", time: "il y a 4 j" },
-  { icon: "fa-credit-card", color: "#D97706", bg: "#FEF3C7", title: "Paiement effectué", detail: "6 230 € · Location Sun Odyssey 440", time: "il y a 1 sem." },
-  { icon: "fa-circle-check", color: "#8B5CF6", bg: "#F5F3FF", title: "Profil vérifié", detail: "Pièce d'identité validée", time: "il y a 1 mois" },
-];
+/* Même flux que la cloche de notifications (widgets/notifications), mais avec
+   les couleurs hex utilisées par cette page plutôt que des classes CSS. */
+const ACTIVITY_META: Record<NotificationType, { icon: string; color: string; bg: string }> = {
+  nouvelle_reservation: { icon: "fa-calendar-plus", color: "#114B6B", bg: "#EAF0F4" },
+  reservation_confirmee: { icon: "fa-calendar-check", color: "#114B6B", bg: "#EAF0F4" },
+  nouvel_avis: { icon: "fa-star", color: "#EAB308", bg: "#FEF9C3" },
+};
+const ACTIVITY_FALLBACK = { icon: "fa-bell", color: "#637083", bg: "#F1F5F9" };
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "hier";
+  if (days < 30) return `il y a ${days} j`;
+  return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+}
 
 export default function ProfileContent() {
   const { user, updateUser } = useAuth();
-  const { unreadCount } = useMessages();
+  const { messages, unreadCount, loading: messagesLoading } = useMessages();
+  const { notifications, loading: notificationsLoading } = useNotifications();
+  const activityLoading = messagesLoading || notificationsLoading;
+
+  /* Les messages n'ont pas d'entrée dans /api/notifications (table dédiée
+     côté back) : on les fusionne ici avec les vraies notifications pour
+     que l'activité récente reflète aussi les échanges reçus. */
+  const activity = [
+    ...notifications.map((n) => {
+      const meta = ACTIVITY_META[n.type] ?? ACTIVITY_FALLBACK;
+      return { id: `notif-${n.id}`, dateIso: n.dateCreation, icon: meta.icon, color: meta.color, bg: meta.bg, title: n.titre, detail: n.message };
+    }),
+    ...messages
+      .filter((m) => m.destinataire.email === user?.email)
+      .map((m) => ({
+        id: `msg-${m.id}`,
+        dateIso: m.dateEnvoi,
+        icon: "fa-envelope",
+        color: "#10B981",
+        bg: "#D1FAE5",
+        title: `Message de ${m.expediteur.prenom}`,
+        detail: m.contenu.length > 70 ? `${m.contenu.slice(0, 67)}…` : m.contenu,
+      })),
+  ].sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
 
   const displayName = user?.name ?? "Mon compte";
   const firstName = displayName.split(" ")[0] ?? "";
@@ -160,20 +199,28 @@ export default function ProfileContent() {
         <div className="profile-col-side">
           <div className="dash-card">
             <div className="dash-card-hd"><h3>Activité récente</h3></div>
-            <div className="profile-activity-list">
-              {ACTIVITY.map((a) => (
-                <div key={a.title + a.time} className="profile-activity-item">
-                  <div className="profile-activity-icon" style={{ background: a.bg, color: a.color }}>
-                    <i className={`fa-solid ${a.icon}`} aria-hidden="true" />
+            {activityLoading ? (
+              <div className="profile-activity-loading">
+                <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+              </div>
+            ) : activity.length === 0 ? (
+              <p className="profile-activity-empty">Aucune activité récente pour l&apos;instant.</p>
+            ) : (
+              <div className="profile-activity-list">
+                {activity.slice(0, 5).map((a) => (
+                  <div key={a.id} className="profile-activity-item">
+                    <div className="profile-activity-icon" style={{ background: a.bg, color: a.color }}>
+                      <i className={`fa-solid ${a.icon}`} aria-hidden="true" />
+                    </div>
+                    <div className="profile-activity-content">
+                      <strong>{a.title}</strong>
+                      <span>{a.detail}</span>
+                    </div>
+                    <span className="profile-activity-time">{formatRelativeTime(a.dateIso)}</span>
                   </div>
-                  <div className="profile-activity-content">
-                    <strong>{a.title}</strong>
-                    <span>{a.detail}</span>
-                  </div>
-                  <span className="profile-activity-time">{a.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
