@@ -59,14 +59,28 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         .map((h, i) => getCoherentPhoto(h.title, dest.gallerySeeds[i] ?? `${dest.slug}-${i}`))
     ));
 
-  // Pool de vraies photos du lieu pour la lightbox : images des points forts
-  // (légendées par leur titre) puis photos de galerie, sans doublon.
+  // Pool de photos pour la lightbox.
+  // Chaque point fort obtient une photo dédiée (h.image) ou la photo de galerie
+  // correspondante par position — légendée avec son propre titre, pas le nom de la destination.
+  // Les photos de galerie restantes sont ajoutées en queue avec le nom de la destination.
   const placePhotos: PlacePhoto[] = [];
   const seenPhotos = new Set<string>();
+  let galleryFallbackIdx = 0;
+
   for (const h of dest.highlights) {
     if (h.image && !seenPhotos.has(h.image)) {
       seenPhotos.add(h.image);
       placePhotos.push({ src: h.image, caption: h.title });
+    } else if (!h.image) {
+      while (galleryFallbackIdx < galleryPhotos.length && seenPhotos.has(galleryPhotos[galleryFallbackIdx])) {
+        galleryFallbackIdx++;
+      }
+      if (galleryFallbackIdx < galleryPhotos.length) {
+        const src = galleryPhotos[galleryFallbackIdx];
+        seenPhotos.add(src);
+        placePhotos.push({ src, caption: h.title });
+        galleryFallbackIdx++;
+      }
     }
   }
   for (const src of galleryPhotos) {

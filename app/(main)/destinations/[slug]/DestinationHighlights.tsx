@@ -32,10 +32,14 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
   const hasPhotos = photos.length > 0;
 
   const open = useCallback(
-    (image?: string) => {
+    (fallbackIndex: number, image?: string) => {
       if (!hasPhotos) return;
-      const i = image ? photos.findIndex((p) => p.src === image) : 0;
-      setOpenIndex(i >= 0 ? i : 0);
+      if (image) {
+        const i = photos.findIndex((p) => p.src === image);
+        setOpenIndex(i >= 0 ? i : Math.min(fallbackIndex, photos.length - 1));
+      } else {
+        setOpenIndex(Math.min(fallbackIndex, photos.length - 1));
+      }
     },
     [photos, hasPhotos]
   );
@@ -76,7 +80,7 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
             key={h.title}
             type="button"
             className="dest-highlight-card"
-            onClick={() => open(h.image)}
+            onClick={() => open(i, h.image)}
             aria-label={fill(t.highlightOpenAria, { title: h.title })}
             disabled={!hasPhotos}
           >
