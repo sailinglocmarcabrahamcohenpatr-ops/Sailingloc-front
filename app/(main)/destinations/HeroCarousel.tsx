@@ -75,7 +75,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       {/* Progress bar — keyed on index so it restarts on every slide change */}
       {count > 1 && (
         <div
-          key={index}
+          key={`progress-${index}`}
           className="dest-featured-progress"
           style={{
             animationDuration: `${AUTOPLAY_MS}ms`,
