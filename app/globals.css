@@ -486,6 +486,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 @media (max-width: 768px) {
   .navbar-nav, .navbar-actions .btn-ghost, .navbar-actions .btn:not(:last-child) { display: none; }
+  .navbar-user-menu { display: none; }
   .mobile-menu-btn { display: flex; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .footer-brand { grid-column: 1 / -1; }
