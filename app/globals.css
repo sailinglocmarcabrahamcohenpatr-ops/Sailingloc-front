@@ -718,6 +718,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .filter-panel { right: 0; left: auto; width: calc(100vw - 24px); }
 }
 .results-layout { display: grid; grid-template-columns: 1fr 340px; gap: 28px; padding: 28px 0 80px; align-items: start; }
+.results-layout > * { min-width: 0; }
 .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .results-count { font-size: .9375rem; color: var(--text-2); }
 .results-count strong { color: var(--text); }
@@ -957,6 +958,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .boats-result-list .boat-card-img { width: 100%; aspect-ratio: 4 / 3; }
   .cat-search-bar { display: none; }
   .results-layout { padding: 20px 0 60px; }
+  .results-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .results-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .sort-select { flex: 1; min-width: 0; }
 }
 @media (max-width: 480px) {
   .weather-grid { grid-template-columns: 1fr; }
