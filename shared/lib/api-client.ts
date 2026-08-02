@@ -43,6 +43,8 @@ export function setRoleCookie(role: string) {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 8_000;
+
 async function request<T>(
   method: string,
   path: string,
@@ -61,11 +63,25 @@ async function request<T>(
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body != null ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new ApiError(503, "Le serveur est temporairement indisponible (timeout).");
+    }
+    throw new ApiError(503, "Impossible de joindre le serveur.");
+  }
+  clearTimeout(timer);
 
   if (!res.ok) {
     let message = `Erreur ${res.status}`;
