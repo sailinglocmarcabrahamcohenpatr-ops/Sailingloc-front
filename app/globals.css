@@ -233,9 +233,11 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
   display: inline-flex; align-items: baseline;
   font-weight: 800; letter-spacing: -.02em; white-space: nowrap;
 }
+.brand-logo-mark--on-dark { color: var(--primary-on-dark); }
 .brand-logo-mark--invert { color: var(--text); }
 .brand-logo-mark--invert.brand-logo-mark--on-dark { color: var(--white); }
 .brand-logo-word-sailing { color: var(--primary); }
+.brand-logo-word-sailing--on-dark { color: var(--primary-on-dark); }
 .brand-logo-word-sailing--invert { color: var(--text); }
 .brand-logo-word-sailing--invert.brand-logo-word-sailing--on-dark { color: var(--white); }
 .brand-logo-word-loc { color: var(--text); }
@@ -776,6 +778,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .weather-rating-label { font-size: .8125rem; opacity: .8; }
 .weather-rating-val { font-weight: 800; font-size: 1rem; }
 .weather-loading { display: flex; align-items: center; justify-content: center; padding: 40px 0; opacity: .7; font-size: .875rem; }
+.weather-card-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 40px 24px; }
+.weather-empty-icon { font-size: 2.25rem; opacity: .55; }
+.weather-empty-text { font-size: .875rem; opacity: .8; line-height: 1.4; margin: 0; }
 
 /* 7-day forecast */
 .weather-forecast { margin-top: 16px; border-top: 1px solid rgba(255,255,255,.15); padding-top: 14px; }

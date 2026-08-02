@@ -9,8 +9,8 @@ interface LogoProps {
 }
 
 export default function Logo({ className = "", iconOnly = false, onDark = false, invert = false }: LogoProps) {
-  const markClass = `brand-logo-mark${invert ? " brand-logo-mark--invert" : ""}${invert && onDark ? " brand-logo-mark--on-dark" : ""}`;
-  const sailingClass = `brand-logo-word-sailing${invert ? " brand-logo-word-sailing--invert" : ""}${invert && onDark ? " brand-logo-word-sailing--on-dark" : ""}`;
+  const markClass = `brand-logo-mark${invert ? " brand-logo-mark--invert" : ""}${onDark ? " brand-logo-mark--on-dark" : ""}`;
+  const sailingClass = `brand-logo-word-sailing${invert ? " brand-logo-word-sailing--invert" : ""}${onDark ? " brand-logo-word-sailing--on-dark" : ""}`;
   const locClass = `brand-logo-word-loc${onDark && !invert ? " brand-logo-word-loc--on-dark" : ""}${invert ? " brand-logo-word-loc--invert" : ""}${invert && onDark ? " brand-logo-word-loc--invert-on-dark" : ""}`;
 
   return (
