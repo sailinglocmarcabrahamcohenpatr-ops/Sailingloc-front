@@ -960,11 +960,13 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .boats-result-list .boat-card-img { width: 100%; aspect-ratio: 4 / 3; }
   .cat-search-bar { display: none; }
   .results-layout { padding: 20px 0 60px; }
-  .results-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .results-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .results-header { flex-direction: column; align-items: center; gap: 10px; }
+  .results-count { text-align: center; }
+  .results-controls { width: 100%; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .view-toggle { display: none; }
   .sort-wrap { flex: 1; min-width: 0; }
   .sort-prefix { display: none; }
+  .filters-bar-inner { justify-content: center; }
 }
 @media (max-width: 480px) {
   .weather-grid { grid-template-columns: 1fr; }
