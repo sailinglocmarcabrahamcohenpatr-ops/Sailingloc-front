@@ -778,9 +778,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .weather-rating-label { font-size: .8125rem; opacity: .8; }
 .weather-rating-val { font-weight: 800; font-size: 1rem; }
 .weather-loading { display: flex; align-items: center; justify-content: center; padding: 40px 0; opacity: .7; font-size: .875rem; }
-.weather-card-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 40px 24px; }
-.weather-empty-icon { font-size: 2.25rem; opacity: .55; }
-.weather-empty-text { font-size: .875rem; opacity: .8; line-height: 1.4; margin: 0; }
+.weather-card-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 44px 28px; }
+.weather-empty-badge { width: 60px; height: 60px; margin-bottom: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.625rem; color: #FFD700; background: rgba(255,255,255,.12); box-shadow: 0 0 0 8px rgba(255,255,255,.05); }
+.weather-empty-title { font-size: 1rem; font-weight: 700; }
+.weather-empty-text { font-size: .8125rem; opacity: .68; line-height: 1.5; margin: 0; max-width: 220px; }
 
 /* 7-day forecast */
 .weather-forecast { margin-top: 16px; border-top: 1px solid rgba(255,255,255,.15); padding-top: 14px; }

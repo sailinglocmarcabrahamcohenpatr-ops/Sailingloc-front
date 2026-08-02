@@ -101,14 +101,19 @@ export default function BoatsSidebar() {
 
   const [geo, setGeo] = useState<GeoLocation>(DEFAULT_LOC);
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!destination) {
+      setWeather(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setWeather(null);
     (async () => {
       try {
-        const loc = destination ? await geocode(destination) : DEFAULT_LOC;
+        const loc = await geocode(destination);
         setGeo(loc);
         setWeather(await fetchWeather(loc.latitude, loc.longitude));
       } finally {
@@ -126,6 +131,17 @@ export default function BoatsSidebar() {
     <aside className="sidebar" aria-label="Informations complémentaires">
 
       {/* ── Weather card ───────────────────────────────── */}
+      {!destination ? (
+        <div className="weather-card weather-card-empty" role="region" aria-label="Météo locale">
+          <div className="weather-empty-badge">
+            <i className="fa-solid fa-cloud-sun" aria-hidden="true" />
+          </div>
+          <div className="weather-empty-title">Météo locale</div>
+          <p className="weather-empty-text">
+            Tapez une destination dans la barre de recherche pour afficher la météo
+          </p>
+        </div>
+      ) : (
       <div className="weather-card" role="region" aria-label="Météo locale">
         <div className="weather-location">
           <i className="fa-solid fa-location-dot" aria-hidden="true" />
@@ -213,6 +229,7 @@ export default function BoatsSidebar() {
           </>
         )}
       </div>
+      )}
 
       {/* ── Info card ──────────────────────────────────── */}
       <div className="info-card" role="region" aria-label="Informations utiles">

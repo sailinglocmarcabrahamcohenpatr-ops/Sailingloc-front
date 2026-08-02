@@ -3,16 +3,16 @@
    Isolée hors de app/globals.css pour éviter les conflits de merge.
    ────────────────────────────────────────────────────────────── */
 .search-card {
-  background: rgba(255,255,255,.42);
+  background: rgba(8,20,40,.4);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.5);
+  border: 1px solid rgba(255,255,255,.22);
   border-radius: var(--radius-xl);
-  box-shadow: 0 16px 48px rgba(0,0,0,.25);
+  box-shadow: 0 16px 48px rgba(0,0,0,.35);
   padding: 8px; max-width: 920px; margin: 0 auto 36px;
 }
 .search-fields { display: flex; align-items: center; gap: 0; background: transparent; border-radius: var(--radius-lg); }
-.search-field { flex: 1; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid rgba(255,255,255,.28); }
+.search-field { position: relative; flex: 1; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid rgba(255,255,255,.28); }
 .search-field:last-of-type { border-right: none; }
 .search-field label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 5px; }
 .search-field label i { color: #93C5FD; }
@@ -31,22 +31,15 @@
 
 @media (max-width: 768px) {
   .search-card { border-radius: var(--radius-lg); }
-  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ]
-     align-items:stretch : les 2 champs d'une même ligne s'étendent à la
-     hauteur du plus grand → border-bottom alignée des deux côtés. */
+  /* 1 champ par ligne : Destination, Type de bateau, Durée empilés. */
   .search-fields { flex-wrap: wrap; align-items: stretch; }
   .search-field {
-    flex: 1 1 50%;
+    flex: 1 1 100%;
     min-width: 0;
-    border-right: 1px solid rgba(255,255,255,.28);
+    border-right: none;
     border-bottom: 1px solid rgba(255,255,255,.28);
   }
-  /* Colonne droite (champs pairs) : pas de border-right */
-  .search-field:nth-child(2),
-  .search-field:nth-child(4) { border-right: none; }
-  /* Dernière ligne (champs 3 et 4) : pas de border-bottom */
-  .search-field:nth-child(3),
-  .search-field:nth-child(4) { border-bottom: none; }
+  .search-field:last-of-type { border-bottom: none; }
   .search-btn-wrap { flex: 1 1 100%; padding: 6px; }
   .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
 }
@@ -59,15 +52,13 @@
    ────────────────────────────────────────────────────────────── */
 
 /* ── Wrappers : la popover se positionne par rapport au champ ── */
-.sb-select,
-.sb-date {
+.sb-select {
   position: relative;
   width: 100%;
 }
 
-/* ── Déclencheurs : même rendu que .search-field input (texte blanc) ── */
-.sb-select-trigger,
-.sb-date-trigger {
+/* ── Déclencheur select : même rendu que .search-field input (texte blanc) ── */
+.sb-select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -83,9 +74,27 @@
   color: var(--white);
   text-align: left;
 }
-.sb-date-trigger.is-empty {
-  color: rgba(255, 255, 255, .6);
+/* ── Déclencheur Durée (shadcn Popover) : même rendu, état actif quand une date est choisie ── */
+.sb-duree-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  font-size: .9375rem;
   font-weight: 400;
+  color: rgba(255, 255, 255, .6);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-duree-trigger.is-active {
+  color: var(--white);
+  font-weight: 500;
 }
 .sb-select-caret {
   font-size: .7rem;
@@ -190,104 +199,75 @@
   flex-shrink: 0;
 }
 
-/* ── Calendrier ── */
-.sb-calendar {
-  width: 292px;
-  padding: 14px;
-}
-.sb-cal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.sb-cal-title {
-  font-size: .95rem;
-  font-weight: 800;
-  color: var(--text);
-  text-transform: capitalize;
-  letter-spacing: -.2px;
-}
-.sb-cal-nav {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
+/* ── Suggestions destination (ports dynamiques) ── */
+.sb-suggestions {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 60;
+  min-width: 280px;
+  max-width: 360px;
+  max-height: 320px;
+  overflow-y: auto;
   background: var(--white);
-  color: var(--text-2);
-  cursor: pointer;
-  font-size: .8rem;
-  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+  padding: 8px;
+  animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
 }
-.sb-cal-nav:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 9%, transparent);
-  color: var(--primary);
-  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-}
-.sb-cal-nav:disabled {
-  opacity: .35;
-  cursor: not-allowed;
-}
-.sb-cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-.sb-cal-weekdays { margin-bottom: 4px; }
-.sb-cal-wd {
+.sb-suggestion-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 26px;
-  font-size: .72rem;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-}
-.sb-cal-empty { aspect-ratio: 1; }
-.sb-cal-day {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
   border: none;
   background: transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: .875rem;
+  text-align: left;
+  transition: background-color .15s ease;
+}
+.sb-suggestion-item:hover,
+.sb-suggestion-item:focus {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  outline: none;
+}
+.sb-suggestion-item i {
+  color: var(--text-3);
+  flex-shrink: 0;
+  font-size: .8rem;
+}
+.sb-suggestion-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sb-suggestion-name {
+  font-size: .9375rem;
   font-weight: 600;
   color: var(--text);
-  transition: background-color .12s ease, color .12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.sb-cal-day:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
-}
-.sb-cal-day.is-today {
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--primary) 45%, var(--border));
-}
-.sb-cal-day.is-selected {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
-}
-.sb-cal-day:disabled {
+.sb-suggestion-sub {
+  font-size: .75rem;
   color: var(--text-3);
-  opacity: .4;
-  cursor: not-allowed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Mobile : popovers repositionnés en overlay sur la carte de recherche ──
-   .search-card (position:relative) sert de référence ; .sb-select/.sb-date
-   repassent en static pour ne pas en devenir une eux-mêmes.
+   .search-card (position:relative) sert de référence ; .sb-select
+   repasse en static pour ne pas en devenir une lui-même.
    Le popover part du bord supérieur de la carte (top:0) et s'étend sur
    toute la largeur de celle-ci (left:0, right:0). */
 @media (max-width: 768px) {
   .search-card { position: relative; }
-  .sb-select, .sb-date { position: static; }
+  .sb-select { position: static; }
   .sb-popover {
     top: 0;
     bottom: auto;
@@ -301,5 +281,5 @@
   }
   .sb-popover--right { left: 0; right: 0; }
   .sb-select-list { min-width: 0; width: 100%; }
-  .sb-calendar { width: 100%; box-sizing: border-box; }
+  .sb-suggestions { left: 0; right: 0; min-width: unset; max-width: none; }
 }
