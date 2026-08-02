@@ -55,13 +55,16 @@
   margin: 0;
 }
 /* 4 champs côte à côte dans une colonne de 420px seraient illisibles :
-   on empile, comme le fait déjà la version mobile. */
-.hero-layout .search-fields { flex-direction: column; align-items: stretch; }
-.hero-layout .search-field {
-  border-right: none;
-  border-bottom: 1px solid rgba(255, 255, 255, .28);
+   on empile. Sur mobile (≤768px) la grille 2 colonnes de search-bar.css
+   prend le relais, donc on restreint cet empilement au desktop. */
+@media (min-width: 769px) {
+  .hero-layout .search-fields { flex-direction: column; align-items: stretch; }
+  .hero-layout .search-field {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .28);
+  }
+  .hero-layout .search-field:last-of-type { border-bottom: none; }
 }
-.hero-layout .search-field:last-of-type { border-bottom: none; }
 .hero-layout .search-btn-wrap { padding: 6px; }
 .hero-layout .search-btn { width: 100%; justify-content: center; }
 

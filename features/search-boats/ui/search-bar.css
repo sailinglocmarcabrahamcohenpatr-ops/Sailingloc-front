@@ -35,7 +35,7 @@
   .search-card { border-radius: var(--radius-lg); }
   /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ] */
   .search-fields { flex-wrap: wrap; }
-  .search-field {
+.search-field {
     flex: 1 1 50%;
     min-width: 0;
     border-right: 1px solid rgba(255,255,255,.28);
