@@ -1,89 +1,63 @@
-const contacts = [
-  {
-    icon: "fa-envelope",
-    label: "Email",
-    value: "contact@sailingloc.com",
-    sub: "Réponse sous 24-48h ouvrées",
-    badge: { text: "Rapide", class: "badge-green" },
-  },
-  {
-    icon: "fa-phone",
-    label: "Téléphone",
-    value: "+33 1 23 45 67 89",
-    sub: "Lun–Ven · 9h00 – 18h00",
-    badge: { text: "Lun–Ven", class: "badge-orange" },
-  },
-  {
-    icon: "fa-brands fa-whatsapp",
-    label: "WhatsApp",
-    value: "+33 6 12 34 56 78",
-    sub: "Réponse rapide en journée",
-  },
-  {
-    icon: "fa-clock",
-    label: "Horaires d'ouverture",
-    value: "Lun–Ven : 9h – 18h",
-    sub: "Sam : 9h – 13h",
-  },
+import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
+
+const CONTACT_ICONS = ["fa-envelope", "fa-phone", "fa-brands fa-whatsapp", "fa-clock"];
+const BADGE_CLASSES = ["badge-green", "badge-orange", "", ""];
+const SOCIAL = [
+  { icon: "fa-brands fa-facebook", label: "Facebook" },
+  { icon: "fa-brands fa-instagram", label: "Instagram" },
+  { icon: "fa-brands fa-x-twitter", label: "Twitter / X" },
 ];
 
-export default function ContactSidebar() {
+export default async function ContactSidebar() {
+  const t = getDictionary(await getRequestLocale()).contactPage;
+
   return (
     <aside className="contact-sidebar">
       <div className="contact-info-card">
         <h4>
           <i className="fa-solid fa-circle-info" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-          Nous contacter directement
+          {t.sidebarTitle}
         </h4>
-        {contacts.map((c) => (
-          <div key={c.label} className="contact-info-item">
+        {t.contacts.map((c, i) => (
+          <div key={i} className="contact-info-item">
             <div className="contact-info-icon">
-              <i className={c.icon} aria-hidden="true" />
+              <i className={CONTACT_ICONS[i]} aria-hidden="true" />
             </div>
             <div className="contact-info-text">
               <small>{c.label}</small>
               <strong>{c.value}</strong>
               <p>{c.sub}</p>
             </div>
-            {c.badge && (
-              <div className={`contact-info-badge ${c.badge.class}`}>{c.badge.text}</div>
+            {c.badgeText && (
+              <div className={`contact-info-badge ${BADGE_CLASSES[i]}`}>{c.badgeText}</div>
             )}
           </div>
         ))}
       </div>
 
-      <div className="urgence-card" role="region" aria-label="Aide d'urgence">
+      <div className="urgence-card" role="region" aria-label={t.urgenceAria}>
         <div className="urgence-card-title">
           <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-          Aide d'urgence
+          {t.urgenceTitle}
         </div>
-        {[
-          { label: "Urgence en mer", value: "CROSS : 196" },
-          { label: "Assistance SailingLoc 24h/7j", value: "+33 8 00 XX XX XX" },
-          { label: "WhatsApp urgences", value: "+33 6 XX XX XX XX" },
-        ].map((row) => (
+        {t.urgenceRows.map((row) => (
           <div key={row.label} className="urgence-row">
             <span>{row.label}</span>
             <strong>{row.value}</strong>
           </div>
         ))}
         <p style={{ fontSize: ".75rem", color: "#991B1B", marginTop: "12px", lineHeight: 1.6 }}>
-          En cas de danger immédiat en mer, composez le <strong>196</strong> (CROSS) ou le{" "}
-          <strong>15</strong> (SAMU) depuis terre.
+          {t.urgenceWarning}
         </p>
       </div>
 
       <div className="contact-info-card">
         <h4>
           <i className="fa-solid fa-share-nodes" style={{ color: "var(--primary)" }} aria-hidden="true" />{" "}
-          Suivez-nous
+          {t.socialTitle}
         </h4>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {[
-            { icon: "fa-brands fa-facebook", label: "Facebook" },
-            { icon: "fa-brands fa-instagram", label: "Instagram" },
-            { icon: "fa-brands fa-x-twitter", label: "Twitter / X" },
-          ].map((sn) => (
+          {SOCIAL.map((sn) => (
             <a
               key={sn.label}
               href="#"
