@@ -70,10 +70,18 @@ export default async function ReservationPage({ params, searchParams }: PageProp
       <div className="container" style={{ padding: "60px 0" }}>
         <div className="messages-empty" style={{ minHeight: 280, padding: 40 }}>
           <i className="fa-solid fa-user-lock" aria-hidden="true" />
-          <p>La réservation est réservée aux comptes locataires.</p>
-          <Link href="/proprietaire/bateaux" className="btn btn-outline btn-sm">
-            <i className="fa-solid fa-arrow-left" /> Retour à mon espace propriétaire
-          </Link>
+          <p>
+            La réservation est réservée aux comptes locataires. Un compte propriétaire
+            ne peut pas réserver de bateau — il vous faut un compte locataire.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            <Link href="/inscription" className="btn btn-primary btn-sm">
+              <i className="fa-solid fa-user-plus" /> Créer un compte locataire
+            </Link>
+            <Link href="/proprietaire/bateaux" className="btn btn-outline btn-sm">
+              <i className="fa-solid fa-arrow-left" /> Retour à mon espace propriétaire
+            </Link>
+          </div>
         </div>
       </div>
     );

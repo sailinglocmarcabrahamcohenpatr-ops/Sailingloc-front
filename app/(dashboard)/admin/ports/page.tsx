@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { portsApi, ApiError } from "@/shared/lib";
 import type { PortAPI, CreatePortPayload } from "@/shared/lib/referentiels-api";
+import { COUNTRIES } from "@/shared/config";
 import { geocodeCity } from "@/features/list-boat/api/geocode";
 import PortCityAutocomplete, { type PortCitySelection } from "@/features/list-boat/ui/PortCityAutocomplete";
+import PortSelector, { type PortSelection } from "@/features/list-boat/ui/PortSelector";
 import "../../proprietaire/dashboard.css";
 import "../utilisateurs/utilisateurs.css";
 import "./ports.css";
@@ -76,6 +78,14 @@ export default function AdminPortsPage() {
     ) ?? null;
   }, [ports, form.nom, form.ville, editingPort]);
 
+  /* Le pays d'un port existant (édition) peut ne pas figurer dans la liste
+   * des pays couverts par la plateforme (`COUNTRIES`) — on l'ajoute alors
+   * en tête pour ne pas le perdre silencieusement dans le sélecteur. */
+  const paysOptions = useMemo(() => {
+    const names = COUNTRIES.map((c) => c.name);
+    return form.pays.trim() && !names.includes(form.pays.trim()) ? [form.pays.trim(), ...names] : names;
+  }, [form.pays]);
+
   function openCreate() {
     setEditingPort(null);
     setForm(EMPTY_FORM);
@@ -112,6 +122,19 @@ export default function AdminPortsPage() {
       longitude: s.lng != null ? String(s.lng) : f.longitude,
       nom: f.nom.trim() || `Port de ${s.ville}`,
     }));
+    setFormError("");
+  }
+
+  function handlePortSelect(s: PortSelection) {
+    setForm((f) => ({ ...f, nom: s.nom, latitude: String(s.lat), longitude: String(s.lng) }));
+    setFormError("");
+  }
+
+  /* Changer de pays invalide la ville et le port choisis pour l'ancien
+   * pays : on repart d'un formulaire vierge pour ce pays plutôt que de
+   * garder une ville/des coordonnées qui ne lui correspondent plus. */
+  function handlePaysChange(pays: string) {
+    setForm({ ...EMPTY_FORM, pays });
     setFormError("");
   }
 
@@ -316,14 +339,16 @@ export default function AdminPortsPage() {
             <div className="users-modal-body">
               <div className="ports-form-grid">
                 <div className="form-group">
-                  <label htmlFor="port-nom">Nom du port *</label>
-                  <input
-                    id="port-nom"
-                    type="text"
-                    placeholder="Ex : Port de Cannes"
-                    value={form.nom}
-                    onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                  />
+                  <label htmlFor="port-pays">Pays</label>
+                  <select
+                    id="port-pays"
+                    value={form.pays}
+                    onChange={(e) => handlePaysChange(e.target.value)}
+                  >
+                    {paysOptions.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="port-ville">Ville *</label>
@@ -335,6 +360,21 @@ export default function AdminPortsPage() {
                     onSelect={handleCitySelect}
                   />
                 </div>
+
+                <div className="ports-selector-row">
+                  <PortSelector id="port-selector" pays={form.pays} ville={form.ville} onSelect={handlePortSelect} />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="port-nom">Nom du port *</label>
+                  <input
+                    id="port-nom"
+                    type="text"
+                    placeholder="Ex : Port de Cannes"
+                    value={form.nom}
+                    onChange={(e) => setForm({ ...form, nom: e.target.value })}
+                  />
+                </div>
                 <div className="form-group">
                   <label htmlFor="port-cp">Code postal</label>
                   <input
@@ -344,16 +384,6 @@ export default function AdminPortsPage() {
                     placeholder="Ex : 06400"
                     value={form.codePostal}
                     onChange={(e) => setForm({ ...form, codePostal: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="port-pays">Pays</label>
-                  <input
-                    id="port-pays"
-                    type="text"
-                    placeholder="France"
-                    value={form.pays}
-                    onChange={(e) => setForm({ ...form, pays: e.target.value })}
                   />
                 </div>
               </div>

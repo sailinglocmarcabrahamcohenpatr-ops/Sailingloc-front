@@ -10,6 +10,7 @@ const MENU_BOXES = [
   { href: "/profil/messages", icon: "fa-envelope", label: "Messages", desc: "Vos échanges avec les propriétaires", color: "#10B981", bg: "#D1FAE5" },
   { href: "/profil/notations", icon: "fa-star", label: "Notations", desc: "Les avis que vous avez laissés", color: "#EAB308", bg: "#FEF9C3" },
   { href: "/profil/favoris", icon: "fa-heart", label: "Favoris", desc: "Les bateaux que vous avez sauvegardés", color: "#DB2777", bg: "#FCE7F3" },
+  { href: "/profil/radar", icon: "fa-satellite-dish", label: "Radar", desc: "Repérez-vous en mer et suivez vos bateaux réservés", color: "#0891B2", bg: "#CFFAFE" },
   { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire", desc: "Publiez votre bateau à la location", color: "#059669", bg: "#D1FAE5" },
 ];
 
@@ -70,7 +71,9 @@ export default function ProfileContent() {
       </div>
 
       <nav className="profile-menu-grid" aria-label="Accès rapide">
-        {MENU_BOXES.filter((m) => user?.role === "proprietaire" ? m.href !== "/profil/devenir-proprietaire" : true).map((m) => {
+        {MENU_BOXES.filter((m) =>
+          user?.role === "proprietaire" ? m.href !== "/profil/devenir-proprietaire" && m.href !== "/profil/radar" : true
+        ).map((m) => {
           const badge = m.href === "/profil/messages" ? unreadCount : 0;
           return (
             <Link key={m.href} href={m.href} className="profile-menu-box">

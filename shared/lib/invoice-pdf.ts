@@ -533,3 +533,127 @@ export async function generateReservationContractPdf(
 
   doc.save(`sailingloc-contrat-${reservation.id}.pdf`);
 }
+
+export interface OwnerRevenueRow {
+  renterName: string;
+  boatName: string;
+  period: string;
+  statusLabel: string;
+  gross: number;
+  commission: number;
+  net: number;
+}
+
+export interface OwnerRevenueSummary {
+  totalNet: number;
+  totalGross: number;
+  totalCommission: number;
+  commissionRatePct: number;
+  count: number;
+  avgNet: number;
+  boatsCount: number;
+  periodLabel?: string;
+}
+
+const REVENUE_FOOTER_NOTE =
+  "SailingLoc SAS — ce document est un relevé récapitulatif des revenus générés via la plateforme, indicatif et non contractuel. Il ne se substitue pas à un document comptable ou fiscal officiel.";
+
+/**
+ * Relevé de revenus PDF récapitulant les locations d'un propriétaire, avec la même
+ * identité visuelle (bandeau de marque, encarts, bandeau total) que la facture et le
+ * contrat de location, plutôt qu'un simple tableau brut.
+ */
+export async function generateOwnerRevenueReportPdf(
+  rows: OwnerRevenueRow[],
+  summary: OwnerRevenueSummary,
+  owner: TenantInfo
+): Promise<void> {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  const issuedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  let y = await drawBrandBand(doc, pageWidth, "RAPPORT DE REVENUS", [
+    summary.periodLabel ?? "",
+    `Généré le ${issuedAt}`,
+  ].filter(Boolean));
+
+  const ownerLines = [owner.name, owner.email].filter((v): v is string => Boolean(v));
+  if (ownerLines.length > 0) {
+    y += drawInfoCard(doc, PAGE_MARGIN, y, pageWidth - PAGE_MARGIN * 2, "Propriétaire", ownerLines) + 26;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_NAVY);
+  doc.text("Résumé", PAGE_MARGIN, y);
+  y += 12;
+
+  autoTable(doc, {
+    startY: y,
+    theme: "plain",
+    styles: { fontSize: 10, cellPadding: 5, textColor: TEXT_DARK },
+    columnStyles: {
+      0: { fontStyle: "bold", textColor: ACCENT_BLUE },
+      1: { halign: "right", fontStyle: "bold", textColor: BRAND_NAVY },
+    },
+    body: [
+      ["Revenus nets cumulés", fmtEuroPdf(summary.totalNet)],
+      ["Chiffre d'affaires brut", fmtEuroPdf(summary.totalGross)],
+      ["Commission SailingLoc", `${fmtEuroPdf(summary.totalCommission)} (${summary.commissionRatePct}%)`],
+      ["Locations réalisées (hors annulées)", `${summary.count}`],
+      ["Revenu moyen / location", fmtEuroPdf(summary.avgNet)],
+      ["Bateaux concernés", `${summary.boatsCount}`],
+    ],
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
+  });
+
+  let afterSummaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
+  afterSummaryY = ensureSpace(doc, afterSummaryY, 60, pageHeight);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_NAVY);
+  doc.text("Détail des transactions", PAGE_MARGIN, afterSummaryY);
+  afterSummaryY += 12;
+
+  autoTable(doc, {
+    startY: afterSummaryY,
+    theme: "grid",
+    head: [["Locataire", "Bateau", "Période", "Statut", "Brut", "Commission", "Net"]],
+    body: rows.map((r) => [
+      r.renterName,
+      r.boatName,
+      r.period,
+      r.statusLabel,
+      fmtEuroPdf(r.gross),
+      fmtEuroPdf(r.commission),
+      fmtEuroPdf(r.net),
+    ]),
+    foot: [[
+      "",
+      "",
+      "",
+      "Total",
+      fmtEuroPdf(summary.totalGross),
+      fmtEuroPdf(summary.totalCommission),
+      fmtEuroPdf(summary.totalNet),
+    ]],
+    styles: { fontSize: 9, cellPadding: 7, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
+    headStyles: { fillColor: BRAND_NAVY, textColor: 255, fontStyle: "bold" },
+    footStyles: { fillColor: BRAND_NAVY, textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: SOFT_BG },
+    columnStyles: { 4: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right" } },
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
+    didDrawPage: () => drawPageNumber(doc, pageWidth, pageHeight),
+  });
+
+  let afterTableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
+  afterTableY = ensureSpace(doc, afterTableY, 46, pageHeight);
+
+  drawTotalBanner(doc, pageWidth, afterTableY, "Revenu net total", fmtEuroPdf(summary.totalNet));
+
+  drawFooter(doc, pageWidth, pageHeight, REVENUE_FOOTER_NOTE);
+
+  doc.save(`sailingloc-revenus-${new Date().toISOString().slice(0, 10)}.pdf`);
+}

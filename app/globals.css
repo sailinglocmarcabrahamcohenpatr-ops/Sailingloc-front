@@ -951,8 +951,8 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .map-split-reset { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--primary); font-size: .75rem; font-weight: 700; white-space: nowrap; cursor: pointer; transition: var(--transition); }
 .map-split-reset:hover { border-color: var(--primary); background: var(--primary-light); }
 .map-split-list-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; }
-.map-split-list-body .boat-card { flex-direction: row; }
-.map-split-list-body .boat-card-img { width: 130px; flex-shrink: 0; aspect-ratio: 4 / 3; }
+.map-split-list-body .boat-card { flex-direction: row; flex-shrink: 0; align-items: stretch; }
+.map-split-list-body .boat-card-img { width: 130px; flex-shrink: 0; aspect-ratio: auto; }
 .map-split-list-body .boat-card-name { white-space: normal; }
 .map-split-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 32px 20px; color: var(--text-2); }
 .map-split-empty i { font-size: 2rem; color: var(--primary); opacity: .6; }
@@ -975,7 +975,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .map-split-list-head { flex-wrap: wrap; row-gap: 8px; padding: 12px 14px; }
   .map-split-list-body { padding: 12px; gap: 10px; }
   .map-split-list-body .boat-card { flex-direction: column; }
-  .map-split-list-body .boat-card-img { width: 100%; }
+  .map-split-list-body .boat-card-img { width: 100%; aspect-ratio: 4 / 3; }
   .map-split-empty { padding: 24px 16px; }
   .map-split-empty i { font-size: 1.75rem; }
 }
@@ -3009,53 +3009,17 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   box-shadow: var(--shadow-sm);
   padding: 12px 0;
 }
-/* Combined search + filter row */
-.catalog-search-filter-row {
-  display: inline-flex;
-  align-items: stretch;
-  background: var(--card-bg);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  height: 46px;
-}
-.catalog-search-filter-row .search-pill { flex: 1; height: 100%; }
-.catalog-search-filter-row .search-pill-submit { border-radius: 0; }
-.catalog-search-filter-row .cat-search-bar {
-  flex: 1;
-  width: 850px;
-  border: 1.5px solid var(--border);
-  border-radius: 0;
-  background: var(--card-bg);
-  margin: 0;
-}
-.catalog-search-filter-row .cat-search-btn { border-radius: 0; }
-.catalog-search-filter-row .filters-bar {
-  padding: 0;
-  border: none;
-  border-top: none;
-  border-left: 1.5px solid var(--border);
-  display: flex;
-  align-items: center;
-}
-.catalog-search-filter-row .filters-bar-inner { padding: 0; }
-.catalog-search-filter-row .filter-open-btn {
-  border: none;
-  border-radius: 0 50px 50px 0;
-  height: 100%;
-  width: 52px;
-  padding: 0;
-  font-size: 1rem;
-  justify-content: center;
-  position: relative;
-}
-.catalog-search-filter-row .filter-open-btn:hover { border-color: transparent; background: var(--bg); }
-.catalog-search-filter-row .filter-open-btn .filter-badge {
-  position: absolute; top: 5px; right: 8px;
-  min-width: 15px; height: 15px; font-size: .55rem; padding: 0 3px;
-}
 .catalog-filters-bar .filters-bar { border: none; background: none; box-shadow: none; }
+
+/* Conteneur de centrage — la pilule elle-même (bordure/radius/ombre) est
+   portée par .bar dans SearchBarCompact.module.css, qui contient maintenant
+   aussi le segment "Filtres" et le bouton "Rechercher" sur une seule ligne. */
+.boat-search-pill {
+  display: flex;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DASHBOARD SIDEBAR — ROLE SWITCH

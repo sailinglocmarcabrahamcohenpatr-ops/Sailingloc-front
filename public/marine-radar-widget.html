@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trafic maritime en direct</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a1622; }
+</style>
+</head>
+<body>
+<script>
+  /* Widget officiel VesselFinder (https://www.vesselfinder.com/embed) : ce
+     script recourt à document.write, on l'isole donc dans cette page HTML
+     statique chargée en iframe plutôt que de l'injecter depuis React, pour
+     ne pas risquer d'écraser le document parent. */
+  var params = new URLSearchParams(window.location.search);
+  var width = "100%";
+  /* Hauteur en pixels explicite (et non "100%") : le widget calcule sa propre
+     hauteur en pixels, un pourcentage laissait une bande vide en bas quand
+     elle ne correspondait pas exactement à la hauteur réelle de l'iframe. */
+  var height = params.get("height") || "480";
+  var latitude = params.get("lat") || "43.30";
+  var longitude = params.get("lng") || "5.37";
+  var zoom = params.get("zoom") || "9";
+  var names = true;
+</script>
+<script src="https://www.vesselfinder.com/aismap.js"></script>
+</body>
+</html>

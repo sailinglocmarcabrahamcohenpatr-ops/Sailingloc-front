@@ -9,10 +9,13 @@ export default function BateauxLayout({ children }: { children: React.ReactNode 
         <div className="container flex justify-center">
           <div className="boat-search-pill">
             <Suspense fallback={null}>
-              <SearchBarCompact />
-            </Suspense>
-            <Suspense fallback={null}>
-              <FiltersBar />
+              <SearchBarCompact
+                filters={
+                  <Suspense fallback={null}>
+                    <FiltersBar />
+                  </Suspense>
+                }
+              />
             </Suspense>
           </div>
         </div>
