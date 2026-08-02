@@ -360,6 +360,10 @@
 .dest-cta-box h2 { color: var(--white); }
 .dest-cta-box p { color: rgba(255,255,255,.72); font-size: 1rem; line-height: 1.7; margin-top: 10px; }
 .dest-cta-btns { display: flex; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .dest-cta-btns { flex-direction: column; width: 100%; }
+  .dest-cta-btns .btn { width: 100%; justify-content: center; }
+}
 /* Beige sable sur « Nous contacter » (cohérence accueil) ; « Explorer tous les
    bateaux » garde son style primaire par défaut. */
 .dest-cta-btns .btn-outline-white {
