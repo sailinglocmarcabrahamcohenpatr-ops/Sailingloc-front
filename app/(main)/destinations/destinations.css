@@ -74,6 +74,13 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* Hero video — fills the container exactly like the img it replaces */
+.dest-hero-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
 /* Cross-fading full-bleed background images */
 .dest-featured-bg { position: absolute; inset: 0; }
 .dest-featured-bg-img { position: absolute; inset: 0; transition: opacity 1s ease; }
@@ -157,8 +164,18 @@
   .dest-featured-title { font-size: 2.75rem; }
   .dest-featured-desc { margin-bottom: 24px; }
 }
+/* Text entry animation — replays on each slide change via key prop */
+@keyframes dest-featured-text-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dest-featured-text {
+  animation: dest-featured-text-in .55s cubic-bezier(.16,1,.3,1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dest-featured-bg-img { transition: none; }
+  .dest-featured-text { animation: none; }
 }
 
 .destinations-page-grid {

@@ -6,32 +6,19 @@ import type { FullDestination } from "@/entities/destination";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 
 const AUTOPLAY_MS = 5500;
-const SLIDE_MS = 700; // doit rester aligné sur la transition CSS de la piste
 
 type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
 
 export default function HeroCarousel({ destinations }: { destinations: DestinationWithPhotos[] }) {
   const t = useI18n().dict.destinationsPage;
   const count = destinations.length;
-
-  /* Carrousel INFINI, sans rembobinage. La piste de vignettes est rendue en
-     TROIS exemplaires ; `offset` indexe cette piste triplée et n'est jamais
-     ramené a 0 : il avance/recule librement, puis on le RECENTRE dans la copie
-     du milieu par un saut de ±count SANS transition. Le contenu se repetant
-     tous les `count`, ce saut est invisible → boucle continue dans les deux
-     sens, jamais de retour brusque au debut.
-     `offset` demarre a count+1 : copie du milieu, en montrant les destinations
-     a venir (index+1…). */
-  const [offset, setOffset] = useState(count + 1);
-  const [noAnim, setNoAnim] = useState(false); // coupe la transition le temps du recentrage
+  const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const index = (((offset - 1) % count) + count) % count;
-
-  const next = useCallback(() => setOffset((o) => o + 1), []);
-  const prev = useCallback(() => setOffset((o) => o - 1), []);
-  const goTo = useCallback((i: number) => setOffset(count + 1 + i), [count]);
+  const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
+  const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
+  const goTo = useCallback((i: number) => setIndex(i), []);
 
   useEffect(() => {
     if (paused || count <= 1) return;
@@ -40,31 +27,15 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
     return () => clearInterval(timer);
   }, [paused, count, next]);
 
-  /* Recentrage invisible : quand `offset` sort de la copie du milieu
-     [count, 2*count), on attend la fin du glissement puis on le decale de
-     ±count sans transition. */
-  useEffect(() => {
-    if (noAnim) {
-      const r = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setNoAnim(false))
-      );
-      return () => cancelAnimationFrame(r);
-    }
-    if (offset >= 2 * count || offset < count) {
-      const t = setTimeout(() => {
-        setNoAnim(true);
-        setOffset((o) => (o >= 2 * count ? o - count : o + count));
-      }, SLIDE_MS + 40);
-      return () => clearTimeout(t);
-    }
-  }, [offset, noAnim, count]);
-
   if (count === 0) return null;
 
   const current = destinations[index];
-  // Piste triplée : des vignettes existent toujours de part et d'autre de la
-  // fenêtre, dans les deux sens.
-  const track = [...destinations, ...destinations, ...destinations];
+  const thumbs =
+    count > 2
+      ? [destinations[(index + 1) % count], destinations[(index + 2) % count]]
+      : count > 1
+        ? [destinations[(index + 1) % count]]
+        : [];
 
   return (
     <div
@@ -80,6 +51,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       aria-roledescription="carousel"
       aria-label={t.carouselAria}
     >
+      {/* Cross-fading full-bleed background */}
       <div className="dest-featured-bg">
         {destinations.map((dest, i) => (
           <div
@@ -101,19 +73,20 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         <div className="dest-featured-overlay" />
       </div>
 
+      {/* Text + actions — keyed so entry animation replays on slide change */}
       <div className="dest-featured-content">
-        {/* Keyé sur la destination : à chaque changement, ce bloc se remonte et
-            rejoue son animation d'entrée (fondu + glissé + net) — le texte ne
-            saute plus d'un coup pendant que le fond fait son fondu. */}
         <div className="dest-featured-text" key={current.slug}>
-          <div className="dest-featured-eyebrow">{current.country} {current.flag}</div>
+          <div className="dest-featured-eyebrow">
+            {current.country} {current.flag}
+          </div>
           <h2 className="dest-featured-title">{current.name}</h2>
           <p className="dest-featured-desc">{current.tagline}</p>
         </div>
 
         <div className="dest-featured-actions">
           <Link href={`/destinations/${current.slug}`} className="dest-featured-cta">
-            {t.carouselDiscover} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t.carouselDiscover}{" "}
+            <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </Link>
 
           {count > 1 && (
@@ -142,34 +115,30 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         </div>
       </div>
 
-      {count > 1 && (
+      {/* Upcoming destination thumbnails, floating bottom-right */}
+      {thumbs.length > 0 && (
         <div className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
-          <div
-            className={`dest-featured-thumbs-track${noAnim ? " no-anim" : ""}`}
-            style={{ "--thumb-i": offset } as React.CSSProperties}
-          >
-            {track.map((dest, n) => (
-              <button
-                key={`${dest.slug}-${n}`}
-                type="button"
-                className={`dest-featured-thumb${n % count === index ? " is-active" : ""}`}
-                onClick={() => goTo(n % count)}
-                aria-label={t.carouselGoTo.replace("{name}", dest.name)}
-              >
-                <span className="dest-featured-thumb-img">
-                  <Image
-                    src={dest.photo}
-                    alt=""
-                    fill
-                    sizes="140px"
-                    style={{ objectFit: "cover" }}
-                  />
-                </span>
-                <span className="dest-featured-thumb-name">{dest.name}</span>
-                <span className="dest-featured-thumb-tag">{t.carouselExplore}</span>
-              </button>
-            ))}
-          </div>
+          {thumbs.map((dest) => (
+            <button
+              key={dest.slug}
+              type="button"
+              className="dest-featured-thumb"
+              onClick={() => goTo(destinations.indexOf(dest))}
+              aria-label={t.carouselGoTo.replace("{name}", dest.name)}
+            >
+              <span className="dest-featured-thumb-img">
+                <Image
+                  src={dest.photo}
+                  alt=""
+                  fill
+                  sizes="140px"
+                  style={{ objectFit: "cover" }}
+                />
+              </span>
+              <span className="dest-featured-thumb-name">{dest.name}</span>
+              <span className="dest-featured-thumb-tag">{t.carouselExplore}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>
