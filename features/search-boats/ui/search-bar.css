@@ -31,8 +31,10 @@
 
 @media (max-width: 768px) {
   .search-card { border-radius: var(--radius-lg); }
-  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ] */
-  .search-fields { flex-wrap: wrap; }
+  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ]
+     align-items:stretch : les 2 champs d'une même ligne s'étendent à la
+     hauteur du plus grand → border-bottom alignée des deux côtés. */
+  .search-fields { flex-wrap: wrap; align-items: stretch; }
   .search-field {
     flex: 1 1 50%;
     min-width: 0;
