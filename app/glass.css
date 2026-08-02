@@ -113,28 +113,18 @@
 }
 
 /* ── 5. Chrome ───────────────────────────────────────────────── */
-/* Navbar sans fond : elle se pose directement sur la vidéo. Son texte est
-   sombre par défaut, il faut donc l'éclaircir sinon il disparaît. Un léger
-   voile en dégradé sous la barre garantit le contraste quel que soit le plan
-   de la vidéo — un simple text-shadow n'y suffirait pas. */
+/* Navbar : verre blanc pleine largeur sur la vidéo. Le flou dépoli
+   crée une séparation visuelle sans casser l'effet immersif. */
 :root[data-scroll-video="on"] .navbar,
 :root[data-scroll-video="on"] .navbar--scrolled {
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
+  background: rgba(255, 255, 255, .18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .22);
 }
+/* Plus de dégradé sombre sous la barre : le fond verre blanc s'en charge. */
 :root[data-scroll-video="on"] .navbar::before {
-  content: "";
-  position: absolute;
-  /* La navbar est désormais pleine largeur : le voile va d'un bord à l'autre
-     (left/right 0) au lieu de déborder de 16px comme quand elle était en
-     retrait. */
-  inset: -12px 0 auto 0;
-  height: 140px;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(5,14,28,.62) 0%, rgba(5,14,28,.28) 55%, rgba(5,14,28,0) 100%);
+  content: none;
 }
 /* La pilule de navigation a son propre fond clair opaque : sur la vidéo, le
    texte blanc s'y noyait. Elle passe en verre sombre. */
@@ -151,6 +141,11 @@
 :root[data-scroll-video="on"] .mobile-menu-btn,
 :root[data-scroll-video="on"] .navbar .btn-ghost {
   color: var(--white);
+}
+
+/* Logo : couleurs de marque sur le fond verre blanc de la navbar */
+:root[data-scroll-video="on"] .navbar-logo {
+  color: var(--primary);
 }
 :root[data-scroll-video="on"] .navbar-nav a:hover,
 :root[data-scroll-video="on"] .navbar .btn-ghost:hover {
