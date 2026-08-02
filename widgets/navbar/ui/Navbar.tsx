@@ -194,9 +194,6 @@ export default function Navbar() {
                       <div className="navbar-dropdown-sep" />
                       {!isAdmin && (
                         <>
-                          <Link href="/profil/parametres" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-gear" /> Paramètres et confidentialité</span>
-                          </Link>
                           <Link href="/contact" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
                             <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> Aide et assistance</span>
                             <i className="fa-solid fa-chevron-right" />
