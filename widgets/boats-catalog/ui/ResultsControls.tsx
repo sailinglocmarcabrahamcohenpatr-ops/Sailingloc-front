@@ -2,23 +2,28 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useI18n, localizeHref } from "@/shared/i18n";
 
 type ViewMode = "grid" | "list" | "map";
 
-const SORT_OPTIONS = [
-  { value: "",            label: "Pertinence"      },
-  { value: "prix-asc",   label: "Prix croissant"   },
-  { value: "prix-desc",  label: "Prix décroissant" },
-  { value: "note-desc",  label: "Mieux notés"      },
-  { value: "nouveautes", label: "Nouveautés"       },
-] as const;
+const SORT_VALUES = ["", "prix-asc", "prix-desc", "note-desc", "nouveautes"] as const;
+type SortValue = (typeof SORT_VALUES)[number];
 
-type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+function sortLabel(value: SortValue, t: ReturnType<typeof useI18n>["dict"]["catalog"]): string {
+  switch (value) {
+    case "prix-asc":   return t.sortPriceAsc;
+    case "prix-desc":  return t.sortPriceDesc;
+    case "note-desc":  return t.sortRating;
+    case "nouveautes": return t.sortNewest;
+    default:           return t.sortRelevance;
+  }
+}
 
 function SortDropdown({ value, onChange }: { value: SortValue; onChange: (v: SortValue) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const current = SORT_OPTIONS.find((o) => o.value === value) ?? SORT_OPTIONS[0];
+  const { dict } = useI18n();
+  const t = dict.catalog;
 
   useEffect(() => {
     if (!open) return;
@@ -45,7 +50,7 @@ function SortDropdown({ value, onChange }: { value: SortValue; onChange: (v: Sor
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="sort-prefix">Trier par :&nbsp;</span><strong>{current.label}</strong>
+        <span className="sort-prefix">{t.sortBy}&nbsp;</span><strong>{sortLabel(value, t)}</strong>
         <i className="fa-solid fa-chevron-down sort-trigger-caret" aria-hidden="true" />
       </button>
 
@@ -56,21 +61,21 @@ function SortDropdown({ value, onChange }: { value: SortValue; onChange: (v: Sor
               type="button"
               className="sort-popover-close"
               onClick={() => setOpen(false)}
-              aria-label="Fermer"
+              aria-label={dict.common.close}
             >
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
           </div>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {SORT_OPTIONS.map((o) => (
-              <li key={o.value} role="option" aria-selected={o.value === value}>
+            {SORT_VALUES.map((v) => (
+              <li key={v} role="option" aria-selected={v === value}>
                 <button
                   type="button"
-                  className={`sort-option${o.value === value ? " is-selected" : ""}`}
-                  onClick={() => { onChange(o.value); setOpen(false); }}
+                  className={`sort-option${v === value ? " is-selected" : ""}`}
+                  onClick={() => { onChange(v); setOpen(false); }}
                 >
-                  {o.label}
-                  {o.value === value && (
+                  {sortLabel(v, t)}
+                  {v === value && (
                     <i className="fa-solid fa-check sort-option-check" aria-hidden="true" />
                   )}
                 </button>
@@ -92,6 +97,8 @@ interface ResultsControlsProps {
 export default function ResultsControls({ count, dates, subtitle }: ResultsControlsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale, dict } = useI18n();
+  const t = dict.catalog;
   const rawVue = searchParams.get("vue");
   const view: ViewMode = rawVue === "carte" ? "map" : rawVue === "liste" ? "list" : "grid";
   const tri = (searchParams.get("tri") ?? "") as SortValue;
@@ -101,21 +108,24 @@ export default function ResultsControls({ count, dates, subtitle }: ResultsContr
     if (next === "list") params.set("vue", "liste");
     else if (next === "map") params.set("vue", "carte");
     else params.delete("vue");
-    router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+    router.replace(localizeHref(`/bateaux?${params.toString()}`, locale), { scroll: false });
   };
 
   const setSort = (value: SortValue) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set("tri", value);
     else params.delete("tri");
-    router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+    router.replace(localizeHref(`/bateaux?${params.toString()}`, locale), { scroll: false });
   };
+
+  const boatWord = count !== 1 ? t.countBoats : t.countBoat;
+  const availWord = count !== 1 ? t.availablePlural : t.availableSingular;
 
   return (
     <div className="results-header">
       <div>
         <div className="results-count">
-          <strong>{count} bateau{count !== 1 ? "x" : ""} disponible{count !== 1 ? "s" : ""}</strong>
+          <strong>{count} {boatWord} {availWord}</strong>
           {subtitle && <span> — {subtitle}</span>}
           {dates && <span> · {dates}</span>}
         </div>
@@ -127,12 +137,12 @@ export default function ResultsControls({ count, dates, subtitle }: ResultsContr
           aria-pressed={view === "map"}
           onClick={() => setView(view === "map" ? "grid" : "map")}
         >
-          <i className="fa-solid fa-map" aria-hidden="true" /> Carte
+          <i className="fa-solid fa-map" aria-hidden="true" /> {t.map}
         </button>
-        <div className="view-toggle" role="group" aria-label="Mode d'affichage">
+        <div className="view-toggle" role="group" aria-label={t.viewModeAria}>
           <button
             className={`view-btn${view === "grid" ? " active" : ""}`}
-            title="Grille"
+            title={t.grid}
             aria-pressed={view === "grid"}
             onClick={() => setView("grid")}
           >
@@ -140,7 +150,7 @@ export default function ResultsControls({ count, dates, subtitle }: ResultsContr
           </button>
           <button
             className={`view-btn${view === "list" ? " active" : ""}`}
-            title="Liste"
+            title={t.list}
             aria-pressed={view === "list"}
             onClick={() => setView("list")}
           >

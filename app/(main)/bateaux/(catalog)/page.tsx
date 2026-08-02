@@ -5,6 +5,7 @@ import { BoatsSidebar, ResultsControls, BoatsMapCard } from "@/widgets/boats-cat
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 const adaptBoat = adaptBoatFromApi;
@@ -17,16 +18,6 @@ function boatMatchesType(labelTypeBateau: string | undefined, slug: string): boo
   const needle = slug.replace(/-/g, " ");
   return label.includes(needle);
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  voilier: "Voiliers",
-  catamaran: "Catamarans",
-  moteur: "Bateaux à moteur",
-  habitable: "Habitables",
-  "semi-rigide": "Semi-rigides",
-  "sans-permis": "Sans permis",
-  ponton: "Pontons",
-};
 
 interface PageProps {
   searchParams: Promise<{
@@ -134,22 +125,27 @@ export default async function BoatsPage({ searchParams }: PageProps) {
   else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
   else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
 
+  const tc = getDictionary(await getRequestLocale()).catalog;
+
   const fmtDate = (iso: string) => {
     const [, m, d] = iso.split("-");
-    const months = ["jan.", "fév.", "mar.", "avr.", "mai", "jun.", "juil.", "aoû.", "sep.", "oct.", "nov.", "déc."];
-    return `${parseInt(d)} ${months[parseInt(m) - 1]}`;
+    return `${parseInt(d)} ${tc.monthsShort[parseInt(m) - 1]}`;
   };
+  const fill = (tpl: string, vars: Record<string, string>) =>
+    tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
 
   const subtitle = [
-    types.length > 0 ? types.map((t) => TYPE_LABELS[t] ?? t).join(", ") : null,
-    destination ? `à ${destination}` : null,
-    skipper === "avec" ? "avec skipper" : skipper === "sans" ? "sans skipper" : null,
+    types.length > 0
+      ? types.map((ty) => tc.typeLabels[ty as keyof typeof tc.typeLabels] ?? ty).join(", ")
+      : null,
+    destination ? `${tc.subAt} ${destination}` : null,
+    skipper === "avec" ? tc.subWithSkipper : skipper === "sans" ? tc.subWithoutSkipper : null,
     arrivee && depart
-      ? `du ${fmtDate(arrivee)} au ${fmtDate(depart)}`
+      ? fill(tc.subDateRange, { from: fmtDate(arrivee), to: fmtDate(depart) })
       : arrivee
-      ? `dès le ${fmtDate(arrivee)}`
+      ? fill(tc.subDateFrom, { date: fmtDate(arrivee) })
       : depart
-      ? `jusqu'au ${fmtDate(depart)}`
+      ? fill(tc.subDateUntil, { date: fmtDate(depart) })
       : null,
   ]
     .filter(Boolean)
@@ -165,7 +161,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
 
           {boats.length === 0 ? (
             <p style={{ color: "var(--text-2)", padding: "48px 0" }}>
-              Aucun bateau ne correspond à votre recherche.
+              {tc.empty}
             </p>
           ) : vue === "carte" ? (
             <BoatsMapCard boats={boats} className="map-card--catalog" />
