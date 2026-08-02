@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/shared/i18n";
 import type { HomeStatsValues } from "./getHomeStats";
 
 interface Stat {
@@ -11,12 +12,12 @@ interface Stat {
   icon: string;
 }
 
-function buildStats(values: HomeStatsValues): Stat[] {
+function buildStats(values: HomeStatsValues, t: ReturnType<typeof useI18n>["dict"]["stats"]): Stat[] {
   return [
-    { target: values.boatsAvailable, label: "Bateaux disponibles", icon: "fa-sailboat" },
-    { target: values.countries, label: "Pays en Europe", icon: "fa-earth-europe" },
-    { target: values.completedTrips, label: "Voyages réalisés", icon: "fa-anchor" },
-    { target: values.satisfaction, decimals: 1, suffix: " / 5", label: "Note de satisfaction", icon: "fa-star" },
+    { target: values.boatsAvailable, label: t.boatsAvailable, icon: "fa-sailboat" },
+    { target: values.countries, label: t.countries, icon: "fa-earth-europe" },
+    { target: values.completedTrips, label: t.completedTrips, icon: "fa-anchor" },
+    { target: values.satisfaction, decimals: 1, suffix: " / 5", label: t.satisfaction, icon: "fa-star" },
   ];
 }
 
@@ -31,7 +32,8 @@ function formatNumber(n: number, decimals: number): string {
 /** Compteurs qui s'incrémentent de 0 jusqu'à leur valeur quand la section
  *  entre dans le viewport (une seule fois). */
 export default function StatsCounters({ stats }: { stats: HomeStatsValues }) {
-  const STATS = buildStats(stats);
+  const { dict } = useI18n();
+  const STATS = buildStats(stats, dict.stats);
   const ref = useRef<HTMLDivElement>(null);
   const [values, setValues] = useState<number[]>(() => STATS.map(() => 0));
   const started = useRef(false);

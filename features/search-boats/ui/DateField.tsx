@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-
-const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
-const MONTHS = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-];
+import { useI18n } from "@/shared/i18n";
 
 function toISO(d: Date): string {
   const y = d.getFullYear();
@@ -40,9 +35,12 @@ export default function DateField({
   value,
   onChange,
   min,
-  placeholder = "Choisir",
+  placeholder,
   align = "left",
 }: DateFieldProps) {
+  const { dict } = useI18n();
+  const t = dict.dateField;
+  const ph = placeholder ?? t.placeholder;
   const [open, setOpen] = useState(false);
   const selected = fromISO(value);
   const [view, setView] = useState<Date>(() => selected ?? new Date());
@@ -84,7 +82,7 @@ export default function DateField({
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
 
   const display = selected
-    ? new Intl.DateTimeFormat("fr-FR", {
+    ? new Intl.DateTimeFormat(t.intlLocale, {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -104,21 +102,21 @@ export default function DateField({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        {display || placeholder}
+        {display || ph}
       </button>
 
       {open && (
         <div
           className={`sb-popover sb-calendar${align === "right" ? " sb-popover--right" : ""}`}
           role="dialog"
-          aria-label="Choisir une date"
+          aria-label={t.dialogAria}
         >
           <div className="sb-popover-hd">
             <button
               type="button"
               className="sb-popover-close"
               onClick={() => setOpen(false)}
-              aria-label="Fermer"
+              aria-label={t.close}
             >
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
@@ -129,25 +127,25 @@ export default function DateField({
               className="sb-cal-nav"
               onClick={() => setView(new Date(year, month - 1, 1))}
               disabled={!canPrev}
-              aria-label="Mois précédent"
+              aria-label={t.prevMonth}
             >
               <i className="fa-solid fa-chevron-left" aria-hidden="true" />
             </button>
             <span className="sb-cal-title">
-              {MONTHS[month]} {year}
+              {t.months[month]} {year}
             </span>
             <button
               type="button"
               className="sb-cal-nav"
               onClick={() => setView(new Date(year, month + 1, 1))}
-              aria-label="Mois suivant"
+              aria-label={t.nextMonth}
             >
               <i className="fa-solid fa-chevron-right" aria-hidden="true" />
             </button>
           </div>
 
           <div className="sb-cal-grid sb-cal-weekdays">
-            {WEEKDAYS.map((w, i) => (
+            {t.weekdays.map((w, i) => (
               <span key={i} className="sb-cal-wd">
                 {w}
               </span>

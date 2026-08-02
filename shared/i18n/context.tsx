@@ -10,8 +10,8 @@
    les deux — donc le coût bundle reste celui d'une seule langue.
    ────────────────────────────────────────────────────────────── */
 
-import { createContext, useContext, useCallback, type ReactNode } from "react";
-import NextLink, { type LinkProps } from "next/link";
+import { createContext, useContext, useCallback, type ComponentProps, type ReactNode } from "react";
+import NextLink from "next/link";
 import { type Locale, localizeHref } from "./config";
 import type { Dictionary } from "./dictionaries/fr";
 
@@ -51,18 +51,9 @@ export function useLocalizedHref(): (href: string) => string {
 /** Remplaçant direct de `next/link` : préfixe automatiquement le href
  *  selon la locale active. S'importe en alias pour une conversion à
  *  diff minimal :  import { LocaleLink as Link } from "@/shared/i18n"; */
-export function LocaleLink({
-  href,
-  ...props
-}: Omit<LinkProps, "href"> & {
-  href: string;
-  children?: ReactNode;
-  className?: string;
-  "aria-label"?: string;
-  onClick?: React.MouseEventHandler;
-  role?: string;
-  title?: string;
-}) {
+type LocaleLinkProps = Omit<ComponentProps<typeof NextLink>, "href"> & { href: string };
+
+export function LocaleLink({ href, ...props }: LocaleLinkProps) {
   const { locale } = useI18n();
   return <NextLink href={localizeHref(href, locale)} {...props} />;
 }

@@ -1,9 +1,12 @@
 import { SearchBar } from "@/features/search-boats";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import "./hero.css";
 
-export default function HeroSection() {
+export default async function HeroSection() {
+  const t = getDictionary(await getRequestLocale()).hero;
+
   return (
-    <section className="hero" aria-label="Bannière principale">
+    <section className="hero" aria-label={t.aria}>
       {/* Aucun fond propre au hero : ni image, ni vidéo, ni voile. Le fond
           vidéo global (piloté par le scroll) est visible tel quel. */}
 
@@ -15,14 +18,11 @@ export default function HeroSection() {
           <div className="hero-layout">
             <div className="hero-copy">
               <h1 className="hero-title">
-                Location de bateaux<br />
-                <span className="hero-title-accent">entre particuliers</span>
+                {t.titleLine1}<br />
+                <span className="hero-title-accent">{t.titleAccent}</span>
               </h1>
 
-              <p className="hero-sub">
-                Réservez un voilier, catamaran ou bateau à moteur au meilleur prix.
-                Des centaines de bateaux disponibles en France et en Europe.
-              </p>
+              <p className="hero-sub">{t.subtitle}</p>
             </div>
 
             <div className="hero-search">

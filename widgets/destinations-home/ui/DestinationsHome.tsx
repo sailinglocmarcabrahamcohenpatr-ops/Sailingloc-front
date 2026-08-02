@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import { LocaleLink as Link, useI18n } from "@/shared/i18n";
 import type { FullDestination } from "@/entities/destination";
 import "./destinations-home.css";
 
@@ -15,6 +15,7 @@ export default function DestinationsHome({
 }) {
   const items = destinations.slice(0, 6);
   const [active, setActive] = useState<number | null>(null);
+  const t = useI18n().dict.destinationCard;
 
   return (
     <div
@@ -48,7 +49,7 @@ export default function DestinationsHome({
           <div className="dest-home-content">
             <span className="dest-home-flag" aria-hidden="true">{dest.flag}</span>
             <h3>{dest.name}</h3>
-            <p>{dest.boatCount} bateaux · dès {dest.priceFrom} €/j</p>
+            <p>{dest.boatCount} {t.boats} · {t.from} {dest.priceFrom} {t.perDayShort}</p>
           </div>
         </Link>
       ))}
