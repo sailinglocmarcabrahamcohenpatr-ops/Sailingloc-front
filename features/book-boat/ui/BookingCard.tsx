@@ -28,8 +28,12 @@ interface BookingCardProps {
   rating: number;
   reviewCount: number;
   capacity: number;
+  ownerId?: number | null;
   ownerName?: string;
   disponibilites?: DisponibiliteAPI[];
+  ownerPrenom?: string;
+  ownerNom?: string;
+  ownerEmail?: string;
 }
 
 export default function BookingCard({
@@ -38,14 +42,23 @@ export default function BookingCard({
   rating,
   reviewCount,
   capacity,
+  ownerId,
   ownerName,
   disponibilites = [],
+  ownerPrenom,
+  ownerNom,
+  ownerEmail,
 }: BookingCardProps) {
   const { user } = useAuth();
   const router = useRouter();
   const { locale, dict } = useI18n();
   const t = dict.boatDetail;
   const ownerLabel = ownerName ?? t.defaultOwnerName;
+  // Vers la messagerie interne si on connaît le propriétaire ; sinon repli
+  // sur le formulaire de contact support (annonce sans propriétaire identifié).
+  const contactHref = ownerId
+    ? `/profil/messages?with=${ownerId}&prenom=${encodeURIComponent(ownerPrenom ?? "")}&nom=${encodeURIComponent(ownerNom ?? "")}&email=${encodeURIComponent(ownerEmail ?? "")}`
+    : "/contact";
   const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
@@ -86,8 +99,10 @@ export default function BookingCard({
   const hasAvailability = !calLoading;
   const canBook = Boolean(startDate && endDate);
 
-  const days = canBook ? daysBetween(startDate, endDate) : 0;
-  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
+  // 1 jour par défaut tant qu'aucune date n'est choisie — évite d'afficher
+  // "× 0 jour" alors que le total ci-dessous est déjà calculé sur 1 jour.
+  const days = canBook ? daysBetween(startDate, endDate) : 1;
+  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days);
 
   const isOwnerAccount = user?.role === "proprietaire" || user?.role === "admin";
 
@@ -202,7 +217,7 @@ export default function BookingCard({
             )}
           </p>
           <div className="booking-contact">
-            <Link href="/contact">
+            <Link href={contactHref}>
               <i className="fa-regular fa-comment" aria-hidden="true" /> {t.contact}{" "}
               {ownerLabel}
             </Link>

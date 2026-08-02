@@ -721,8 +721,7 @@ export const fr = {
     /* Localisation */
     locationTitle: "Localisation",
     mapAria: "Carte : {location}",
-    locationDisclaimer:
-      "{location} — L'adresse exacte vous sera communiquée après confirmation de la réservation.",
+    locationDisclaimer: "{location}",
 
     /* Metadata */
     metaDescription: "Louez le {name} à {location} — {price} € / jour.",

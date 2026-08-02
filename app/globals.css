@@ -1934,21 +1934,21 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .owner-cta-home-list i { color: #60D5A4; }
 .owner-cta-home-actions { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
 
-/* ── Boutons beige sable : home page + barre de recherche du hero ──
+/* ── Boutons home page + barre de recherche du hero ──
    Scopé à .home-shell / .search-btn pour ne pas toucher la navbar (partagée)
    ni les boutons des autres pages. */
 .home-shell .btn,
 .search-btn {
-  background: var(--sand);
+  background: var(--primary);
   color: var(--white);
-  border-color: var(--sand);
+  border-color: var(--primary);
 }
 .home-shell .btn:hover,
 .search-btn:hover {
-  background: var(--sand-dark);
-  border-color: var(--sand-dark);
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
   color: var(--white);
-  box-shadow: 0 4px 12px rgba(160,138,96,.38);
+  box-shadow: 0 4px 12px rgba(17,75,107,.35);
 }
 /* CTA propriétaires : blanc sur texte noir (contraste sur le fond navy) */
 .home-shell .owner-cta-home-actions .btn {

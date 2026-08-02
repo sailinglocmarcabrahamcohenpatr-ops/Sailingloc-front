@@ -722,8 +722,7 @@ export const en: Dictionary = {
     /* Location */
     locationTitle: "Location",
     mapAria: "Map: {location}",
-    locationDisclaimer:
-      "{location} — The exact address will be shared with you once your booking is confirmed.",
+    locationDisclaimer: "{location}",
 
     /* Metadata */
     metaDescription: "Rent the {name} in {location} — €{price} / day.",

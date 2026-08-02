@@ -26,6 +26,7 @@ function adaptBoat(b: BoatAPI): Boat {
     rating: 0,
     reviewCount: 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    deposit: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? undefined),
     imageUrl: sortedPhotos[0] ?? "",
     imageSeed: String(b.id),
     photos: sortedPhotos,

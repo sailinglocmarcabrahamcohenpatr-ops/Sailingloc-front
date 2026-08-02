@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { messagesApi, boatsApi, useAuth, useMessages } from "@/shared/lib";
 import type { MessageAPI } from "@/shared/lib";
 
@@ -117,9 +118,18 @@ function NewConvModal({ owners, loading, onSelect, onClose }: { owners: Partner[
 }
 
 export default function UserMessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <UserMessagesPageContent />
+    </Suspense>
+  );
+}
+
+function UserMessagesPageContent() {
   const { user } = useAuth();
   const myId    = user?.id ?? 0;
   const myEmail = user?.email ?? "";
+  const searchParams = useSearchParams();
 
   const { messages, setMessages, loading } = useMessages();
   const error = "";
@@ -190,6 +200,31 @@ export default function UserMessagesPage() {
       setMessages((prev) => prev.map((m) => (unread.some((u) => u.id === m.id) ? { ...m, lu: true } : m)));
     });
   }
+
+  /* Arrivée depuis "Contacter" (fiche réservation, ?with=<id>&prenom=…) :
+     ouvre directement la conversation avec ce propriétaire. Si aucun message
+     n'existe encore avec lui, on reconstruit le partenaire depuis les query
+     params ; sinon la vraie conversation (avec ses données à jour) prend le
+     dessus automatiquement via `conversations.find` plus bas. Ne dépend que
+     de l'URL : ne doit pas se redéclencher à chaque nouveau message. */
+  useEffect(() => {
+    const withId = searchParams.get("with");
+    if (!withId) return;
+    const id = Number(withId);
+    if (!Number.isFinite(id)) return;
+    const existing = conversations.find((c) => c.partner.id === id);
+    const partner: Partner = existing?.partner ?? {
+      id,
+      prenom: searchParams.get("prenom") ?? "",
+      nom: searchParams.get("nom") ?? "",
+      email: searchParams.get("email") ?? "",
+    };
+    // Différé en microtâche : selectConversation enchaîne plusieurs setState
+    // (sélection, brouillon, marquage lu) — les appeler en synchrone dans le
+    // corps de l'effet déclenche des rendus en cascade.
+    queueMicrotask(() => selectConversation(id, partner));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   function handleNewConvSelect(partner: Partner) {
     setNewConvOpen(false);

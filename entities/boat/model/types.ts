@@ -11,6 +11,8 @@ export interface Boat {
   rating: number;
   reviewCount: number;
   pricePerDay: number;
+  /** Caution demandée pour la location (empreinte bancaire), en euros — champ `caution` côté API. */
+  deposit?: number;
   imageUrl: string;
   imageSeed: string;
   imageQuery?: string;
