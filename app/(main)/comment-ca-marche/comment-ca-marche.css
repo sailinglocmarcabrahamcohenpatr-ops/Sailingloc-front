@@ -32,9 +32,11 @@
 }
 
 /* ── HERO ─────────────────────────────────────────────────────── */
+/* Meme placement que le hero de la page destinations : min-height 580,
+   contenu ancre en bas, meme padding vertical (64 / 104). */
 .hiw-page .hiw-page-hero {
   position: relative;
-  min-height: 560px;
+  min-height: 580px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -51,7 +53,7 @@
     linear-gradient(to top, rgba(4,12,26,.94) 0%, rgba(6,18,40,.55) 48%, rgba(6,18,40,.2) 100%),
     linear-gradient(90deg, rgba(4,12,26,.5) 0%, transparent 60%);
 }
-.hiw-page .hiw-page-hero-content { padding: 0 0 88px; max-width: 720px; }
+.hiw-page .hiw-page-hero-content { padding: 64px 0 104px; max-width: 720px; }
 .hiw-page .hiw-page-hero .hero-eyebrow {
   color: rgba(255,255,255,.85);
   background: rgba(255,255,255,.12);
