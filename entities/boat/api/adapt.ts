@@ -22,6 +22,7 @@ export function adaptBoatFromApi(b: BoatAPI): Boat {
     rating: b.noteMoyenne ?? 0,
     reviewCount: b.nombreAvis ?? 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    deposit: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? undefined),
     imageUrl: photos[0] ?? "",
     imageSeed: String(b.id),
     capacity: b.capacite ?? undefined,

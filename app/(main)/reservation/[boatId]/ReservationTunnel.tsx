@@ -382,6 +382,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
                 >
                   <StripePaymentForm
                     total={total}
+                    deposit={boat.deposit ?? 0}
                     returnUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/reservation/${boat.id}/confirmation?reservationId=${reservationId}&total=${total}&startDate=${initialStartDate}&endDate=${initialEndDate}&guests=${initialGuests}&boat=${encodeURIComponent(boat.name)}`}
                     agreed={agreed}
                     onAgreedChange={setAgreed}
