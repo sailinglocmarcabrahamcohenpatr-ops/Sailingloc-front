@@ -266,6 +266,146 @@ export const fr = {
     book: "Réserver",
   },
 
+  boatDetail: {
+    /* Fil d'Ariane */
+    breadcrumbAria: "Fil d'Ariane",
+    home: "Accueil",
+    boatsAvailable: "Bateaux disponibles",
+
+    /* En-tête produit */
+    new: "Nouveau",
+    reviews: "avis",
+    offeredBy: "Proposé par",
+    viewProfile: "Voir le profil",
+    defaultOwner: "Propriétaire",
+
+    /* Caractéristiques */
+    specsAria: "Caractéristiques du bateau",
+    specSize: "Taille",
+    specCapacity: "Capacité",
+    specBerths: "Couchettes",
+    specLicense: "Permis",
+    specMotor: "Motorisation",
+    specDeposit: "Caution",
+    specSkipper: "Skipper",
+    specFuel: "Carburant",
+    persons: "pers.",
+    cabinsShort: "cab.",
+    dash: "—",
+    required: "Requis",
+    notRequired: "Non requis",
+    included: "Inclus",
+    notIncluded: "Non inclus",
+
+    /* Description (texte de repli si l'annonce n'en fournit pas) */
+    descriptionTitle: "Description",
+    descFallback1: "Le {name} est un bateau moderne et confortable, idéal pour une croisière en famille ou entre amis. Alliant performance et habitabilité grâce à son large cockpit ouvert{cabins}.",
+    descFallbackCabins: " et ses {n} cabines indépendantes",
+    descFallback2: "Basé à {location}, ce bateau vous permettra d'explorer les plus belles destinations de la région. Un vrai bijou de navigation pour les passionnés.",
+
+    /* Règles & conditions */
+    rulesTitle: "Règles & conditions de location",
+    rules: [
+      {
+        title: "Heure d'arrivée",
+        desc: "À partir de 17h00. Départ avant 09h00. Remise des clés au port.",
+      },
+      {
+        title: "Caution",
+        desc: "Caution par empreinte bancaire. Restituée sous 5 jours après le retour.",
+      },
+      {
+        title: "Carburant",
+        desc: "Plein fourni au départ. Retour avec le même niveau de carburant.",
+      },
+      {
+        title: "Comment ?",
+        desc: "Check-in avec briefing de 45 minutes. Skipper disponible sur demande.",
+      },
+    ],
+
+    /* Avis */
+    reviewsNoneTitle: "Aucun avis pour l'instant",
+    reviewsSummary: "{rating} · {count} avis",
+    outOf5: "/ 5",
+    barOwner: "Propriétaire",
+    barBoat: "Bateau",
+    barPlace: "Lieu visité",
+    noReviewsYet:
+      "Ce bateau n'a pas encore reçu d'avis. Soyez le premier à le noter après votre location !",
+    defaultReviewer: "Locataire SailingLoc",
+    ratingAria: "Note : {note} sur 5",
+
+    /* Localisation */
+    locationTitle: "Localisation",
+    mapAria: "Carte : {location}",
+    locationDisclaimer:
+      "{location} — L'adresse exacte vous sera communiquée après confirmation de la réservation.",
+
+    /* Metadata */
+    metaDescription: "Louez le {name} à {location} — {price} € / jour.",
+    metaNotFound: "Bateau introuvable",
+
+    /* Galerie */
+    galleryAria: "Galerie photos",
+    galleryMainAlt: "Photo principale",
+    galleryThumbAria: "Voir photo : {alt}",
+    galleryMainViewAlt: "{name} vue principale",
+    galleryPhotoAlt: "Photo {n}",
+    galleryCockpit: "Cockpit",
+    galleryMainCabin: "Cabine principale",
+    save: "Enregistrer",
+    share: "Partager",
+    seeAllPhotos: "Voir toutes les photos",
+
+    /* Carte de réservation */
+    perDay: "/ jour",
+    rentalDates: "Dates de location",
+    checkingAvailability: "Vérification des disponibilités…",
+    bookingHint: "Cliquez sur le calendrier pour choisir vos dates de location.",
+    noDatesAvailable: "Aucune date disponible pour ce bateau.",
+    dayLabel: "jour",
+    daysLabel: "jours",
+    serviceFee: "Frais de service SailingLoc",
+    insuranceIncluded: "Assurance incluse",
+    free: "Offerte",
+    total: "Total",
+    ctaOwnerOnly: "Réservé aux locataires",
+    ctaChooseDates: "Choisir des dates",
+    ctaBookNow: "Réserver maintenant",
+    ctaLoginToBook: "Se connecter pour réserver",
+    noteOwner: "Basculez vers l'espace locataire pour réserver ce bateau.",
+    noteDefault: "Vous ne serez débité qu'après confirmation du propriétaire",
+    titleOwnerOnly: "La réservation est réservée aux comptes locataires",
+    titleChooseDates: "Choisissez vos dates sur le calendrier",
+    contact: "Contacter",
+    call: "Appeler",
+    defaultOwnerName: "le propriétaire",
+
+    /* Garanties */
+    guarantees: [
+      { title: "Réservation sécurisée", desc: "Paiement protégé par SailingLoc" },
+      { title: "Annulation gratuite", desc: "jusqu'à 72h avant le départ" },
+      { title: "Support 7j/7", desc: "en cas de problème pendant votre croisière" },
+    ],
+
+    /* Compteur de passagers */
+    passengers: "Passagers",
+    decreasePassengers: "Diminuer le nombre de passagers",
+    increasePassengers: "Augmenter le nombre de passagers",
+
+    /* Calendrier de disponibilité */
+    chooseDatesAria: "Choisir vos dates de location",
+    arrival: "Arrivée",
+    departure: "Départ",
+    loading: "Chargement…",
+    legendAvailable: "Disponible",
+    legendBooked: "Réservé",
+    legendBlocked: "Bloqué",
+    clear: "Effacer",
+    confirmDates: "Confirmer les dates",
+  },
+
   sidebar: {
     aria: "Informations complémentaires",
     weatherAria: "Météo locale",

@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { DateRange } from "react-day-picker";
-import { fr } from "date-fns/locale";
+import { fr, enGB } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { useMediaQuery, breakpoints } from "@/shared/hooks/useMediaQuery";
 import { toLocalIsoDate } from "@/shared/lib/utils";
+import { useI18n } from "@/shared/i18n";
 
 export interface DateSpan {
   from: Date;
@@ -33,9 +34,9 @@ function addDays(d: Date, n: number): Date {
   return next;
 }
 
-function formatFR(d?: Date): string {
+function formatDate(d: Date | undefined, intlLocale: string): string {
   if (!d) return "";
-  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(intlLocale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 /**
@@ -46,6 +47,10 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
   const [open, setOpen] = useState(false);
   const isWide = useMediaQuery(breakpoints.md);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const { locale, dict } = useI18n();
+  const t = dict.boatDetail;
+  const dfLocale = locale === "en" ? enGB : fr;
+  const fmt = (d?: Date) => formatDate(d, dict.dateField.intlLocale);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -90,12 +95,12 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
         type="button"
         className="avail-cal-trigger"
         aria-expanded={open}
-        aria-label="Choisir vos dates de location"
+        aria-label={t.chooseDatesAria}
         onClick={() => setOpen((v) => !v)}
       >
         <i className="fa-regular fa-calendar" />
         <span className={value?.from ? "avail-cal-value" : "avail-cal-placeholder"}>
-          {value?.from ? formatFR(value.from) : "Arrivée"} → {value?.to ? formatFR(value.to) : "Départ"}
+          {value?.from ? fmt(value.from) : t.arrival} → {value?.to ? fmt(value.to) : t.departure}
         </span>
         <i className={`fa-solid fa-chevron-down avail-cal-chevron${open ? " open" : ""}`} />
       </button>
@@ -105,21 +110,21 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
         <div className="avail-cal-dropdown">
           {loading ? (
             <div className="avail-cal-loading">
-              <i className="fa-solid fa-circle-notch fa-spin" /> Chargement…
+              <i className="fa-solid fa-circle-notch fa-spin" /> {t.loading}
             </div>
           ) : (
             <>
               {/* Légende */}
               <div className="avail-cal-legend">
-                <span><i className="cal-dot cal-dot-open" /> Disponible</span>
-                <span><i className="cal-dot cal-dot-booked" /> Réservé</span>
-                <span><i className="cal-dot cal-dot-blocked" /> Bloqué</span>
+                <span><i className="cal-dot cal-dot-open" /> {t.legendAvailable}</span>
+                <span><i className="cal-dot cal-dot-booked" /> {t.legendBooked}</span>
+                <span><i className="cal-dot cal-dot-blocked" /> {t.legendBlocked}</span>
               </div>
 
               <Calendar
                   mode="range"
-                  locale={fr}
-                  
+                  locale={dfLocale}
+
                 selected={value}
                 onSelect={(r) => onChange(clampRange(r))}
                 numberOfMonths={isWide ? 2 : 1}
@@ -134,7 +139,7 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
                 {hasSelection && (
                   <span className="avail-cal-summary">
                     <i className="fa-regular fa-calendar-check" />
-                    {formatFR(value!.from)} → {formatFR(value!.to)}
+                    {fmt(value!.from)} → {fmt(value!.to)}
                   </span>
                 )}
                 <div className="avail-cal-footer-actions">
@@ -144,7 +149,7 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
                     onClick={() => onChange(undefined)}
                     disabled={!value?.from}
                   >
-                    Effacer
+                    {t.clear}
                   </button>
                   <button
                     type="button"
@@ -152,7 +157,7 @@ export default function AvailabilityCalendar({ value, onChange, blockedRanges, b
                     onClick={() => setOpen(false)}
                     disabled={!hasSelection}
                   >
-                    <i className="fa-solid fa-check" /> Confirmer les dates
+                    <i className="fa-solid fa-check" /> {t.confirmDates}
                   </button>
                 </div>
               </div>

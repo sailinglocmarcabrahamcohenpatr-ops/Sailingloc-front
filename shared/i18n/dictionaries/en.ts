@@ -267,6 +267,146 @@ export const en: Dictionary = {
     book: "Book",
   },
 
+  boatDetail: {
+    /* Breadcrumb */
+    breadcrumbAria: "Breadcrumb",
+    home: "Home",
+    boatsAvailable: "Available boats",
+
+    /* Product header */
+    new: "New",
+    reviews: "reviews",
+    offeredBy: "Listed by",
+    viewProfile: "View profile",
+    defaultOwner: "Owner",
+
+    /* Specs */
+    specsAria: "Boat specifications",
+    specSize: "Length",
+    specCapacity: "Capacity",
+    specBerths: "Berths",
+    specLicense: "Licence",
+    specMotor: "Engine",
+    specDeposit: "Deposit",
+    specSkipper: "Skipper",
+    specFuel: "Fuel",
+    persons: "guests",
+    cabinsShort: "cab.",
+    dash: "—",
+    required: "Required",
+    notRequired: "Not required",
+    included: "Included",
+    notIncluded: "Not included",
+
+    /* Description (fallback text when the listing has none) */
+    descriptionTitle: "Description",
+    descFallback1: "The {name} is a modern, comfortable boat, ideal for a cruise with family or friends. It combines performance and living space thanks to its wide open cockpit{cabins}.",
+    descFallbackCabins: " and its {n} separate cabins",
+    descFallback2: "Based in {location}, this boat lets you explore the region's most beautiful destinations. A true gem for sailing enthusiasts.",
+
+    /* Rules & conditions */
+    rulesTitle: "Rental rules & conditions",
+    rules: [
+      {
+        title: "Check-in time",
+        desc: "From 5:00 pm. Departure before 9:00 am. Keys handed over at the marina.",
+      },
+      {
+        title: "Deposit",
+        desc: "Deposit by card pre-authorisation. Released within 5 days of return.",
+      },
+      {
+        title: "Fuel",
+        desc: "Full tank provided at departure. Return with the same fuel level.",
+      },
+      {
+        title: "How?",
+        desc: "Check-in with a 45-minute briefing. Skipper available on request.",
+      },
+    ],
+
+    /* Reviews */
+    reviewsNoneTitle: "No reviews yet",
+    reviewsSummary: "{rating} · {count} reviews",
+    outOf5: "/ 5",
+    barOwner: "Owner",
+    barBoat: "Boat",
+    barPlace: "Location",
+    noReviewsYet:
+      "This boat hasn't received any reviews yet. Be the first to rate it after your trip!",
+    defaultReviewer: "SailingLoc renter",
+    ratingAria: "Rating: {note} out of 5",
+
+    /* Location */
+    locationTitle: "Location",
+    mapAria: "Map: {location}",
+    locationDisclaimer:
+      "{location} — The exact address will be shared with you once your booking is confirmed.",
+
+    /* Metadata */
+    metaDescription: "Rent the {name} in {location} — €{price} / day.",
+    metaNotFound: "Boat not found",
+
+    /* Gallery */
+    galleryAria: "Photo gallery",
+    galleryMainAlt: "Main photo",
+    galleryThumbAria: "View photo: {alt}",
+    galleryMainViewAlt: "{name} main view",
+    galleryPhotoAlt: "Photo {n}",
+    galleryCockpit: "Cockpit",
+    galleryMainCabin: "Main cabin",
+    save: "Save",
+    share: "Share",
+    seeAllPhotos: "See all photos",
+
+    /* Booking card */
+    perDay: "/ day",
+    rentalDates: "Rental dates",
+    checkingAvailability: "Checking availability…",
+    bookingHint: "Click the calendar to choose your rental dates.",
+    noDatesAvailable: "No dates available for this boat.",
+    dayLabel: "day",
+    daysLabel: "days",
+    serviceFee: "SailingLoc service fee",
+    insuranceIncluded: "Insurance included",
+    free: "Free",
+    total: "Total",
+    ctaOwnerOnly: "Renters only",
+    ctaChooseDates: "Choose dates",
+    ctaBookNow: "Book now",
+    ctaLoginToBook: "Log in to book",
+    noteOwner: "Switch to the renter area to book this boat.",
+    noteDefault: "You'll only be charged once the owner confirms",
+    titleOwnerOnly: "Booking is available to renter accounts only",
+    titleChooseDates: "Choose your dates on the calendar",
+    contact: "Contact",
+    call: "Call",
+    defaultOwnerName: "the owner",
+
+    /* Guarantees */
+    guarantees: [
+      { title: "Secure booking", desc: "Payment protected by SailingLoc" },
+      { title: "Free cancellation", desc: "up to 72h before departure" },
+      { title: "24/7 support", desc: "if anything comes up during your trip" },
+    ],
+
+    /* Guest counter */
+    passengers: "Guests",
+    decreasePassengers: "Decrease the number of guests",
+    increasePassengers: "Increase the number of guests",
+
+    /* Availability calendar */
+    chooseDatesAria: "Choose your rental dates",
+    arrival: "Check-in",
+    departure: "Check-out",
+    loading: "Loading…",
+    legendAvailable: "Available",
+    legendBooked: "Booked",
+    legendBlocked: "Blocked",
+    clear: "Clear",
+    confirmDates: "Confirm dates",
+  },
+
   sidebar: {
     aria: "Additional information",
     weatherAria: "Local weather",
