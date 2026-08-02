@@ -118,6 +118,31 @@
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ── En-tête du popover : contient le bouton fermer ── */
+.sb-popover-hd {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+.sb-popover-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: .85rem;
+  border-radius: 6px;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sb-popover-close:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
 /* ── Liste du select ── */
 .sb-select-list {
   list-style: none;
@@ -257,10 +282,26 @@
   cursor: not-allowed;
 }
 
-/* ── Mobile : champs empilés → largeur confortable, sans déborder l'écran
-   (surtout PAS bridée à la largeur du champ, sinon les libellés se coupent) ── */
-@media (max-width: 640px) {
-  .sb-popover { max-width: calc(100vw - 32px); }
-  .sb-select-list { min-width: 220px; }
-  .sb-calendar { width: min(292px, calc(100vw - 32px)); }
+/* ── Mobile : popovers repositionnés en overlay sur la carte de recherche ──
+   .search-card (position:relative) sert de référence ; .sb-select/.sb-date
+   repassent en static pour ne pas en devenir une eux-mêmes.
+   Le popover part du bord supérieur de la carte (top:0) et s'étend sur
+   toute la largeur de celle-ci (left:0, right:0). */
+@media (max-width: 768px) {
+  .search-card { position: relative; }
+  .sb-select, .sb-date { position: static; }
+  .sb-popover {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+    animation: none;
+  }
+  .sb-popover--right { left: 0; right: 0; }
+  .sb-select-list { min-width: 0; width: 100%; }
+  .sb-calendar { width: 100%; box-sizing: border-box; }
 }
