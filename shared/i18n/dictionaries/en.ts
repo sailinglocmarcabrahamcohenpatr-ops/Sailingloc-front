@@ -153,6 +153,7 @@ export const en: Dictionary = {
 
   hero: {
     aria: "Main banner",
+    eyebrow: "Insurance included · Secure payment · Verified owners",
     titleLine1: "Boat rental",
     titleAccent: "between individuals",
     subtitle:

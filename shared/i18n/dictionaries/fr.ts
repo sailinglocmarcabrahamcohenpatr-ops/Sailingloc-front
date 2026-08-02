@@ -152,6 +152,7 @@ export const fr = {
 
   hero: {
     aria: "Bannière principale",
+    eyebrow: "Assurance incluse · Paiement sécurisé · Propriétaires vérifiés",
     titleLine1: "Location de bateaux",
     titleAccent: "entre particuliers",
     subtitle:

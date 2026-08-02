@@ -1,4 +1,5 @@
 import { SearchBar } from "@/features/search-boats";
+import HeroVideo from "./HeroVideo";
 import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import "./hero.css";
 
@@ -7,28 +8,30 @@ export default async function HeroSection() {
 
   return (
     <section className="hero" aria-label={t.aria}>
-      {/* Aucun fond propre au hero : ni image, ni vidéo, ni voile. Le fond
-          vidéo global (piloté par le scroll) est visible tel quel. */}
+      {/* Fond vidéo propre au hero : playlist de deux vidéos qui s'enchaînent
+          (HeroVideo), surmontée d'un dégradé sombre pour la lisibilité. */}
+      <div className="hero-bg">
+        <HeroVideo />
+        <div className="hero-overlay" aria-hidden="true" />
+      </div>
 
       <div className="hero-content">
-        <div className="container">
-          {/* Deux colonnes : recherche à gauche, discours à droite. L'ordre du
-              DOM place le texte en premier — c'est lui qui doit être lu et
-              annoncé d'abord ; l'inversion visuelle est faite en CSS. */}
-          <div className="hero-layout">
-            <div className="hero-copy">
-              <h1 className="hero-title">
-                {t.titleLine1}<br />
-                <span className="hero-title-accent">{t.titleAccent}</span>
-              </h1>
-
-              <p className="hero-sub">{t.subtitle}</p>
-            </div>
-
-            <div className="hero-search">
-              <SearchBar />
-            </div>
+        <div className="container" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div className="hero-eyebrow">
+            <i className="fa-solid fa-shield-halved" aria-hidden="true" />
+            {t.eyebrow}
           </div>
+
+          <h1 className="hero-title">
+            {t.titleLine1}<br />
+            <span className="hero-title-accent">{t.titleAccent}</span>
+          </h1>
+
+          <p className="hero-sub">{t.subtitle}</p>
+
+          {/* Barre de recherche pleine largeur, horizontale (voir hero.css /
+              search-bar.css). C'est la barre custom de la branche (DateField). */}
+          <SearchBar />
         </div>
       </div>
     </section>
