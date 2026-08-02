@@ -1631,6 +1631,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .hiw-home-card p { font-size: .9rem; color: var(--text-2); line-height: 1.65; }
 .hiw-home-cta { text-align: center; margin-top: 48px; display: flex; gap: 12px; justify-content: center; }
 @media (max-width: 768px) { .hiw-home-grid { grid-template-columns: 1fr; } .hiw-home-arrow { display: none; } }
+@media (max-width: 640px) {
+  .hiw-home-cta { flex-direction: column; align-items: center; }
+  .hiw-home-cta .btn { width: 100%; justify-content: center; }
+}
 
 /* ── Owner CTA Home ── */
 .owner-cta-home { background: linear-gradient(150deg, var(--navy) 0%, var(--navy-3) 60%, #0d2a50 100%); padding: 80px 0; }
