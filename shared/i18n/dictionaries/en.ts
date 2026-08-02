@@ -311,6 +311,96 @@ export const en: Dictionary = {
     mapModalClose: "Close map",
   },
 
+  ownerPage: {
+    metaTitle: "List your boat — SailingLoc Owners",
+    metaDescription: "List your boat for free and earn up to €40,000 a year. Insurance included, secure payment, simplified management. Join 3,200 owners.",
+    heroAlt: "Boat owner at the harbour",
+
+    heroBadge: "3,200+ owners trust us",
+    heroTitle: "List your boat",
+    heroTitleAccent: "with complete ease",
+    heroDesc1: "Earn up to ",
+    heroDescStrong: "€40,000 a year",
+    heroDesc2: " by renting out your boat when you're not using it. Insurance included, verified renters, secure payment.",
+    heroCta1: "List my boat for free",
+    heroCta2: "How it works",
+    heroStats: [
+      { val: "3,200+", label: "Active owners" },
+      { val: "15 min", label: "To create a listing" },
+      { val: "€40k", label: "Max revenue / year" },
+      { val: "€0", label: "Sign-up fee" },
+    ],
+
+    benefitsEyebrow: "Why SailingLoc?",
+    benefitsTitle: "Everything you need to succeed",
+    benefitsSub: "SailingLoc handles the complex stuff — you enjoy the rest",
+    benefits: [
+      { title: "Real income", desc: "A 40-foot sailboat can generate between €8,000 and €25,000 per season. You set your rates freely." },
+      { title: "Comprehensive insurance", desc: "Every rental is covered by all-risk damage and civil liability insurance. Your boat is protected." },
+      { title: "You stay in control", desc: "You choose who rents, when, and at what price. Accept or decline each request freely." },
+      { title: "Dedicated support", desc: "A team dedicated to owners. Help with listing creation, legal advice, pricing tips." },
+    ],
+
+    stepsEyebrow: "Fast & simple",
+    stepsTitle: "List your boat in 4 steps",
+    stepsSub: "From listing creation to first payment, in less than a week",
+    steps: [
+      { title: "Create your listing", desc: "Describe your boat, add beautiful photos, set your rates and availability. In under 15 minutes.", detail: "Free, no subscription" },
+      { title: "Receive requests", desc: "Renters contact you directly on our messaging. You read their profile and experience.", detail: "Verified renters" },
+      { title: "Confirm and prepare", desc: "You accept the booking. The contract is generated automatically. The deposit is collected online.", detail: "Legal contract included" },
+      { title: "Collect your earnings", desc: "Payment is transferred to your account within 24h after boarding. Simple and automatic.", detail: "Transfer within 24h" },
+    ],
+    stepsCta: "Get started now",
+
+    revenueEyebrow: "Estimated earnings",
+    revenueTitle: "How much can your boat earn?",
+    revenueSub: "Our owners earn an average of €12,000 per season. Catamarans and larger vessels can exceed €40,000 per year.",
+    revenueList: ["Daily rate set by you", "Optional long-duration discount", "High season = premium rates", "Zero fixed costs"],
+    revenueColType: "Boat type",
+    revenueColWeeks: "Weeks rented",
+    revenueColAmount: "Estimated earnings",
+    revenueRows: [
+      { type: "Sailboat 35–40 ft", weeks: "4–6 wks", amount: "€8,000 – €16,000" },
+      { type: "Catamaran 42–46 ft", weeks: "6–10 wks", amount: "€18,000 – €38,000" },
+      { type: "Motorboat 30–40 ft", weeks: "4–8 wks", amount: "€10,000 – €26,000" },
+      { type: "RIB / Day-boat", weeks: "8–15 days", amount: "€1,500 – €4,000" },
+    ],
+    revenueCta: "Estimate my precise earnings",
+
+    testiEyebrow: "They trust us",
+    testiTitle: "What our owners say",
+    testiStarsAria: "5 stars out of 5",
+    testimonials: [
+      { name: "Marc D.", location: "Marseille", boat: "Sun Odyssey 440", revenue: "€18,500 in 2024", initial: "MD", quote: "By renting my sailboat for 8 weeks in summer, I cover all my annual costs and generate a net profit. SailingLoc takes care of everything." },
+      { name: "Lucie M.", location: "Cannes", boat: "Leopard 45 Catamaran", revenue: "€31,200 in 2024", initial: "LM", quote: "I was worried about handing my catamaran to strangers. Thanks to the insurance and verified profiles, I rent with complete peace of mind. My earnings exceed all expectations." },
+      { name: "Pierre T.", location: "Saint-Tropez", boat: "Ferretti 550", revenue: "€42,000 in 2024", initial: "PT", quote: "The platform is simple, professional. The team responds quickly. I recommend it to all boat owners." },
+    ],
+
+    faqTitle: "Frequently asked questions",
+    faqSub: "Everything you need to know before publishing your listing",
+    faqs: [
+      { q: "Is sign-up free?", r: "Yes, creating a listing is completely free. SailingLoc charges a 15% commission only on completed rentals." },
+      { q: "How does the insurance work?", r: "SailingLoc includes all-risk insurance in every rental. It covers material damage up to the value of the boat and civil liability. You pay nothing extra." },
+      { q: "Can I decline a booking?", r: "Yes, you have complete control. You can accept or decline each booking request, with no justification required." },
+      { q: "When do I get paid?", r: "Payment is transferred automatically within 24h of the renter confirming boarding. No waiting, no paperwork." },
+      { q: "What happens if the boat is damaged?", r: "In case of damage, you file a report in your dashboard. Insurance covers it according to the policy. The renter's deposit is used as first recourse." },
+    ],
+
+    loginEyebrow: "Already have listings?",
+    loginTitle: "Access your owner area",
+    loginSub: "Manage your boats, track your bookings and earnings, and communicate with your renters from a single dashboard.",
+    loginList: ["Your bookings in real time", "Revenue tracking and transfers within 24h", "Direct messaging with your renters"],
+    loginSignupPre: "Not registered yet?",
+    loginSignupLink: "Create an owner account",
+    loginCardTitle: "Owner sign in",
+    loginCardSub: "Enter your credentials to access your area",
+
+    finalCtaTitle: "Ready to make your boat profitable?",
+    finalCtaSub: "Join 3,200+ owners and start receiving bookings this season. Free sign-up, no commitment.",
+    finalCtaBtn1: "List my boat for free",
+    finalCtaBtn2: "Contact the owner team",
+  },
+
   contactPage: {
     metaTitle: "Contact & Support — SailingLoc",
     metaDescription: "Contact the SailingLoc team for any question about your boat rental. Form, phone, WhatsApp and FAQ available.",

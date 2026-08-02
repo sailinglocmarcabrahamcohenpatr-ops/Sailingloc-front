@@ -310,6 +310,96 @@ export const fr = {
     mapModalClose: "Fermer la carte",
   },
 
+  ownerPage: {
+    metaTitle: "Louez votre bateau — SailingLoc Propriétaires",
+    metaDescription: "Inscrivez votre bateau gratuitement et gagnez jusqu'à 40 000 € par an. Assurance incluse, paiement sécurisé, gestion simplifiée. Rejoignez 3 200 propriétaires.",
+    heroAlt: "Propriétaire de bateau au port",
+
+    heroBadge: "3 200+ propriétaires nous font confiance",
+    heroTitle: "Louez votre bateau",
+    heroTitleAccent: "en toute simplicité",
+    heroDesc1: "Gagnez jusqu'à ",
+    heroDescStrong: "40 000 € par an",
+    heroDesc2: " en louant votre bateau lorsque vous ne l'utilisez pas. Assurance incluse, locataires vérifiés, paiement sécurisé.",
+    heroCta1: "Déposer mon bateau gratuitement",
+    heroCta2: "Comment ça marche",
+    heroStats: [
+      { val: "3 200+", label: "Propriétaires actifs" },
+      { val: "15 min", label: "Pour créer une annonce" },
+      { val: "40 k€", label: "Revenu max / an" },
+      { val: "0 €", label: "Inscription" },
+    ],
+
+    benefitsEyebrow: "Pourquoi SailingLoc ?",
+    benefitsTitle: "Tout pour réussir votre location",
+    benefitsSub: "SailingLoc gère le complexe — vous profitez du reste",
+    benefits: [
+      { title: "Des revenus réels", desc: "Un voilier de 40 pieds peut générer entre 8 000 et 25 000 € par saison. Vous fixez vos tarifs librement." },
+      { title: "Assurance tous risques", desc: "Chaque location est couverte par une assurance tous risques dommages et responsabilité civile. Votre bateau est protégé." },
+      { title: "Vous gardez le contrôle", desc: "Vous choisissez qui loue, quand, et à quel prix. Acceptez ou refusez librement chaque demande." },
+      { title: "Support dédié", desc: "Une équipe dédiée aux propriétaires. Accompagnement à la création d'annonce, aide juridique, conseils tarifaires." },
+    ],
+
+    stepsEyebrow: "Rapide & simple",
+    stepsTitle: "Publiez votre bateau en 4 étapes",
+    stepsSub: "De la création d'annonce au premier virement, en moins d'une semaine",
+    steps: [
+      { title: "Créez votre annonce", desc: "Décrivez votre bateau, ajoutez de belles photos, définissez vos tarifs et disponibilités. En moins de 15 minutes.", detail: "Gratuit, sans abonnement" },
+      { title: "Recevez des demandes", desc: "Les locataires vous contactent directement sur notre messagerie. Vous lisez leur profil et leur expérience.", detail: "Locataires vérifiés" },
+      { title: "Confirmez et préparez", desc: "Vous acceptez la réservation. Le contrat est généré automatiquement. La caution est prélevée en ligne.", detail: "Contrat légal inclus" },
+      { title: "Encaissez vos revenus", desc: "Le paiement est viré sur votre compte dans les 24h après l'embarquement. Simple et automatique.", detail: "Virement sous 24h" },
+    ],
+    stepsCta: "Commencer maintenant",
+
+    revenueEyebrow: "Revenus estimés",
+    revenueTitle: "Combien peut rapporter votre bateau ?",
+    revenueSub: "Nos propriétaires gagnent en moyenne 12 000 € par saison. Les catamarans et grandes unités peuvent dépasser 40 000 € par an.",
+    revenueList: ["Tarif journalier fixé par vous", "Remise longue durée optionnelle", "Haute saison = tarifs premium", "Zéro frais fixes"],
+    revenueColType: "Type de bateau",
+    revenueColWeeks: "Semaines louées",
+    revenueColAmount: "Revenus estimés",
+    revenueRows: [
+      { type: "Voilier 35–40 pieds", weeks: "4–6 sem.", amount: "8 000 € – 16 000 €" },
+      { type: "Catamaran 42–46 pieds", weeks: "6–10 sem.", amount: "18 000 € – 38 000 €" },
+      { type: "Bateau moteur 30–40 pieds", weeks: "4–8 sem.", amount: "10 000 € – 26 000 €" },
+      { type: "Semi-rigide / Day-boat", weeks: "8–15 j.", amount: "1 500 € – 4 000 €" },
+    ],
+    revenueCta: "Estimer mes revenus précis",
+
+    testiEyebrow: "Ils nous font confiance",
+    testiTitle: "Ce que disent nos propriétaires",
+    testiStarsAria: "5 étoiles sur 5",
+    testimonials: [
+      { name: "Marc D.", location: "Marseille", boat: "Sun Odyssey 440", revenue: "18 500 € en 2024", initial: "MD", quote: "En louant mon voilier 8 semaines l'été, je couvre toutes mes charges annuelles et dégage un bénéfice net. SailingLoc s'occupe de tout." },
+      { name: "Lucie M.", location: "Cannes", boat: "Leopard 45 Catamaran", revenue: "31 200 € en 2024", initial: "LM", quote: "J'avais peur de confier mon catamaran à des inconnus. Grâce à l'assurance et aux profils vérifiés, je loue l'esprit tranquille. Mes revenus dépassent les attentes." },
+      { name: "Pierre T.", location: "Saint-Tropez", boat: "Ferretti 550", revenue: "42 000 € en 2024", initial: "PT", quote: "La plateforme est simple, professionnelle. L'équipe répond vite. Je recommande à tous les propriétaires de bateau." },
+    ],
+
+    faqTitle: "Questions fréquentes",
+    faqSub: "Tout ce que vous devez savoir avant de publier votre annonce",
+    faqs: [
+      { q: "Est-ce que l'inscription est gratuite ?", r: "Oui, créer une annonce est entièrement gratuit. SailingLoc prélève une commission de 15% uniquement sur les locations réellement réalisées." },
+      { q: "Comment fonctionne l'assurance ?", r: "SailingLoc inclut une assurance tous risques dans chaque location. Elle couvre les dommages matériels jusqu'à la valeur du bateau et la responsabilité civile. Vous n'avez rien à payer en plus." },
+      { q: "Puis-je refuser une réservation ?", r: "Oui, vous gardez le contrôle total. Vous pouvez accepter ou refuser chaque demande de réservation, sans justification nécessaire." },
+      { q: "Quand suis-je payé ?", r: "Le virement est effectué automatiquement dans les 24h suivant l'embarquement confirmé par le locataire. Pas d'attente, pas de paperasse." },
+      { q: "Que se passe-t-il en cas de dommage ?", r: "En cas de dommage, vous déposez un constat dans votre espace. L'assurance prend en charge selon les conditions. La caution du locataire est utilisée en premier recours." },
+    ],
+
+    loginEyebrow: "Déjà des annonces ?",
+    loginTitle: "Accédez à votre espace propriétaire",
+    loginSub: "Gérez vos bateaux, suivez vos réservations et vos revenus, et échangez avec vos locataires depuis un seul tableau de bord.",
+    loginList: ["Vos réservations en temps réel", "Suivi des revenus et virements sous 24h", "Messagerie directe avec vos locataires"],
+    loginSignupPre: "Pas encore inscrit ?",
+    loginSignupLink: "Créer un compte propriétaire",
+    loginCardTitle: "Connexion propriétaire",
+    loginCardSub: "Entrez vos identifiants pour accéder à votre espace",
+
+    finalCtaTitle: "Prêt à rentabiliser votre bateau ?",
+    finalCtaSub: "Rejoignez 3 200+ propriétaires et commencez à recevoir des réservations dès cette saison. Inscription gratuite, sans engagement.",
+    finalCtaBtn1: "Déposer mon bateau gratuitement",
+    finalCtaBtn2: "Contacter l'équipe propriétaires",
+  },
+
   contactPage: {
     metaTitle: "Contact & Support — SailingLoc",
     metaDescription: "Contactez l'équipe SailingLoc pour toute question sur votre location de bateau. Formulaire, téléphone, WhatsApp et FAQ disponibles.",
