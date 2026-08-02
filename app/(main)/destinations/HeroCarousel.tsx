@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import type { FullDestination } from "@/entities/destination";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 
 const AUTOPLAY_MS = 5500;
 const SLIDE_MS = 700; // doit rester aligné sur la transition CSS de la piste
@@ -11,6 +11,7 @@ const SLIDE_MS = 700; // doit rester aligné sur la transition CSS de la piste
 type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
 
 export default function HeroCarousel({ destinations }: { destinations: DestinationWithPhotos[] }) {
+  const t = useI18n().dict.destinationsPage;
   const count = destinations.length;
 
   /* Carrousel INFINI, sans rembobinage. La piste de vignettes est rendue en
@@ -77,7 +78,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       }}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Destinations à la une"
+      aria-label={t.carouselAria}
     >
       <div className="dest-featured-bg">
         {destinations.map((dest, i) => (
@@ -112,7 +113,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
 
         <div className="dest-featured-actions">
           <Link href={`/destinations/${current.slug}`} className="dest-featured-cta">
-            Découvrir <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t.carouselDiscover} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </Link>
 
           {count > 1 && (
@@ -120,7 +121,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
               <button
                 type="button"
                 className="dest-featured-pager-btn"
-                aria-label="Destination précédente"
+                aria-label={t.carouselPrev}
                 onClick={prev}
               >
                 <i className="fa-solid fa-chevron-left" aria-hidden="true" />
@@ -131,7 +132,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
               <button
                 type="button"
                 className="dest-featured-pager-btn"
-                aria-label="Destination suivante"
+                aria-label={t.carouselNext}
                 onClick={next}
               >
                 <i className="fa-solid fa-chevron-right" aria-hidden="true" />
@@ -142,7 +143,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       </div>
 
       {count > 1 && (
-        <div className="dest-featured-thumbs" aria-label="Autres destinations">
+        <div className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
           <div
             className={`dest-featured-thumbs-track${noAnim ? " no-anim" : ""}`}
             style={{ "--thumb-i": offset } as React.CSSProperties}
@@ -153,7 +154,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
                 type="button"
                 className={`dest-featured-thumb${n % count === index ? " is-active" : ""}`}
                 onClick={() => goTo(n % count)}
-                aria-label={`Aller à ${dest.name}`}
+                aria-label={t.carouselGoTo.replace("{name}", dest.name)}
               >
                 <span className="dest-featured-thumb-img">
                   <Image
@@ -165,7 +166,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
                   />
                 </span>
                 <span className="dest-featured-thumb-name">{dest.name}</span>
-                <span className="dest-featured-thumb-tag">Explorer</span>
+                <span className="dest-featured-thumb-tag">{t.carouselExplore}</span>
               </button>
             ))}
           </div>

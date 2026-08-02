@@ -222,6 +222,36 @@ export const fr = {
     perDayShort: "€/j",
   },
 
+  destinationsPage: {
+    metaTitle: "Destinations de voile — SailingLoc",
+    metaDescription:
+      "Explorez les plus belles destinations nautiques en Méditerranée et en Atlantique pour votre prochain voyage en bateau.",
+    heroEyebrow: "Nos destinations",
+    heroTitle: "Naviguez vers l'extraordinaire",
+    heroSub:
+      "Découvrez les plus belles eaux de Méditerranée et d'Atlantique, sélectionnées par nos experts nautiques.",
+    statDestinations: "destinations",
+    statBoats: "bateaux",
+    statCountries: "pays",
+    gridTitle: "{count} destinations d'exception",
+    gridSubtitle: "Des criques sauvages de Corse aux caps sauvages de Bretagne",
+    cardPriceFrom: "Dès {price} € / j",
+    cardBoats: "bateaux",
+    ctaTitle: "Votre destination n'est pas listée ?",
+    ctaText:
+      "Nous élargissons continuellement notre catalogue. Contactez-nous pour des destinations sur mesure.",
+    ctaExplore: "Explorer tous les bateaux",
+    ctaContact: "Nous contacter",
+    /* Carrousel (client) */
+    carouselAria: "Destinations à la une",
+    carouselDiscover: "Découvrir",
+    carouselPrev: "Destination précédente",
+    carouselNext: "Destination suivante",
+    carouselThumbsAria: "Autres destinations",
+    carouselGoTo: "Aller à {name}",
+    carouselExplore: "Explorer",
+  },
+
   catalog: {
     countBoat: "bateau",
     countBoats: "bateaux",

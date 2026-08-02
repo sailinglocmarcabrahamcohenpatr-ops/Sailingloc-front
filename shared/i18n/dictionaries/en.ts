@@ -223,6 +223,36 @@ export const en: Dictionary = {
     perDayShort: "€/day",
   },
 
+  destinationsPage: {
+    metaTitle: "Sailing destinations — SailingLoc",
+    metaDescription:
+      "Explore the finest sailing destinations across the Mediterranean and the Atlantic for your next boating trip.",
+    heroEyebrow: "Our destinations",
+    heroTitle: "Set sail for the extraordinary",
+    heroSub:
+      "Discover the most beautiful waters of the Mediterranean and the Atlantic, handpicked by our sailing experts.",
+    statDestinations: "destinations",
+    statBoats: "boats",
+    statCountries: "countries",
+    gridTitle: "{count} exceptional destinations",
+    gridSubtitle: "From the wild coves of Corsica to the rugged capes of Brittany",
+    cardPriceFrom: "From €{price} / day",
+    cardBoats: "boats",
+    ctaTitle: "Can't find your destination?",
+    ctaText:
+      "We're constantly expanding our catalogue. Get in touch for bespoke destinations.",
+    ctaExplore: "Explore all boats",
+    ctaContact: "Contact us",
+    /* Carousel (client) */
+    carouselAria: "Featured destinations",
+    carouselDiscover: "Discover",
+    carouselPrev: "Previous destination",
+    carouselNext: "Next destination",
+    carouselThumbsAria: "Other destinations",
+    carouselGoTo: "Go to {name}",
+    carouselExplore: "Explore",
+  },
+
   catalog: {
     countBoat: "boat",
     countBoats: "boats",
