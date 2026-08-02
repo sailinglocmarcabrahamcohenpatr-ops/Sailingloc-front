@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
-import { useAuth, boatsApi } from "@/shared/lib";
+import { useAuth, boatsApi, type DisponibiliteAPI } from "@/shared/lib";
 import { useI18n, LocaleLink as Link, localizeHref } from "@/shared/i18n";
 import GuestCounter from "./GuestCounter";
 import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
@@ -29,6 +29,7 @@ interface BookingCardProps {
   reviewCount: number;
   capacity: number;
   ownerName?: string;
+  disponibilites?: DisponibiliteAPI[];
 }
 
 export default function BookingCard({
@@ -38,6 +39,7 @@ export default function BookingCard({
   reviewCount,
   capacity,
   ownerName,
+  disponibilites = [],
 }: BookingCardProps) {
   const { user } = useAuth();
   const router = useRouter();
@@ -47,23 +49,28 @@ export default function BookingCard({
   const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
-  const [blockedRanges, setBlockedRanges] = useState<DateSpan[]>([]);
+  // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
+  // Toutes les autres dates sont réservables par défaut. On lit `disponibilites`
+  // tel qu'embarqué par boatsApi.getOne() — /api/disponibilites/bateau/{id} et
+  // /api/bateaux/{id}/disponibilites renvoient une sérialisation incomplète
+  // (statut/dateFin manquants) et ne doivent pas être utilisés ici.
+  const blockedRanges: DateSpan[] = useMemo(
+    () =>
+      disponibilites
+        .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
+        .map((d) => ({
+          from: new Date(d.dateDebut),
+          to: new Date(d.dateFin ?? d.dateDebut),
+        })),
+    [disponibilites]
+  );
+
   const [bookedRanges, setBookedRanges] = useState<DateSpan[]>([]);
   const [calLoading, setCalLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([boatsApi.getDisponibilitesParBateau(boatId), boatsApi.getReservations(boatId)])
-      .then(([disponibilites, reservations]) => {
-        // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
-        // Toutes les autres dates sont réservables par défaut.
-        setBlockedRanges(
-          disponibilites
-            .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
-            .map((d) => ({
-              from: new Date(d.dateDebut),
-              to: new Date(d.dateFin ?? d.dateDebut),
-            }))
-        );
+    boatsApi.getReservations(boatId)
+      .then((reservations) => {
         setBookedRanges(
           reservations
             .filter((r) => !isCancelled(r.statutReservation))

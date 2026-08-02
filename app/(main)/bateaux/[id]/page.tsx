@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
 import { LocationMapLoader } from "@/features/list-boat";
-import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI } from "@/shared/lib";
+import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI, type DisponibiliteAPI } from "@/shared/lib";
 import { LocaleLink as Link } from "@/shared/i18n";
 import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
 
@@ -67,6 +67,7 @@ interface BoatPageData {
   ownerName: string;
   ownerInitials: string;
   galleryImages: { src: string; alt: string }[];
+  disponibilites: DisponibiliteAPI[];
 }
 
 function adaptBoat(b: BoatAPI, t: BoatDetailDict): BoatPageData {
@@ -119,6 +120,7 @@ function adaptBoat(b: BoatAPI, t: BoatDetailDict): BoatPageData {
     ownerName,
     ownerInitials,
     galleryImages,
+    disponibilites: b.disponibilites ?? [],
   };
 }
 
@@ -387,6 +389,7 @@ export default async function ProductPage({ params }: PageProps) {
           reviewCount={boat.reviewCount}
           capacity={boat.capacity || 8}
           ownerName={boat.ownerName}
+          disponibilites={boat.disponibilites}
         />
       </div>
     </div>
