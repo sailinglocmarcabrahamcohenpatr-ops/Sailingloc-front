@@ -20,7 +20,7 @@
 }
 .dest-hero-content {
   position: relative; z-index: 1;
-  padding: 64px 0 72px;
+  padding: 64px 0 140px;
   color: var(--white);
   text-align: left;
 }
