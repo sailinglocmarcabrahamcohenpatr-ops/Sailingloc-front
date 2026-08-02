@@ -53,7 +53,16 @@
     linear-gradient(to top, rgba(4,12,26,.94) 0%, rgba(6,18,40,.55) 48%, rgba(6,18,40,.2) 100%),
     linear-gradient(90deg, rgba(4,12,26,.5) 0%, transparent 60%);
 }
-.hiw-page .hiw-page-hero-content { padding: 64px 0 104px; max-width: 720px; }
+/* L'élément cumule .container (margin:0 auto) et .hiw-page-hero-content : lui
+   laisser un max-width plus étroit que le container le CENTRAIT. On le laisse
+   remplir le container et on aligne à gauche, comme .dest-hero-content ; c'est
+   le sous-titre qui porte la contrainte de largeur de lecture. */
+.hiw-page .hiw-page-hero-content {
+  padding: 64px 0 104px;
+  max-width: none;
+  text-align: left;
+}
+.hiw-page .hiw-page-hero-sub { max-width: 620px; }
 .hiw-page .hiw-page-hero .hero-eyebrow {
   color: rgba(255,255,255,.85);
   background: rgba(255,255,255,.12);
