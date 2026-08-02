@@ -60,11 +60,18 @@ export default function StripePaymentForm({
         <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
         <div>
           <strong>{deposit > 0 ? `Caution de ${formatPrice(deposit)}` : "Aucune caution requise"}</strong>
-          <span>
-            {deposit > 0
-              ? "Une empreinte bancaire sera prise à titre de caution. Aucun montant ne sera débité si le bateau est rendu en bon état dans les délais convenus."
-              : "Ce propriétaire ne demande pas de caution pour ce bateau."}
-          </span>
+          {deposit > 0 ? (
+            <>
+              <span>
+                Une empreinte bancaire sera prise à titre de caution. Aucun montant ne sera débité si le bateau est rendu en bon état dans les délais convenus.
+              </span>
+              <span className="res-caution-alt">
+                Elle doit être remise en main propre au propriétaire, en espèces ou par chèque, le jour de l&apos;embarquement.
+              </span>
+            </>
+          ) : (
+            <span>Ce propriétaire ne demande pas de caution pour ce bateau.</span>
+          )}
         </div>
       </div>
 
