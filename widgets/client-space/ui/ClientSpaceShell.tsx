@@ -19,6 +19,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/profil/affichage", icon: "fa-moon", label: "Affichage" },
 ];
 
+const RADAR_NAV_ITEM: NavItem = { href: "/profil/radar", icon: "fa-satellite-dish", label: "Radar" };
+
 export default function ClientSpaceShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -33,7 +35,9 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
-  const navItems = isOwner ? NAV_ITEMS : [...NAV_ITEMS, { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire" }];
+  const navItems = isOwner
+    ? NAV_ITEMS
+    : [...NAV_ITEMS, RADAR_NAV_ITEM, { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire" }];
 
   const handleLogout = () => {
     logout();
