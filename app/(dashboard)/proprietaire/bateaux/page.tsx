@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { boatsApi, resolvePhotoUrl, useAuth } from "@/shared/lib";
+import { boatsApi, resolvePhotoUrl, useAuth, ApiError } from "@/shared/lib";
 import type { BoatAPI } from "@/shared/lib";
+import "./mes-bateaux.css";
 
 type UiStatus = "active" | "inactive" | "pending" | "refused";
 
@@ -41,6 +42,62 @@ function boatLocation(boat: BoatAPI): string {
   );
 }
 
+/* ── Confirmation de suppression ── */
+function DeleteConfirmModal({
+  boatName,
+  loading,
+  onConfirm,
+  onCancel,
+}: {
+  boatName: string;
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      className="mb-confirm-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mb-confirm-title"
+      onClick={(e) => { if (e.target === e.currentTarget && !loading) onCancel(); }}
+    >
+      <div className="mb-confirm-card">
+        <div className="mb-confirm-icon">
+          <i className="fa-solid fa-trash-can" aria-hidden="true" />
+        </div>
+        <h2 id="mb-confirm-title">Supprimer ce bateau ?</h2>
+        <p>
+          Le bateau <strong>{boatName}</strong> sera définitivement supprimé de SailingLoc.
+          Cette action est irréversible.
+        </p>
+        <div className="mb-confirm-actions">
+          <button type="button" className="btn btn-outline" onClick={onCancel} disabled={loading}>
+            Annuler
+          </button>
+          <button type="button" className="btn btn-danger" onClick={onConfirm} disabled={loading}>
+            {loading ? (
+              <><i className="fa-solid fa-circle-notch fa-spin" /> Suppression…</>
+            ) : (
+              <><i className="fa-solid fa-trash-can" /> Supprimer définitivement</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Notification ── */
+function Toast({ message, type }: { message: string; type: "success" | "error" }) {
+  return (
+    <div className={`mb-toast ${type}`} role="status">
+      <i className={`fa-solid ${type === "success" ? "fa-circle-check" : "fa-circle-exclamation"}`} aria-hidden="true" />
+      {message}
+    </div>
+  );
+}
+
 export default function OwnerBoatsPage() {
   const { user } = useAuth();
   const [boats, setBoats] = useState<BoatAPI[]>([]);
@@ -49,6 +106,14 @@ export default function OwnerBoatsPage() {
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [toggleError, setToggleError] = useState("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BoatAPI | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   useEffect(() => {
     if (openMenuId === null) return;
@@ -99,6 +164,27 @@ export default function OwnerBoatsPage() {
       setToggleError("Impossible de modifier le statut de ce bateau. Réessayez.");
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const boat = deleteTarget;
+    setDeletingId(boat.id);
+    try {
+      await boatsApi.delete(boat.id);
+      setBoats((prev) => prev.filter((b) => b.id !== boat.id));
+      setDeleteTarget(null);
+      showToast(`Le bateau « ${boat.nomBateau} » a été supprimé.`, "success");
+    } catch (err) {
+      setDeleteTarget(null);
+      const message =
+        err instanceof ApiError && err.status === 403
+          ? "Vous n'êtes pas autorisé à supprimer ce bateau."
+          : "Impossible de supprimer ce bateau. Réessayez.";
+      showToast(message, "error");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -256,6 +342,17 @@ export default function OwnerBoatsPage() {
                           <i className="fa-solid fa-play" /> Activer
                         </button>
                       ) : null}
+                      <button
+                        type="button"
+                        className="owner-boat-menu-item danger"
+                        role="menuitem"
+                        onClick={() => {
+                          setOpenMenuId(null);
+                          setDeleteTarget(boat);
+                        }}
+                      >
+                        <i className="fa-solid fa-trash-can" /> Supprimer
+                      </button>
                     </div>
                   )}
                 </div>
@@ -264,6 +361,17 @@ export default function OwnerBoatsPage() {
           );
         })}
       </div>
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          boatName={deleteTarget.nomBateau}
+          loading={deletingId === deleteTarget.id}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 }
