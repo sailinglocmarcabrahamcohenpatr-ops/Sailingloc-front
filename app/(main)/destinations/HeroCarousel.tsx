@@ -13,12 +13,13 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
   const t = useI18n().dict.destinationsPage;
   const count = destinations.length;
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [paused, setPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
-  const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
-  const goTo = useCallback((i: number) => setIndex(i), []);
+  const next = useCallback(() => { setDirection(1);  setIndex((i) => (i + 1) % count); }, [count]);
+  const prev = useCallback(() => { setDirection(-1); setIndex((i) => (i - 1 + count) % count); }, [count]);
+  const goTo = useCallback((i: number) => { setDirection(1); setIndex(i); }, []);
 
   useEffect(() => {
     if (paused || count <= 1) return;
@@ -133,7 +134,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
 
       {/* Thumbnails — keyed on index so they animate in on every slide change */}
       {thumbs.length > 0 && (
-        <div key={index} className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
+        <div key={`thumbs-${index}`} className="dest-featured-thumbs" data-dir={direction} aria-label={t.carouselThumbsAria}>
           {thumbs.map((dest) => (
             <button
               key={dest.slug}
