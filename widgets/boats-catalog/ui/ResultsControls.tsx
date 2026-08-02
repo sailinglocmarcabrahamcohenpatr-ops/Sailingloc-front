@@ -45,7 +45,7 @@ function SortDropdown({ value, onChange }: { value: SortValue; onChange: (v: Sor
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        Trier par :&nbsp;<strong>{current.label}</strong>
+        <span className="sort-prefix">Trier par :&nbsp;</span><strong>{current.label}</strong>
         <i className="fa-solid fa-chevron-down sort-trigger-caret" aria-hidden="true" />
       </button>
 
