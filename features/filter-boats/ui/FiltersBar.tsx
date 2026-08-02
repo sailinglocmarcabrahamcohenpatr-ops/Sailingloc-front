@@ -69,8 +69,10 @@ export default function FiltersBar() {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-haspopup="dialog"
+          aria-label="Filtres"
         >
-          <i className="fa-solid fa-sliders" aria-hidden="true" /> Filtres
+          <i className="fa-solid fa-sliders" aria-hidden="true" />
+          <span className="filter-btn-label">Filtres</span>
           {activeCount > 0 && <span className="filter-count-badge">{activeCount}</span>}
         </button>
 
