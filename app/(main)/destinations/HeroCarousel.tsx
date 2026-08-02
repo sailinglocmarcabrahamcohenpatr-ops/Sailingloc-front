@@ -15,21 +15,32 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
   const count = destinations.length;
   const [index, setIndex] = useState(0);
   const [shifting, setShifting] = useState(false);
+  const [noAnim, setNoAnim] = useState(false);
   const [paused, setPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lockRef = useRef(false);
 
-  // Avance : la rangée de vignettes se décale d'un cran (SHIFT_MS), puis on
-  // valide l'index — le grand hero passe alors à la nouvelle destination par
-  // fondu doux, pendant que la piste se réinitialise sans transition.
+  // Avance : la piste se décale d'un cran (SHIFT_MS) vers la gauche, puis on
+  // valide l'index. Au moment du reset, on repasse la piste à 0 avec le
+  // nouveau jeu de vignettes SANS transition (classe no-anim) — sinon elle
+  // rembobinerait de -1 cran vers 0. La transition est réactivée une frame
+  // plus tard, transform déjà à 0, donc invisible. Le grand hero, lui, passe
+  // à la nouvelle destination par fondu doux.
   const advance = useCallback(() => {
     if (lockRef.current || count <= 1) return;
     lockRef.current = true;
+    setNoAnim(false);
     setShifting(true);
     window.setTimeout(() => {
-      setIndex((i) => (i + 1) % count);
+      setNoAnim(true);
       setShifting(false);
-      lockRef.current = false;
+      setIndex((i) => (i + 1) % count);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          setNoAnim(false);
+          lockRef.current = false;
+        })
+      );
     }, SHIFT_MS);
   }, [count]);
 
@@ -162,7 +173,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       {/* Rangée de vignettes — mini-carousel qui se décale */}
       {thumbs.length > 0 && (
         <div className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
-          <div className={`dest-featured-thumbs-track${shifting ? " is-shifting" : ""}`}>
+          <div className={`dest-featured-thumbs-track${shifting ? " is-shifting" : ""}${noAnim ? " no-anim" : ""}`}>
             {thumbs.map((dest) => (
               <button
                 key={dest.slug}
