@@ -689,7 +689,46 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .view-toggle { display: flex; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .view-btn { padding: 7px 12px; font-size: .875rem; color: var(--text-2); background: var(--card-bg); cursor: pointer; transition: var(--transition); border: none; }
 .view-btn.active { background: var(--primary); color: var(--white); }
-.sort-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .8125rem; font-weight: 500; color: var(--text); background: var(--card-bg); cursor: pointer; outline: none; }
+/* ── Tri custom (remplace le <select> natif) ── */
+.sort-wrap { position: relative; }
+.sort-trigger {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  font-size: .8125rem; font-weight: 500; color: var(--text); background: var(--card-bg);
+  cursor: pointer; outline: none; white-space: nowrap;
+  transition: border-color .15s ease;
+}
+.sort-trigger:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); }
+.sort-trigger.is-open { border-color: color-mix(in srgb, var(--primary) 60%, var(--border)); }
+.sort-trigger-caret { font-size: .65rem; color: var(--text-3); margin-left: auto; transition: transform .2s ease; }
+.sort-trigger.is-open .sort-trigger-caret { transform: rotate(180deg); }
+.sort-popover {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 70;
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 14px 44px rgba(8,20,40,.18); padding: 6px; min-width: 200px;
+  animation: sort-pop-in .15s cubic-bezier(.22,1,.36,1);
+}
+@keyframes sort-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.sort-popover-hd { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.sort-popover-close {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border: none; background: transparent;
+  color: var(--text-3); cursor: pointer; font-size: .8rem; border-radius: 6px;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sort-popover-close:hover { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+.sort-option {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 12px; border: none; background: transparent; border-radius: var(--radius);
+  cursor: pointer; font-size: .875rem; font-weight: 500; color: var(--text);
+  text-align: left; transition: background-color .15s ease, color .15s ease;
+}
+.sort-option:hover { background: color-mix(in srgb, var(--primary) 9%, transparent); color: var(--primary); }
+.sort-option.is-selected { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+.sort-option-check { font-size: .8rem; margin-left: auto; color: var(--primary); }
 /* auto-fill : la carte compacte tient à ~290px, la grille passe donc de 2 à
    3 colonnes sur large écran sans jamais descendre sous une largeur lisible. */
 .boats-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
@@ -923,7 +962,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .results-layout { padding: 20px 0 60px; }
   .results-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .results-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
-  .sort-select { flex: 1; min-width: 0; }
+  .sort-wrap { flex: 1; min-width: 0; }
 }
 @media (max-width: 480px) {
   .weather-grid { grid-template-columns: 1fr; }

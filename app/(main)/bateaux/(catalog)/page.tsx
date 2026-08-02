@@ -39,11 +39,12 @@ interface PageProps {
     arrivee?: string;
     depart?: string;
     vue?: string;
+    tri?: string;
   }>;
 }
 
 export default async function BoatsPage({ searchParams }: PageProps) {
-  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue } = await searchParams;
+  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue, tri } = await searchParams;
 
   const types = (type?.split(",").filter((t) => t && t !== "tous") ?? []) as BoatType[];
 
@@ -109,6 +110,11 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     }
 
     boats = filtered.map(adaptBoat);
+
+    if (tri === "prix-asc")   boats.sort((a, b) => a.pricePerDay - b.pricePerDay);
+    else if (tri === "prix-desc")  boats.sort((a, b) => b.pricePerDay - a.pricePerDay);
+    else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
+    else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
   } catch {
     const base = await searchBoats({
       types: types.length > 0 ? types : undefined,
