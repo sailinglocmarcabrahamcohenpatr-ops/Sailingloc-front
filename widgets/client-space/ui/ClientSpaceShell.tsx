@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
-import { useAuth, useMessages } from "@/shared/lib";
+import { useEffect, useState, type ReactNode } from "react";
+import { useAuth, useMessages, ownerRequestsApi } from "@/shared/lib";
+import type { OwnerRequestAPI } from "@/shared/lib";
 import { Logo } from "@/shared/ui";
 import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./client-space.css";
@@ -29,6 +30,25 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
   const isOwner = user?.role === "proprietaire";
   const displayRole = isOwner ? "Propriétaire" : "Locataire";
   const initials = user?.initials ?? displayName.slice(0, 2).toUpperCase();
+
+  // Un locataire dont la demande "devenir propriétaire" a été approuvée
+  // (ROLE_PROPRIETAIRE attribué côté backend) peut basculer vers l'espace
+  // propriétaire sans attendre une reconnexion — même mécanisme que le
+  // switch propriétaire → locataire (switchRole côté client + cookie de rôle).
+  const [myOwnerRequestApproved, setMyOwnerRequestApproved] = useState(false);
+  useEffect(() => {
+    if (isOwner) return;
+    ownerRequestsApi
+      .getAll()
+      .then((requests) => {
+        const mostRecent = [...requests].sort(
+          (a: OwnerRequestAPI, b: OwnerRequestAPI) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+        setMyOwnerRequestApproved(mostRecent?.status === "approved");
+      })
+      .catch(() => setMyOwnerRequestApproved(false));
+  }, [isOwner]);
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
@@ -69,7 +89,7 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
               <i className="fa-solid fa-pen" /> Modifier le profil
             </Link>
 
-            {isOwner && (
+            {(isOwner || myOwnerRequestApproved) && (
               <button className="client-profile-switch" onClick={handleSwitchRole}>
                 <i className="fa-solid fa-arrow-right-arrow-left" aria-hidden="true" />
                 Espace propriétaire

@@ -14,7 +14,7 @@ const STATUS_META: Record<OwnerRequestAPI["status"], { icon: string; title: stri
   approved: {
     icon: "fa-circle-check",
     title: "Demande approuvée !",
-    text: "Votre compte a été promu propriétaire. Déconnectez-vous puis reconnectez-vous pour accéder à votre espace propriétaire.",
+    text: "Votre compte a été promu propriétaire. Cliquez sur « Espace propriétaire » dans le menu pour y accéder.",
   },
   rejected: {
     icon: "fa-circle-xmark",
