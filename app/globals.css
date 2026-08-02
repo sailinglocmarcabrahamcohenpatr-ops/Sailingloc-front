@@ -508,9 +508,15 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .footer-brand p { max-width: 100%; }
 }
 
-@media (max-width: 768px) {
+/* Bascule vers le menu hamburger dès la tablette : avec 5 liens + icônes,
+   la pilule de nav centrale ne tient plus à côté du logo et des actions
+   entre 769 et 1024px, ce qui faisait déborder la navbar à droite de l'écran. */
+@media (max-width: 1024px) {
   .navbar-nav, .navbar-actions .btn-ghost, .navbar-actions .btn:not(:last-child) { display: none; }
   .mobile-menu-btn { display: flex; }
+}
+
+@media (max-width: 768px) {
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .footer-brand { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }

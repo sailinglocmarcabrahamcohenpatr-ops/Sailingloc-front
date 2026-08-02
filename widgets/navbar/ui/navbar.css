@@ -50,8 +50,9 @@
   max-width: none; /* neutralise le max-width 1600 de .container */
   height: auto;    /* neutralise le height:100% de globals → hauteur = contenu (calcul prévisible) */
 }
-.navbar-logo { justify-self: start; }
-.navbar-actions { justify-self: end; }
+.navbar-logo  { justify-self: start; grid-column: 1; }
+.navbar-nav   { grid-column: 2; }
+.navbar-actions { justify-self: end; grid-column: 3; }
 
 /* ── Navigation centrée, dans une pilule segmentée ── */
 .navbar-nav {
