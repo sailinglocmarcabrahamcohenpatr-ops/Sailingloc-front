@@ -144,13 +144,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 const SPECS = (boat: BoatPageData, t: BoatDetailDict) =>
   [
     { icon: "fa-ruler-horizontal", val: boat.taille, label: t.specSize },
-    { icon: "fa-users", val: boat.capacity ? `${boat.capacity} ${t.persons}` : t.dash, label: t.specCapacity },
-    { icon: "fa-bed", val: boat.cabins ? `${boat.cabins} ${t.cabinsShort}` : t.dash, label: t.specBerths },
-    { icon: "fa-id-card", val: boat.permisRequis ? t.required : t.notRequired, label: t.specLicense },
+    { icon: "fa-table-cells", val: boat.cabins ? `${boat.cabins}` : t.dash, label: t.specCabins },
+    { icon: "fa-bed", val: boat.capacity ? `${boat.capacity}` : t.dash, label: t.specBerths },
     { icon: "fa-gas-pump", val: boat.motorisation, label: t.specMotor },
-    { icon: "fa-shield-halved", val: boat.caution ? `${boat.caution.toLocaleString("fr-FR")} €` : t.dash, label: t.specDeposit },
-    { icon: "fa-user-tie", val: boat.avecSkipper ? t.included : t.notIncluded, label: t.specSkipper },
-    { icon: "fa-droplet", val: boat.carburantInclus ? t.included : t.notIncluded, label: t.specFuel },
+    { icon: "fa-anchor", val: boat.location, label: t.specLocation },
   ];
 
 const RULE_ICONS = ["fa-clock", "fa-shield-halved", "fa-gas-pump", "fa-circle-question"] as const;
@@ -190,7 +187,7 @@ export default async function ProductPage({ params }: PageProps) {
         <span aria-current="page">{boat.name}</span>
       </nav>
 
-      <Gallery images={boat.galleryImages} />
+      <Gallery images={boat.galleryImages} title={boat.name} boatId={boat.id} />
 
       <div className="product-layout">
         <div style={{ position: "relative" }}>
@@ -228,16 +225,21 @@ export default async function ProductPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="specs-grid" role="list" aria-label={t.specsAria}>
-            {SPECS(boat, t).map((spec) => (
-              <div key={spec.label} className="spec-card" role="listitem">
-                <div className="spec-icon">
-                  <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+          <div className="characteristics">
+            <h3>{t.characteristicsTitle}</h3>
+            <div className="char-grid" role="list" aria-label={t.specsAria}>
+              {SPECS(boat, t).map((spec) => (
+                <div key={spec.label} className="char-item" role="listitem">
+                  <div className="char-icon">
+                    <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+                  </div>
+                  <div className="char-text">
+                    <div className="char-label">{spec.label}</div>
+                    <div className="char-value">{spec.val}</div>
+                  </div>
                 </div>
-                <div className="spec-val">{spec.val}</div>
-                <div className="spec-lbl">{spec.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div className="description">

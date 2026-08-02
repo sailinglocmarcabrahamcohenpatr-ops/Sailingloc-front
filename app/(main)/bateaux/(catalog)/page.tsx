@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
-import { BoatsSidebar, ResultsControls, BoatsMapCard } from "@/widgets/boats-catalog";
+import { BoatsSidebar, ResultsControls, BoatsSplitMapView } from "@/widgets/boats-catalog";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
@@ -164,7 +164,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
               {tc.empty}
             </p>
           ) : vue === "carte" ? (
-            <BoatsMapCard boats={boats} className="map-card--catalog" />
+            <BoatsSplitMapView boats={boats} />
           ) : (
             <div className={vue === "liste" ? "boats-result-list" : "boats-result-grid"}>
               {boats.map((boat) => (

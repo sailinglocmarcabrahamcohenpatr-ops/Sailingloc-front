@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useI18n, type Dictionary } from "@/shared/i18n";
+import { MAP_FOCUS_EVENT, type MapFocusPort } from "../model/map-focus";
 
 type SidebarDict = Dictionary["sidebar"];
 
@@ -105,8 +106,33 @@ export default function BoatsSidebar() {
   const [geo, setGeo] = useState<GeoLocation>(DEFAULT_LOC);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mapFocus, setMapFocus] = useState<MapFocusPort | null>(null);
+
+  // Vue carte (widgets/boats-catalog) : quand on zoome sur un port, sa météo
+  // prend le pas sur la destination tapée dans la barre de recherche.
+  useEffect(() => {
+    const onMapFocus = (e: Event) => {
+      setMapFocus((e as CustomEvent<MapFocusPort | null>).detail ?? null);
+    };
+    window.addEventListener(MAP_FOCUS_EVENT, onMapFocus);
+    return () => window.removeEventListener(MAP_FOCUS_EVENT, onMapFocus);
+  }, []);
 
   useEffect(() => {
+    if (mapFocus) {
+      setLoading(true);
+      setWeather(null);
+      (async () => {
+        try {
+          setGeo({ latitude: mapFocus.lat, longitude: mapFocus.lng, name: mapFocus.name });
+          setWeather(await fetchWeather(mapFocus.lat, mapFocus.lng));
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
+    }
+
     if (!destination) {
       setWeather(null);
       setLoading(false);
@@ -123,7 +149,7 @@ export default function BoatsSidebar() {
         setLoading(false);
       }
     })();
-  }, [destination, t.geoLang]);
+  }, [mapFocus, destination, t.geoLang]);
 
   const cw    = weather?.current_weather;
   const daily = weather?.daily;
@@ -134,7 +160,7 @@ export default function BoatsSidebar() {
     <aside className="sidebar" aria-label={t.aria}>
 
       {/* ── Weather card ───────────────────────────────── */}
-      {!destination ? (
+      {!destination && !mapFocus ? (
         <div className="weather-card weather-card-empty" role="region" aria-label={t.weatherAria}>
           <div className="weather-empty-badge">
             <i className="fa-solid fa-cloud-sun" aria-hidden="true" />

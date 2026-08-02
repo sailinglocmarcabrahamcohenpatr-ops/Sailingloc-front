@@ -143,12 +143,12 @@ export default function ListBoatForm() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── Auto-sauvegarde brouillon ── */
+  /* ── Auto-sauvegarde brouillon (coupée une fois la demande soumise) ── */
   useFormDraft({
     typeId, motorisation, name, portId, length, capacity, cabins,
     permisRequis, carburantInclus, skipper, description, pricePerDay, prixHeure, caution,
     step,
-  });
+  }, !submitted);
 
   const [stepError, setStepError] = useState("");
 

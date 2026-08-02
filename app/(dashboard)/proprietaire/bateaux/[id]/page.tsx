@@ -138,7 +138,7 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
         <i className="fa-solid fa-arrow-left" /> Mes bateaux
       </Link>
 
-      <Gallery images={boat.galleryImages} />
+      <Gallery images={boat.galleryImages} title={boat.name} />
 
       <div className="owner-view-stack">
         <div className="owner-view-card">
