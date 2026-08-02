@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, useMessages, useFavoris } from "@/shared/lib";
+import { LocaleLink as Link, useI18n, LanguageSwitcher, stripLocale } from "@/shared/i18n";
 import { Logo } from "@/shared/ui";
 import NotificationsBell from "@/widgets/notifications/ui/NotificationsBell";
 import "./navbar.css";
 
-const navLinks = [
-  { href: "/", label: "Accueil", icon: "fa-house" },
-  { href: "/bateaux", label: "Bateaux", icon: "fa-sailboat" },
-  { href: "/destinations", label: "Destinations", icon: "fa-map-location-dot" },
-  { href: "/comment-ca-marche", label: "Comment ça marche", icon: "fa-circle-question" },
-  { href: "/proprietaire", label: "Propriétaires", icon: "fa-key" },
-];
+const NAV_ITEMS = [
+  { href: "/", key: "home", icon: "fa-house" },
+  { href: "/bateaux", key: "boats", icon: "fa-sailboat" },
+  { href: "/destinations", key: "destinations", icon: "fa-map-location-dot" },
+  { href: "/comment-ca-marche", key: "howItWorks", icon: "fa-circle-question" },
+  { href: "/proprietaire", key: "owners", icon: "fa-key" },
+] as const;
 
 function isActive(href: string, pathname: string): boolean {
   if (href === "#" || href.startsWith("/#")) return false;
@@ -28,7 +28,11 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { pathname: canonicalPath } = stripLocale(pathname);
   const router = useRouter();
+  const { dict } = useI18n();
+  const t = dict.nav;
+  const tc = dict.common;
   const { user, logout, switchRole } = useAuth();
   const { unreadCount } = useMessages();
   const { count: favorisCount } = useFavoris();
@@ -37,7 +41,7 @@ export default function Navbar() {
   // La section courante (URL) fait foi pour l'affichage — pas le rôle stocké
   // sur le compte — pour qu'on ne se retrouve jamais renvoyé vers l'espace
   // propriétaire alors qu'on navigue dans l'espace locataire (ou l'inverse).
-  const isOwnerSection = pathname.startsWith("/proprietaire");
+  const isOwnerSection = canonicalPath.startsWith("/proprietaire");
   // Un administrateur n'a pas d'espace locataire/propriétaire : il n'a accès
   // qu'au dashboard admin, donc le menu ne doit proposer que ça.
   const isAdmin = user?.role === "admin";
@@ -74,15 +78,15 @@ export default function Navbar() {
             <Logo />
           </Link>
 
-          <nav className="navbar-nav" aria-label="Navigation principale">
-            {navLinks.map((link) => (
+          <nav className="navbar-nav" aria-label={t.mainNav}>
+            {NAV_ITEMS.map((link) => (
               <Link
-                key={link.label}
+                key={link.key}
                 href={link.href}
-                className={isActive(link.href, pathname) ? "active" : ""}
+                className={isActive(link.href, canonicalPath) ? "active" : ""}
               >
                 <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
-                {link.label}
+                {t[link.key]}
               </Link>
             ))}
           </nav>
@@ -92,7 +96,7 @@ export default function Navbar() {
               <>
                 {!isAdmin && (
                   <>
-                    <Link href="/profil/favoris" className="navbar-icon-btn" aria-label="Favoris">
+                    <Link href="/profil/favoris" className="navbar-icon-btn" aria-label={t.favorites}>
                       <i className="fa-solid fa-heart" />
                       {favorisCount > 0 && <span className="navbar-badge">{favorisCount}</span>}
                     </Link>
@@ -100,7 +104,7 @@ export default function Navbar() {
                     <Link
                       href={isOwnerSection || user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
                       className="navbar-icon-btn"
-                      aria-label="Messages"
+                      aria-label={t.messages}
                     >
                       <i className="fa-solid fa-envelope" />
                       {unreadCount > 0 && <span className="navbar-badge">{unreadCount}</span>}
@@ -114,7 +118,7 @@ export default function Navbar() {
                     onClick={() => setUserMenuOpen((v) => !v)}
                     aria-expanded={userMenuOpen}
                     aria-haspopup="true"
-                    aria-label="Menu utilisateur"
+                    aria-label={t.userMenu}
                   >
                     <span className="navbar-avatar">{user.initials}</span>
                     <i className={`fa-solid fa-chevron-${userMenuOpen ? "up" : "down"} navbar-avatar-caret`} />
@@ -126,26 +130,26 @@ export default function Navbar() {
                         <span className="navbar-dropdown-name">{user.name}</span>
                         <span className="navbar-dropdown-role">
                           {isAdmin
-                            ? "Administrateur"
+                            ? t.roleAdmin
                             : isOwnerSection || user.role === "proprietaire"
-                            ? "Propriétaire"
-                            : "Locataire"}
+                            ? t.roleOwner
+                            : t.roleTenant}
                         </span>
                       </div>
                       <div className="navbar-dropdown-sep" />
                       {isAdmin ? (
                         <Link href="/admin/dashboard" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                          <i className="fa-solid fa-gauge" /> Tableau de bord admin
+                          <i className="fa-solid fa-gauge" /> {t.adminDashboard}
                         </Link>
                       ) : !isOwnerSection ? (
                         <>
                           {user.role === "proprietaire" ? (
                             <Link href="/proprietaire/bateaux" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("proprietaire"); setUserMenuOpen(false); }} role="menuitem">
-                              <i className="fa-solid fa-sailboat" /> Espace propriétaire
+                              <i className="fa-solid fa-sailboat" /> {t.ownerSpace}
                             </Link>
                           ) : (
                             <Link href="/profil/devenir-proprietaire" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                              <i className="fa-solid fa-sailboat" /> Devenir propriétaire
+                              <i className="fa-solid fa-sailboat" /> {t.becomeOwner}
                             </Link>
                           )}
                           <div className="navbar-dropdown-sep" />
@@ -155,7 +159,7 @@ export default function Navbar() {
                             onClick={() => { if (user.role === "proprietaire") switchRole("proprietaire"); setUserMenuOpen(false); }}
                             role="menuitem"
                           >
-                            <i className="fa-solid fa-user" /> Mon profil
+                            <i className="fa-solid fa-user" /> {t.myProfile}
                           </Link>
                           <Link
                             href={user.role === "proprietaire" ? "/proprietaire/reservations" : "/profil/reservations"}
@@ -163,7 +167,7 @@ export default function Navbar() {
                             onClick={() => setUserMenuOpen(false)}
                             role="menuitem"
                           >
-                            <i className="fa-solid fa-calendar-check" /> {user.role === "proprietaire" ? "Réservations" : "Mes réservations"}
+                            <i className="fa-solid fa-calendar-check" /> {user.role === "proprietaire" ? t.reservations : t.myReservations}
                           </Link>
                           <Link
                             href={user.role === "proprietaire" ? "/proprietaire/messages" : "/profil/messages"}
@@ -171,23 +175,23 @@ export default function Navbar() {
                             onClick={() => setUserMenuOpen(false)}
                             role="menuitem"
                           >
-                            <i className="fa-solid fa-envelope" /> Messages
+                            <i className="fa-solid fa-envelope" /> {t.messages}
                           </Link>
                         </>
                       ) : (
                         <>
                           <Link href="/profil" className="navbar-dropdown-item navbar-dropdown-item--switch" onClick={() => { switchRole("locataire"); setUserMenuOpen(false); }} role="menuitem">
-                            <i className="fa-solid fa-user" /> Espace locataire
+                            <i className="fa-solid fa-user" /> {t.tenantSpace}
                           </Link>
                           <div className="navbar-dropdown-sep" />
                           <Link href="/proprietaire/bateaux" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-sailboat" /> Mes bateaux
+                            <i className="fa-solid fa-sailboat" /> {t.myBoats}
                           </Link>
                           <Link href="/proprietaire/reservations" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-calendar-check" /> Réservations
+                            <i className="fa-solid fa-calendar-check" /> {t.reservations}
                           </Link>
                           <Link href="/proprietaire/revenus" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <i className="fa-solid fa-chart-line" /> Revenus
+                            <i className="fa-solid fa-chart-line" /> {t.revenue}
                           </Link>
                         </>
                       )}
@@ -195,35 +199,37 @@ export default function Navbar() {
                       {!isAdmin && (
                         <>
                           <Link href="/profil/parametres" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-gear" /> Paramètres et confidentialité</span>
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-gear" /> {t.settings}</span>
                           </Link>
                           <Link href="/contact" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> Aide et assistance</span>
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-circle-question" /> {t.help}</span>
                             <i className="fa-solid fa-chevron-right" />
                           </Link>
                           <Link href="/profil/affichage" className="navbar-dropdown-item navbar-dropdown-item--nav" onClick={() => setUserMenuOpen(false)} role="menuitem">
-                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-moon" /> Affichage et accessibilité</span>
+                            <span className="navbar-dropdown-item-label"><i className="fa-solid fa-moon" /> {t.display}</span>
                             <i className="fa-solid fa-chevron-right" />
                           </Link>
                           <div className="navbar-dropdown-sep" />
                         </>
                       )}
                       <button className="navbar-dropdown-item navbar-dropdown-item--danger" onClick={handleLogout} role="menuitem">
-                        <i className="fa-solid fa-right-from-bracket" /> Déconnexion
+                        <i className="fa-solid fa-right-from-bracket" /> {tc.logout}
                       </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <Link href="/connexion" className="btn btn-ghost" aria-label="Se connecter">
+              <Link href="/connexion" className="btn btn-ghost" aria-label={tc.login}>
                 <i className="fa-solid fa-user" aria-hidden="true" />
               </Link>
             )}
 
+            <LanguageSwitcher className="navbar-lang" />
+
             <button
               className="mobile-menu-btn"
-              aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-label={mobileOpen ? t.closeMenu : t.openMenu}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
             >
@@ -233,29 +239,30 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <div className={`mobile-nav${mobileOpen ? " open" : ""}`} role="dialog" aria-label="Menu de navigation">
-        {navLinks.map((link) => (
-          <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)}>
+      <div className={`mobile-nav${mobileOpen ? " open" : ""}`} role="dialog" aria-label={t.mainNav}>
+        {NAV_ITEMS.map((link) => (
+          <Link key={link.key} href={link.href} onClick={() => setMobileOpen(false)}>
             <i className={`fa-solid ${link.icon}`} aria-hidden="true" />
-            {link.label}
+            {t[link.key]}
           </Link>
         ))}
         {user ? (
           <>
             <Link href={isAdmin ? "/admin/dashboard" : isOwnerSection ? "/proprietaire/bateaux" : "/profil"} onClick={() => setMobileOpen(false)}>
-              Mon espace
+              {tc.mySpace}
             </Link>
             <button className="btn btn-outline mobile-cta" onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}>
-              Déconnexion
+              {tc.logout}
             </button>
           </>
         ) : (
           <>
             <Link href="/connexion" className="btn btn-primary mobile-cta" onClick={() => setMobileOpen(false)}>
-              <i className="fa-solid fa-user" /> Se connecter
+              <i className="fa-solid fa-user" /> {tc.login}
             </Link>
           </>
         )}
+        <div className="mobile-nav-lang"><LanguageSwitcher /></div>
       </div>
     </>
   );

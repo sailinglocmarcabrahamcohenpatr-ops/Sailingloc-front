@@ -4,6 +4,8 @@ import "./globals.css";
 import { FadeInObserver } from "@/shared/ui";
 import { AuthProvider, PreferencesProvider, MessagesProvider, NotificationsProvider, FavorisProvider, CookieConsentProvider } from "@/shared/lib";
 import { CookieConsentBanner } from "@/widgets/cookie-consent";
+import { I18nProvider } from "@/shared/i18n";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import { cn } from "@/lib/utils";
 
 const THEME_INIT_SCRIPT = `
@@ -64,13 +66,16 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
+  const dict = getDictionary(locale);
+
   return (
-    <html lang="fr" className={cn("font-sans", geist.variable, fraunces.variable)} suppressHydrationWarning>
+    <html lang={locale} className={cn("font-sans", geist.variable, fraunces.variable)} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -79,21 +84,23 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
-        <AuthProvider>
-          <PreferencesProvider>
-            <MessagesProvider>
-              <NotificationsProvider>
-                <FavorisProvider>
-                  <CookieConsentProvider>
-                    {children}
-                    <FadeInObserver />
-                    <CookieConsentBanner />
-                  </CookieConsentProvider>
-                </FavorisProvider>
-              </NotificationsProvider>
-            </MessagesProvider>
-          </PreferencesProvider>
-        </AuthProvider>
+        <I18nProvider locale={locale} dict={dict}>
+          <AuthProvider>
+            <PreferencesProvider>
+              <MessagesProvider>
+                <NotificationsProvider>
+                  <FavorisProvider>
+                    <CookieConsentProvider>
+                      {children}
+                      <FadeInObserver />
+                      <CookieConsentBanner />
+                    </CookieConsentProvider>
+                  </FavorisProvider>
+                </NotificationsProvider>
+              </MessagesProvider>
+            </PreferencesProvider>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );
