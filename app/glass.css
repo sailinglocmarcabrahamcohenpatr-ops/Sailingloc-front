@@ -174,7 +174,6 @@
   :root[data-scroll-video="on"] .testimonial-card,
   :root[data-scroll-video="on"] .hiw-home-card,
   :root[data-scroll-video="on"] .trust-badge,
-  :root[data-scroll-video="on"] .home-shell .stats-dark-grid,
   :root[data-scroll-video="on"] .navbar {
     background: var(--glass-strong);
   }
@@ -187,8 +186,7 @@
   :root[data-scroll-video="on"] .boat-card,
   :root[data-scroll-video="on"] .testimonial-card,
   :root[data-scroll-video="on"] .hiw-home-card,
-  :root[data-scroll-video="on"] .trust-badge,
-  :root[data-scroll-video="on"] .home-shell .stats-dark-grid {
+  :root[data-scroll-video="on"] .trust-badge {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: var(--glass-strong);
