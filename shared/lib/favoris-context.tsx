@@ -4,6 +4,27 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { favorisApi } from "./favoris-api";
 import { useAuth } from "./auth-context";
 
+/** Favoris ajoutés sans être connecté — stockés en local, synchronisés
+ *  vers le compte dès la connexion (voir l'effet ci-dessous). */
+const PENDING_KEY = "sailingloc_pending_favoris";
+
+function loadPending(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function savePending(ids: Set<string>) {
+  try {
+    if (ids.size === 0) localStorage.removeItem(PENDING_KEY);
+    else localStorage.setItem(PENDING_KEY, JSON.stringify([...ids]));
+  } catch {}
+}
+
 interface FavorisContextType {
   favoriteIds: Set<string>;
   isFavorite: (id: string) => boolean;
@@ -27,18 +48,45 @@ export function FavorisProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id;
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+
+  // Charge les favoris "hors ligne" après le montage seulement (pas de lecture
+  // localStorage pendant le rendu serveur, pour éviter un mismatch d'hydratation).
+  useEffect(() => {
+    setPendingIds(loadPending());
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
-    favorisApi.getAll()
+
+    const pending = loadPending();
+    const sync = pending.size > 0
+      ? Promise.allSettled([...pending].map((id) => favorisApi.add(id))).then(() => {
+          savePending(new Set());
+          setPendingIds(new Set());
+        })
+      : Promise.resolve();
+
+    sync
+      .then(() => favorisApi.getAll())
       .then((boats) => setFavoriteIds(new Set(boats.map((b) => String(b.id)))))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [userId]);
 
   const toggle = useCallback((id: string) => {
-    if (!userId) return; // pas connecté : rien à persister côté serveur
+    if (!userId) {
+      // Pas connecté : on garde le favori en local, synchronisé à la connexion.
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        savePending(next);
+        return next;
+      });
+      return;
+    }
 
     setFavoriteIds((prev) => {
       const wasFavorite = prev.has(id);
@@ -61,11 +109,11 @@ export function FavorisProvider({ children }: { children: ReactNode }) {
     });
   }, [userId]);
 
-  const isFavorite = useCallback((id: string) => favoriteIds.has(id), [favoriteIds]);
-
   // Dérivé plutôt que stocké : évite un setState synchrone dans un effet
-  // pour vider les favoris à la déconnexion.
-  const effectiveIds = userId ? favoriteIds : new Set<string>();
+  // pour basculer entre favoris serveur (connecté) et locaux (hors ligne).
+  const effectiveIds = userId ? favoriteIds : pendingIds;
+
+  const isFavorite = useCallback((id: string) => effectiveIds.has(id), [effectiveIds]);
 
   return (
     <FavorisContext.Provider
