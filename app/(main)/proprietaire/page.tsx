@@ -120,43 +120,6 @@ export default async function ProprietairePage() {
         </div>
       </section>
 
-      {/* ── Revenue estimator ── */}
-      <section className="prop-revenue-section">
-        <div className="container">
-          <div className="prop-revenue-inner">
-            <div className="prop-revenue-text fade-in">
-              <p className="home-eyebrow home-eyebrow--gold">{t.revenueEyebrow}</p>
-              <h2>{t.revenueTitle}</h2>
-              <p>{t.revenueSub}</p>
-              <ul className="owner-cta-home-list" style={{ marginTop: "20px" }}>
-                {t.revenueList.map((item) => (
-                  <li key={item}><i className="fa-solid fa-check" /> {item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="prop-revenue-table fade-in">
-              <div className="prop-revenue-table-hd">
-                <span>{t.revenueColType}</span>
-                <span>{t.revenueColWeeks}</span>
-                <span>{t.revenueColAmount}</span>
-              </div>
-              {t.revenueRows.map((row) => (
-                <div key={row.type} className="prop-revenue-row">
-                  <span>{row.type}</span>
-                  <span>{row.weeks}</span>
-                  <span className="prop-revenue-amount">{row.amount}</span>
-                </div>
-              ))}
-              <div className="prop-revenue-cta">
-                <Link href="/inscrire-bateau" className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
-                  <i className="fa-solid fa-calculator" /> {t.revenueCta}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Témoignages ── */}
       <section className="home-section bg-surface">
         <div className="container">
