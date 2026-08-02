@@ -9,7 +9,12 @@ import { useI18n, localizeHref } from "@/shared/i18n";
 import DateField from "./DateField";
 import s from "./SearchBarCompact.module.css";
 
-export default function SearchBarCompact() {
+interface SearchBarCompactProps {
+  /** Rendu comme segment supplémentaire de la pilule, juste avant "Rechercher". */
+  filters?: React.ReactNode;
+}
+
+export default function SearchBarCompact({ filters }: SearchBarCompactProps) {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { locale, dict } = useI18n();
@@ -184,6 +189,13 @@ export default function SearchBarCompact() {
           align="right"
         />
       </div>
+
+      {filters && (
+        <>
+          <div className={s.sep} />
+          <div className={s.filtersSlot}>{filters}</div>
+        </>
+      )}
 
       {/* ── RECHERCHER ── */}
       <div className={s.submitWrap}>

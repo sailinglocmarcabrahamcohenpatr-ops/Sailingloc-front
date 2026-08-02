@@ -116,6 +116,30 @@
   }
 }
 
+/* ── Filtres : segment de la pilule, juste avant Rechercher ──── */
+.filtersSlot {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+}
+/* Le bouton "Filtres" (classes globales de FiltersBar) garde une vraie
+   apparence de bouton (fond, bordure) mais s'intègre à la hauteur et à
+   l'espacement de la pilule plutôt que d'avoir son propre cadre plein. */
+.filtersSlot :global(.filters-bar) { padding: 0; border-top: none; }
+.filtersSlot :global(.filters-bar-inner) { height: 100%; }
+.filtersSlot :global(.filters-bar-inner) > :global(.clear-filters) { display: none; }
+.filtersSlot :global(.filter-btn-icon) {
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #1a202c;
+  padding: 0 16px;
+}
+.filtersSlot :global(.filter-btn-icon:hover) { border-color: #1a202c; }
+.filtersSlot :global(.filter-btn-icon.primary-filter) { background: #fff; color: #1a202c; }
+.filtersSlot :global(.filter-count-badge) { background: #111827; color: #fff; }
+
 /* ── Submit ──────────────────────────────────── */
 .submitWrap {
   display: flex;
@@ -234,6 +258,15 @@
     width: auto;
     height: 1px;
     margin: 0 16px;
+  }
+
+  .filtersSlot {
+    padding: 8px 16px 0;
+    width: 100%;
+  }
+  .filtersSlot :global(.filter-btn-icon) {
+    width: 100%;
+    justify-content: center;
   }
 
   .submitWrap {
