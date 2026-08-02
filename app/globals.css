@@ -1759,6 +1759,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .home-section-hd p { color: var(--text-2); font-size: 1rem; }
 .home-section-hd--center { justify-content: center; text-align: center; }
 .home-section-hd--center .btn { display: none; }
+@media (max-width: 640px) {
+  .home-section-hd { flex-direction: column; align-items: center; text-align: center; }
+}
 
 .home-eyebrow {
   display: inline-block; font-size: .8125rem; font-weight: 700;
@@ -1913,6 +1916,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .owner-cta-estimate span { font-size: .8125rem; color: var(--text-2); }
 .owner-cta-estimate-rev { font-size: .9375rem; font-weight: 800; color: var(--primary); white-space: nowrap; }
 @media (max-width: 900px) { .owner-cta-home-inner { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .owner-cta-home-actions { flex-direction: column; }
+  .owner-cta-home-actions .btn { width: 100%; justify-content: center; }
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PROPRIÉTAIRES PAGE
