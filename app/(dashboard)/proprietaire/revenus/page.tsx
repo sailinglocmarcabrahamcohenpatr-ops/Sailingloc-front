@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { boatsApi, reservationsApi, useAuth } from "@/shared/lib";
+import { boatsApi, reservationsApi, useAuth, generateOwnerRevenueReportPdf } from "@/shared/lib";
 import type { BoatAPI, ReservationAPI } from "@/shared/lib";
 import "./revenue.css";
 
@@ -45,10 +43,8 @@ function initials(r: ReservationAPI): string {
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 
-// jsPDF's default font can't render the narrow no-break space used by
-// toLocaleString("fr-FR") as a thousands separator (it prints as "/"),
-// so PDF export uses a plain space instead.
-const fmtEuroPdf = (n: number) => `${n.toLocaleString("fr-FR").replace(/[  ]/g, " ")} €`;
+const fmtDateLong = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export default function OwnerRevenuePage() {
   const { user } = useAuth();
@@ -142,110 +138,44 @@ export default function OwnerRevenuePage() {
   );
 
   const handleExportPdf = useCallback(() => {
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const marginX = 40;
-    let y = 50;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(14, 59, 46);
-    doc.text("SailingLoc — Rapport de revenus", marginX, y);
-
-    y += 20;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    const ownerName = user?.name?.trim();
-    const generatedAt = new Date().toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    doc.text(
-      `${ownerName ? `Propriétaire : ${ownerName} — ` : ""}Généré le ${generatedAt}`,
-      marginX,
-      y
-    );
-    y += 24;
-
-    autoTable(doc, {
-      startY: y,
-      theme: "plain",
-      styles: { fontSize: 10, cellPadding: 4 },
-      columnStyles: {
-        0: { fontStyle: "bold", textColor: [60, 60, 60] },
-        1: { halign: "right" },
-      },
-      body: [
-        ["Revenus nets cumulés", fmtEuroPdf(totalNet)],
-        ["Chiffre d'affaires brut", fmtEuroPdf(totalGross)],
-        [
-          "Commission SailingLoc",
-          `${fmtEuroPdf(totalCommission)} (${Math.round(COMMISSION_RATE * 100)}%)`,
-        ],
-        ["Locations réalisées (hors annulées)", `${count}`],
-        ["Revenu moyen / location", fmtEuroPdf(avgNet)],
-        ["Bateaux concernés", `${ownedBoatIds.size}`],
-      ],
-      margin: { left: marginX, right: marginX },
-    });
-
-    const afterSummaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 26;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(14, 59, 46);
-    doc.text("Détail des transactions", marginX, afterSummaryY);
-
-    const rows = revenueReservations
+    const sorted = revenueReservations
       .slice()
-      .sort((a, b) => new Date(b.dateDebut).getTime() - new Date(a.dateDebut).getTime())
-      .map((r) => {
-        const key = libelleToKey(r.statutReservation);
-        const boatName =
-          r.bateau?.nomBateau ??
-          (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ??
-          `Bateau #${r.bateau?.id ?? r.id}`;
-        const gross = Number(r.montantTotal);
-        const net = Math.round(gross * (1 - COMMISSION_RATE));
-        return [
-          renterName(r),
-          boatName,
-          `${fmtDate(r.dateDebut)} – ${fmtDate(r.dateFin)}`,
-          STATUS_LABEL[key].label,
-          fmtEuroPdf(gross),
-          fmtEuroPdf(net),
-        ];
-      });
+      .sort((a, b) => new Date(b.dateDebut).getTime() - new Date(a.dateDebut).getTime());
 
-    autoTable(doc, {
-      startY: afterSummaryY + 10,
-      head: [["Locataire", "Bateau", "Période", "Statut", "Brut", "Net"]],
-      body: rows,
-      foot: [["", "", "", "Total", fmtEuroPdf(totalGross), fmtEuroPdf(totalNet)]],
-      styles: { fontSize: 9, cellPadding: 6 },
-      headStyles: { fillColor: [14, 59, 46], textColor: 255 },
-      footStyles: { fillColor: [14, 59, 46], textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [243, 246, 244] },
-      columnStyles: { 4: { halign: "right" }, 5: { halign: "right" } },
-      margin: { left: marginX, right: marginX },
-      didDrawPage: () => {
-        const pageCount = doc.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `Page ${doc.getCurrentPageInfo().pageNumber} / ${pageCount}`,
-          pageWidth - marginX,
-          pageHeight - 20,
-          { align: "right" }
-        );
-      },
+    const rows = sorted.map((r) => {
+      const key = libelleToKey(r.statutReservation);
+      const boatName =
+        r.bateau?.nomBateau ??
+        (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ??
+        `Bateau #${r.bateau?.id ?? r.id}`;
+      const gross = Number(r.montantTotal);
+      const commission = Math.round(gross * COMMISSION_RATE);
+      const net = gross - commission;
+      return {
+        renterName: renterName(r),
+        boatName,
+        period: `${fmtDateLong(r.dateDebut)} - ${fmtDateLong(r.dateFin)}`,
+        statusLabel: STATUS_LABEL[key].label,
+        gross,
+        commission,
+        net,
+      };
     });
 
-    doc.save(`sailingloc-revenus-${new Date().toISOString().slice(0, 10)}.pdf`);
-  }, [avgNet, boatNameById, count, ownedBoatIds.size, revenueReservations, totalCommission, totalGross, totalNet, user?.name]);
+    void generateOwnerRevenueReportPdf(
+      rows,
+      {
+        totalNet,
+        totalGross,
+        totalCommission,
+        commissionRatePct: Math.round(COMMISSION_RATE * 100),
+        count,
+        avgNet,
+        boatsCount: ownedBoatIds.size,
+      },
+      { name: user?.name, email: user?.email }
+    );
+  }, [avgNet, boatNameById, count, ownedBoatIds.size, revenueReservations, totalCommission, totalGross, totalNet, user?.email, user?.name]);
 
   if (loading)
     return (

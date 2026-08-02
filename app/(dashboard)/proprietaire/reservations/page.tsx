@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import { reservationsApi, referentielsApi, resolvePhotoUrl } from "@/shared/lib";
-import type { ReservationAPI, StatutReservationAPI, PaiementAPI } from "@/shared/lib";
+import {
+  reservationsApi,
+  referentielsApi,
+  resolvePhotoUrl,
+  boatsApi,
+  generateReservationInvoicePdf,
+  generateReservationContractPdf,
+} from "@/shared/lib";
+import type { ReservationAPI, StatutReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
 import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
@@ -129,7 +136,7 @@ const Section = ({
                     </button>
                   </>
                 )}
-                {key === "confirmed" && (
+                {(key === "confirmed" || key === "completed") && (
                   <button
                     className="rsv-btn-ghost"
                     onClick={() => onDetails(r)}
@@ -150,6 +157,7 @@ const Section = ({
 export default function OwnerReservationsPage() {
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
   const [statuts, setStatuts] = useState<StatutReservationAPI[]>([]);
+  const [boatsById, setBoatsById] = useState<Map<number, BoatAPI>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<number | null>(null);
@@ -157,10 +165,15 @@ export default function OwnerReservationsPage() {
   const [detailsReservation, setDetailsReservation] = useState<ReservationAPI | null>(null);
 
   useEffect(() => {
-    Promise.all([reservationsApi.getAll(), referentielsApi.getStatutsReservations()])
-      .then(([resa, sts]) => {
+    Promise.all([
+      reservationsApi.getAll(),
+      referentielsApi.getStatutsReservations(),
+      boatsApi.getAll().catch(() => [] as BoatAPI[]),
+    ])
+      .then(([resa, sts, boats]) => {
         setReservations(resa);
         setStatuts(sts);
+        setBoatsById(new Map(boats.map((b) => [b.id, b])));
       })
       .catch(() => setError("Impossible de charger les réservations."))
       .finally(() => setLoading(false));
@@ -295,6 +308,7 @@ export default function OwnerReservationsPage() {
       {detailsReservation && (
         <ReservationDetailsModal
           reservation={detailsReservation}
+          boat={detailsReservation.bateau?.id != null ? boatsById.get(detailsReservation.bateau.id) : undefined}
           onClose={() => setDetailsReservation(null)}
         />
       )}
@@ -319,9 +333,11 @@ const ModalSection = ({
 
 function ReservationDetailsModal({
   reservation: r,
+  boat: fullBoat,
   onClose,
 }: {
   reservation: ReservationAPI;
+  boat?: BoatAPI;
   onClose: () => void;
 }) {
   const [paiements, setPaiements] = useState<PaiementAPI[]>([]);
@@ -351,6 +367,16 @@ function ReservationDetailsModal({
   const mainPhoto = boat?.photos
     ?.slice()
     .sort((a, b) => (a.ordreAffichage ?? 0) - (b.ordreAffichage ?? 0))[0];
+
+  const tenantInfo = { name: u ? `${u.prenom} ${u.nom}` : undefined, email: u?.email };
+
+  const handleDownloadInvoice = () => {
+    void generateReservationInvoicePdf(r, tenantInfo, paiements, fullBoat);
+  };
+
+  const handleDownloadContract = () => {
+    void generateReservationContractPdf(r, tenantInfo, fullBoat);
+  };
 
   return (
     <div className="rsv-modal-overlay" onClick={onClose}>
@@ -451,11 +477,16 @@ function ReservationDetailsModal({
             )}
           </ModalSection>
 
-          {r.idContrat && (
-            <ModalSection icon="fa-file-contract" title="Contrat">
-              <p className="rsv-modal-muted">Contrat #{r.idContrat}</p>
-            </ModalSection>
-          )}
+          <ModalSection icon="fa-file-contract" title="Documents">
+            <div className="rsv-modal-row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
+                <i className="fa-solid fa-file-pdf" /> Facture PDF
+              </button>
+              <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
+                <i className="fa-solid fa-file-contract" /> Contrat PDF
+              </button>
+            </div>
+          </ModalSection>
         </div>
       </div>
     </div>
