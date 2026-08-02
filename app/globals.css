@@ -40,6 +40,7 @@
   --primary: #114B6B;
   --primary-dark:  #0C3850;
   --primary-light: #EAF0F4;
+  --primary-on-dark: #93B4FF;
   --navy:          #0B1929;
   --navy-2:        #152438;
   --navy-3:        #1E3554;
@@ -215,9 +216,15 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
   display: inline-flex; align-items: baseline;
   font-weight: 800; letter-spacing: -.02em; white-space: nowrap;
 }
+.brand-logo-mark--invert { color: var(--text); }
+.brand-logo-mark--invert.brand-logo-mark--on-dark { color: var(--white); }
 .brand-logo-word-sailing { color: var(--primary); }
+.brand-logo-word-sailing--invert { color: var(--text); }
+.brand-logo-word-sailing--invert.brand-logo-word-sailing--on-dark { color: var(--white); }
 .brand-logo-word-loc { color: var(--text); }
 .brand-logo-word-loc--on-dark { color: var(--white); }
+.brand-logo-word-loc--invert { color: var(--primary); }
+.brand-logo-word-loc--invert-on-dark { color: var(--primary-on-dark); }
 
 .navbar-nav {
   display: flex; gap: 2px; flex: 1;
@@ -250,7 +257,8 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 .mobile-nav a {
   padding: 14px 16px; border-radius: var(--radius);
   font-size: .9375rem; font-weight: 500;
-  color: var(--text); border-bottom: 1px solid var(--border); display: block;
+  color: var(--text); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
 }
 .mobile-nav a:hover { background: var(--bg); color: var(--primary); }
 .mobile-nav .mobile-cta { margin-top: 12px; border-bottom: none; }
@@ -496,10 +504,16 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .footer-brand p { max-width: 100%; }
 }
 
-@media (max-width: 768px) {
+/* Bascule vers le menu hamburger dès la tablette : avec 5 liens + icônes,
+   la pilule de nav centrale ne tient plus à côté du logo et des actions
+   entre 769 et 1024px, ce qui faisait déborder la navbar à droite de l'écran. */
+@media (max-width: 1024px) {
   .navbar-nav, .navbar-actions .btn-ghost, .navbar-actions .btn:not(:last-child) { display: none; }
   .navbar-user-menu { display: none; }
   .mobile-menu-btn { display: flex; }
+}
+
+@media (max-width: 768px) {
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .footer-brand { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
@@ -711,6 +725,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .filter-panel { right: 0; left: auto; width: calc(100vw - 24px); }
 }
 .results-layout { display: grid; grid-template-columns: 1fr 340px; gap: 28px; padding: 28px 0 80px; align-items: start; }
+.results-layout > * { min-width: 0; }
 .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .results-count { font-size: .9375rem; color: var(--text-2); }
 .results-count strong { color: var(--text); }
@@ -950,6 +965,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .boats-result-list .boat-card-img { width: 100%; aspect-ratio: 4 / 3; }
   .cat-search-bar { display: none; }
   .results-layout { padding: 20px 0 60px; }
+  .results-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .results-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .view-toggle { display: none; }
+  .sort-select { flex: 1; min-width: 0; }
 }
 @media (max-width: 480px) {
   .weather-grid { grid-template-columns: 1fr; }
@@ -1748,6 +1767,9 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .home-section-hd p { color: var(--text-2); font-size: 1rem; }
 .home-section-hd--center { justify-content: center; text-align: center; }
 .home-section-hd--center .btn { display: none; }
+@media (max-width: 640px) {
+  .home-section-hd { flex-direction: column; align-items: center; text-align: center; }
+}
 
 .home-eyebrow {
   display: inline-block; font-size: .8125rem; font-weight: 700;
@@ -1865,6 +1887,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .hiw-home-card p { font-size: .9rem; color: var(--text-2); line-height: 1.65; }
 .hiw-home-cta { text-align: center; margin-top: 48px; display: flex; gap: 12px; justify-content: center; }
 @media (max-width: 768px) { .hiw-home-grid { grid-template-columns: 1fr; } .hiw-home-arrow { display: none; } }
+@media (max-width: 640px) {
+  .hiw-home-cta { flex-direction: column; align-items: center; }
+  .hiw-home-cta .btn { width: 100%; justify-content: center; }
+}
 
 /* ── Stats dark ── */
 .stats-dark-section { background: var(--navy); padding: 0; }
@@ -1902,6 +1928,10 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .owner-cta-estimate span { font-size: .8125rem; color: var(--text-2); }
 .owner-cta-estimate-rev { font-size: .9375rem; font-weight: 800; color: var(--primary); white-space: nowrap; }
 @media (max-width: 900px) { .owner-cta-home-inner { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .owner-cta-home-actions { flex-direction: column; }
+  .owner-cta-home-actions .btn { width: 100%; justify-content: center; }
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PROPRIÉTAIRES PAGE

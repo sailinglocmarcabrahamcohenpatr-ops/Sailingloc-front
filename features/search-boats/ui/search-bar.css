@@ -31,10 +31,23 @@
 
 @media (max-width: 768px) {
   .search-card { border-radius: var(--radius-lg); }
-  .search-fields { flex-direction: column; }
-  .search-field { border-right: none; border-bottom: 1px solid var(--border); }
-  .search-field:last-of-type { border-bottom: none; }
-  .search-btn-wrap { padding: 6px; }
+  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ]
+     align-items:stretch : les 2 champs d'une même ligne s'étendent à la
+     hauteur du plus grand → border-bottom alignée des deux côtés. */
+  .search-fields { flex-wrap: wrap; align-items: stretch; }
+  .search-field {
+    flex: 1 1 50%;
+    min-width: 0;
+    border-right: 1px solid rgba(255,255,255,.28);
+    border-bottom: 1px solid rgba(255,255,255,.28);
+  }
+  /* Colonne droite (champs pairs) : pas de border-right */
+  .search-field:nth-child(2),
+  .search-field:nth-child(4) { border-right: none; }
+  /* Dernière ligne (champs 3 et 4) : pas de border-bottom */
+  .search-field:nth-child(3),
+  .search-field:nth-child(4) { border-bottom: none; }
+  .search-btn-wrap { flex: 1 1 100%; padding: 6px; }
   .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
 }
 
@@ -101,6 +114,31 @@
 @keyframes sb-pop-in {
   from { opacity: 0; transform: translateY(6px) scale(.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── En-tête du popover : contient le bouton fermer ── */
+.sb-popover-hd {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+.sb-popover-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: .85rem;
+  border-radius: 6px;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sb-popover-close:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
 }
 
 /* ── Liste du select ── */
@@ -242,10 +280,26 @@
   cursor: not-allowed;
 }
 
-/* ── Mobile : champs empilés → largeur confortable, sans déborder l'écran
-   (surtout PAS bridée à la largeur du champ, sinon les libellés se coupent) ── */
-@media (max-width: 640px) {
-  .sb-popover { max-width: calc(100vw - 32px); }
-  .sb-select-list { min-width: 220px; }
-  .sb-calendar { width: min(292px, calc(100vw - 32px)); }
+/* ── Mobile : popovers repositionnés en overlay sur la carte de recherche ──
+   .search-card (position:relative) sert de référence ; .sb-select/.sb-date
+   repassent en static pour ne pas en devenir une eux-mêmes.
+   Le popover part du bord supérieur de la carte (top:0) et s'étend sur
+   toute la largeur de celle-ci (left:0, right:0). */
+@media (max-width: 768px) {
+  .search-card { position: relative; }
+  .sb-select, .sb-date { position: static; }
+  .sb-popover {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
+    animation: none;
+  }
+  .sb-popover--right { left: 0; right: 0; }
+  .sb-select-list { min-width: 0; width: 100%; }
+  .sb-calendar { width: 100%; box-sizing: border-box; }
 }

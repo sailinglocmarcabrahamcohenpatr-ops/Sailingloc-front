@@ -113,6 +113,16 @@ export default function DateField({
           role="dialog"
           aria-label="Choisir une date"
         >
+          <div className="sb-popover-hd">
+            <button
+              type="button"
+              className="sb-popover-close"
+              onClick={() => setOpen(false)}
+              aria-label="Fermer"
+            >
+              <i className="fa-solid fa-xmark" aria-hidden="true" />
+            </button>
+          </div>
           <div className="sb-cal-head">
             <button
               type="button"
