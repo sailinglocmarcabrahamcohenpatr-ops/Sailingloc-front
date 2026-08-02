@@ -4,13 +4,19 @@ interface LogoProps {
   iconOnly?: boolean;
   /** À utiliser quand le logo repose sur un fond sombre/coloré (footer, bandeau photo…). */
   onDark?: boolean;
+  /** Inverse le jeu de couleurs habituel (SAILING/LOC échangent leurs couleurs). */
+  invert?: boolean;
 }
 
-export default function Logo({ className = "", iconOnly = false, onDark = false }: LogoProps) {
+export default function Logo({ className = "", iconOnly = false, onDark = false, invert = false }: LogoProps) {
+  const markClass = `brand-logo-mark${invert ? " brand-logo-mark--invert" : ""}${invert && onDark ? " brand-logo-mark--on-dark" : ""}`;
+  const sailingClass = `brand-logo-word-sailing${invert ? " brand-logo-word-sailing--invert" : ""}${invert && onDark ? " brand-logo-word-sailing--on-dark" : ""}`;
+  const locClass = `brand-logo-word-loc${onDark && !invert ? " brand-logo-word-loc--on-dark" : ""}${invert ? " brand-logo-word-loc--invert" : ""}${invert && onDark ? " brand-logo-word-loc--invert-on-dark" : ""}`;
+
   return (
     <span className={`brand-logo${className ? ` ${className}` : ""}`}>
       <svg
-        className="brand-logo-mark"
+        className={markClass}
         viewBox="0 0 48 60"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -36,8 +42,8 @@ export default function Logo({ className = "", iconOnly = false, onDark = false 
       </svg>
       {!iconOnly && (
         <span className="brand-logo-word">
-          <span className="brand-logo-word-sailing">SAILING</span>
-          <span className={`brand-logo-word-loc${onDark ? " brand-logo-word-loc--on-dark" : ""}`}>LOC</span>
+          <span className={sailingClass}>SAILING</span>
+          <span className={locClass}>LOC</span>
         </span>
       )}
     </span>

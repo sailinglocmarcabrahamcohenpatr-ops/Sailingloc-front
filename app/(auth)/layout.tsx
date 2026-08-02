@@ -1,9 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/shared/ui";
 import "@/features/auth/ui/auth.css";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const invertLogo = pathname === "/connexion";
+
   return (
     <div className="auth-page">
 
@@ -23,7 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="auth-split-overlay" />
           <div className="auth-split-brand">
             <Link href="/" className="auth-split-logo">
-              <Logo onDark />
+              <Logo onDark invert={invertLogo} />
             </Link>
 
             <div className="auth-split-center">
@@ -79,7 +85,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           <div className="auth-split-right-logo">
             <Link href="/">
-              <Logo />
+              <Logo invert={invertLogo} />
             </Link>
           </div>
 

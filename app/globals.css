@@ -40,6 +40,7 @@
   --primary: #114B6B;
   --primary-dark:  #0C3850;
   --primary-light: #EAF0F4;
+  --primary-on-dark: #93B4FF;
   --navy:          #0B1929;
   --navy-2:        #152438;
   --navy-3:        #1E3554;
@@ -215,9 +216,15 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
   display: inline-flex; align-items: baseline;
   font-weight: 800; letter-spacing: -.02em; white-space: nowrap;
 }
+.brand-logo-mark--invert { color: var(--text); }
+.brand-logo-mark--invert.brand-logo-mark--on-dark { color: var(--white); }
 .brand-logo-word-sailing { color: var(--primary); }
+.brand-logo-word-sailing--invert { color: var(--text); }
+.brand-logo-word-sailing--invert.brand-logo-word-sailing--on-dark { color: var(--white); }
 .brand-logo-word-loc { color: var(--text); }
 .brand-logo-word-loc--on-dark { color: var(--white); }
+.brand-logo-word-loc--invert { color: var(--primary); }
+.brand-logo-word-loc--invert-on-dark { color: var(--primary-on-dark); }
 
 .navbar-nav {
   display: flex; gap: 2px; flex: 1;
