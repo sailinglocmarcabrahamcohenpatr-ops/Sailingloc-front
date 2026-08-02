@@ -158,11 +158,11 @@ export default function ReservationDetailPage() {
   };
 
   const handleDownloadInvoice = () => {
-    generateReservationInvoicePdf(reservation, tenantInfo, paiements, boat);
+    void generateReservationInvoicePdf(reservation, tenantInfo, paiements, boat);
   };
 
   const handleDownloadContract = () => {
-    generateReservationContractPdf(reservation, tenantInfo, boat);
+    void generateReservationContractPdf(reservation, tenantInfo, boat);
   };
 
   return (

@@ -77,11 +77,11 @@ const BookingCard = ({
   };
 
   const handleDownloadInvoice = () => {
-    generateReservationInvoicePdf(r, tenantInfo, paiements, boat);
+    void generateReservationInvoicePdf(r, tenantInfo, paiements, boat);
   };
 
   const handleDownloadContract = () => {
-    generateReservationContractPdf(r, tenantInfo, boat);
+    void generateReservationContractPdf(r, tenantInfo, boat);
   };
 
   const handleCancel = async () => {
@@ -309,7 +309,7 @@ export default function UserReservationsPage() {
   };
 
   const handleExportAllInvoices = () => {
-    generateReservationsInvoicesPdf(
+    void generateReservationsInvoicesPdf(
       reservations,
       { name: user?.name, email: user?.email },
       paiementsByReservation

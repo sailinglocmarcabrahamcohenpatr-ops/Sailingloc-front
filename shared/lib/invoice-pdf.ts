@@ -4,10 +4,12 @@ import type { ReservationAPI, PaiementAPI } from "./reservations-api";
 import type { BoatAPI } from "./boats-api";
 import { LEGAL_COMPANY_NAME, LEGAL_ADDRESS, LEGAL_SIRET, LEGAL_SIREN, LEGAL_RCS, LEGAL_TVA } from "@/shared/config";
 
-const BRAND_GREEN: [number, number, number] = [14, 59, 46];
-const ACCENT_GREEN: [number, number, number] = [16, 122, 87];
-const SOFT_BG: [number, number, number] = [247, 250, 248];
-const SOFT_BORDER: [number, number, number] = [222, 231, 227];
+// Palette alignée sur --navy / --primary du site (app/globals.css) plutôt que sur un vert générique.
+const BRAND_NAVY: [number, number, number] = [11, 25, 41];
+const ACCENT_BLUE: [number, number, number] = [17, 75, 107];
+const BAND_MUTED: [number, number, number] = [196, 210, 224];
+const SOFT_BG: [number, number, number] = [246, 248, 250];
+const SOFT_BORDER: [number, number, number] = [222, 227, 233];
 const TEXT_MUTED: [number, number, number] = [110, 118, 114];
 const TEXT_DARK: [number, number, number] = [40, 40, 40];
 
@@ -67,21 +69,73 @@ interface TenantInfo {
   email?: string;
 }
 
+// Pictogramme SailingLoc (shared/ui/Logo.tsx) reproduit en blanc pour le bandeau sombre du PDF.
+const LOGO_MARK_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 60">' +
+  '<path d="M24 57C13 44 6 33 6 21.5 6 11 14.1 3 24 3s18 8 18 18.5C42 33 35 44 24 57Z" fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>' +
+  '<path d="M24 14 34 34H14Z" fill="#ffffff"/>' +
+  '<path d="M10 34Q24 30 38 34Q24 42 10 34Z" fill="#ffffff"/>' +
+  '<path d="M8 47q8-5 16 0t16 0" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>' +
+  "</svg>";
+const LOGO_MARK_RATIO = 48 / 60;
+
+function svgToPngDataUrl(svgMarkup: string, width: number, height: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgMarkup)))}`;
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Canvas 2D context unavailable"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => reject(new Error("Impossible de charger le pictogramme SailingLoc"));
+    img.src = svgDataUrl;
+  });
+}
+
+// Rasterisé une seule fois par session et réutilisé pour toutes les PDF générées ensuite.
+let cachedLogoMarkPng: Promise<string> | null = null;
+function getLogoMarkPng(): Promise<string> {
+  if (!cachedLogoMarkPng) {
+    cachedLogoMarkPng = svgToPngDataUrl(LOGO_MARK_SVG, 240, 300);
+  }
+  return cachedLogoMarkPng;
+}
+
 /** Bandeau de marque en tête de document ; renvoie le Y où commence le contenu. */
-function drawBrandBand(doc: jsPDF, pageWidth: number, title: string, metaLines: string[]): number {
+async function drawBrandBand(doc: jsPDF, pageWidth: number, title: string, metaLines: string[]): Promise<number> {
   const bandHeight = 92;
-  doc.setFillColor(...BRAND_GREEN);
+  doc.setFillColor(...BRAND_NAVY);
   doc.rect(0, 0, pageWidth, bandHeight, "F");
 
+  const markHeight = 28;
+  const markWidth = markHeight * LOGO_MARK_RATIO;
+  const markX = PAGE_MARGIN;
+  const markY = 20;
+  try {
+    const logoPng = await getLogoMarkPng();
+    doc.addImage(logoPng, "PNG", markX, markY, markWidth, markHeight);
+  } catch {
+    // Le pictogramme est décoratif : si le rendu canvas échoue, le document reste utilisable.
+  }
+
+  const wordX = markX + markWidth + 8;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(255, 255, 255);
-  doc.text("SailingLoc", PAGE_MARGIN, 40);
+  doc.text("SailingLoc", wordX, 40);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(210, 226, 219);
-  doc.text("Location de bateaux entre particuliers", PAGE_MARGIN, 56);
+  doc.setTextColor(...BAND_MUTED);
+  doc.text("Location de bateaux entre particuliers", PAGE_MARGIN, 58);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
@@ -90,7 +144,7 @@ function drawBrandBand(doc: jsPDF, pageWidth: number, title: string, metaLines: 
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(210, 226, 219);
+  doc.setTextColor(...BAND_MUTED);
   metaLines.forEach((line, i) => {
     doc.text(line, pageWidth - PAGE_MARGIN, 54 + i * 13, { align: "right" });
   });
@@ -107,7 +161,7 @@ function drawInfoCard(doc: jsPDF, x: number, y: number, width: number, label: st
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.setTextColor(...ACCENT_GREEN);
+  doc.setTextColor(...ACCENT_BLUE);
   doc.text(label.toUpperCase(), x + 14, y + 18);
 
   doc.setFont("helvetica", "normal");
@@ -149,11 +203,11 @@ function drawTotalBanner(doc: jsPDF, pageWidth: number, y: number, label: string
   const width = Math.max(minWidth, labelWidth, amountWidth) + paddingX * 2;
   const x = pageWidth - PAGE_MARGIN - width;
 
-  doc.setFillColor(...BRAND_GREEN);
+  doc.setFillColor(...BRAND_NAVY);
   doc.roundedRect(x, y, width, height, 5, 5, "F");
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(210, 226, 219);
+  doc.setTextColor(...BAND_MUTED);
   doc.text(label.toUpperCase(), x + paddingX, y + 18);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(17);
@@ -202,19 +256,19 @@ function ensureSpace(doc: jsPDF, y: number, needed: number, pageHeight: number):
  * l'endpoint de détail d'une réservation n'embarque pas toujours ces champs imbriqués,
  * contrairement à la liste des réservations ou à la fiche bateau elle-même.
  */
-export function generateReservationInvoicePdf(
+export async function generateReservationInvoicePdf(
   reservation: ReservationAPI,
   tenant: TenantInfo,
   paiements: PaiementAPI[] = [],
   boat?: BoatAPI | null
-): void {
+): Promise<void> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const number = invoiceNumber(reservation.id, reservation.dateReservation);
   const issuedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  let y = drawBrandBand(doc, pageWidth, "FACTURE", [`N° ${number}`, `Émise le ${issuedAt}`]);
+  let y = await drawBrandBand(doc, pageWidth, "FACTURE", [`N° ${number}`, `Émise le ${issuedAt}`]);
 
   const reservationBoat = reservation.bateau;
   const owner = boat?.proprietaire ?? boat?.utilisateur ?? reservationBoat?.proprietaire;
@@ -234,7 +288,7 @@ export function generateReservationInvoicePdf(
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(...BRAND_GREEN);
+  doc.setTextColor(...BRAND_NAVY);
   doc.text("Détail de la location", PAGE_MARGIN, y);
   y += 12;
 
@@ -252,7 +306,7 @@ export function generateReservationInvoicePdf(
       ],
     ],
     styles: { fontSize: 9, cellPadding: 8, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
-    headStyles: { fillColor: BRAND_GREEN, textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: BRAND_NAVY, textColor: 255, fontStyle: "bold" },
     columnStyles: { 4: { halign: "right", fontStyle: "bold" } },
     margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
   });
@@ -281,17 +335,17 @@ export function generateReservationInvoicePdf(
  * enregistrements Paiement) plutôt que la simple déduction depuis le statut de la réservation,
  * pour rester cohérent avec la facture individuelle générée depuis la page de détail.
  */
-export function generateReservationsInvoicesPdf(
+export async function generateReservationsInvoicesPdf(
   reservations: ReservationAPI[],
   tenant: TenantInfo,
   paiementsByReservation?: Record<number, PaiementAPI[]>
-): void {
+): Promise<void> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const issuedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  let y = drawBrandBand(doc, pageWidth, "RÉCAPITULATIF", [`Généré le ${issuedAt}`]);
+  let y = await drawBrandBand(doc, pageWidth, "RÉCAPITULATIF", [`Généré le ${issuedAt}`]);
 
   const tenantLines = [tenant.name, tenant.email].filter((v): v is string => Boolean(v));
   if (tenantLines.length > 0) {
@@ -300,7 +354,7 @@ export function generateReservationsInvoicesPdf(
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(...BRAND_GREEN);
+  doc.setTextColor(...BRAND_NAVY);
   doc.text("Historique des réservations", PAGE_MARGIN, y);
   y += 12;
 
@@ -327,7 +381,7 @@ export function generateReservationsInvoicesPdf(
     body: rows,
     theme: "grid",
     styles: { fontSize: 9, cellPadding: 8, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
-    headStyles: { fillColor: BRAND_GREEN, textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: BRAND_NAVY, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: SOFT_BG },
     columnStyles: { 4: { halign: "right" } },
     margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
@@ -362,18 +416,18 @@ const CONTRACT_FOOTER_NOTE =
  * libre `contrat.conditions` propre à chaque réservation n'est pas exposé par une API publique et n'est
  * donc pas reproduit ici.
  */
-export function generateReservationContractPdf(
+export async function generateReservationContractPdf(
   reservation: ReservationAPI,
   tenant: TenantInfo,
   boat?: BoatAPI | null
-): void {
+): Promise<void> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const number = contractNumber(reservation.id, reservation.dateReservation);
   const issuedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  let y = drawBrandBand(doc, pageWidth, "CONTRAT DE LOCATION", [`N° ${number}`, `Généré le ${issuedAt}`]);
+  let y = await drawBrandBand(doc, pageWidth, "CONTRAT DE LOCATION", [`N° ${number}`, `Généré le ${issuedAt}`]);
 
   y +=
     drawInfoCard(doc, PAGE_MARGIN, y, pageWidth - PAGE_MARGIN * 2, "Intermédiaire de location", [
@@ -403,7 +457,7 @@ export function generateReservationContractPdf(
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(...BRAND_GREEN);
+  doc.setTextColor(...BRAND_NAVY);
   doc.text("Objet de la location", PAGE_MARGIN, y);
   y += 12;
 
@@ -421,7 +475,7 @@ export function generateReservationContractPdf(
       ],
     ],
     styles: { fontSize: 9, cellPadding: 8, textColor: TEXT_DARK, lineColor: SOFT_BORDER, lineWidth: 0.6 },
-    headStyles: { fillColor: BRAND_GREEN, textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: BRAND_NAVY, textColor: 255, fontStyle: "bold" },
     margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
   });
 
@@ -430,7 +484,7 @@ export function generateReservationContractPdf(
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(...BRAND_GREEN);
+  doc.setTextColor(...BRAND_NAVY);
   doc.text("Conditions de location", PAGE_MARGIN, afterTableY);
   afterTableY += 12;
 

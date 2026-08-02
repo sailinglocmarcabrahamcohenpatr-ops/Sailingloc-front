@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import "./comment-ca-marche.css";
+import OwnerCtaLink from "./OwnerCtaLink";
+import OwnerDashboardButton from "./OwnerDashboardButton";
 
 export const metadata: Metadata = {
   title: "Comment ça marche — SailingLoc",
@@ -91,9 +93,7 @@ export default function HowItWorksPage() {
             <Link href="/bateaux" className="btn btn-primary btn-lg">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Rechercher un bateau
             </Link>
-            <a href="#proprietaires" className="btn btn-ghost-white btn-lg">
-              Je suis propriétaire
-            </a>
+            <OwnerDashboardButton />
           </div>
         </div>
       </section>
@@ -182,9 +182,7 @@ export default function HowItWorksPage() {
             ))}
           </div>
           <div className="hiw-home-cta fade-in">
-            <Link href="/proprietaire" className="btn btn-white btn-lg">
-              <i className="fa-solid fa-plus" /> En savoir plus sur la location propriétaire
-            </Link>
+            <OwnerCtaLink />
           </div>
         </div>
       </section>
