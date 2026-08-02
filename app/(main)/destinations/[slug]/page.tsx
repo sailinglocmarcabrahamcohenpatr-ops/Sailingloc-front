@@ -94,12 +94,12 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             <span><i className="fa-solid fa-location-dot" /> {dest.region}</span>
           </div>
         </div>
-        <div className="dest-detail-hero-scroll" aria-hidden="true">
-          <i className="fa-solid fa-chevron-down" />
-        </div>
+        <a href="#dest-detail-content" className="dest-detail-hero-scroll" aria-label={fill(t.scrollDown, { name: dest.name })}>
+          <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+        </a>
       </section>
 
-      <section className="section">
+      <section className="section" id="dest-detail-content">
         <div className="container dest-detail-layout">
           <div className="dest-detail-main">
             <div className="dest-detail-section fade-in">

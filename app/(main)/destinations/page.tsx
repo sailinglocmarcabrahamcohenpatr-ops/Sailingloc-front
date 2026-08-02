@@ -64,12 +64,12 @@ export default async function DestinationsPage() {
             ]}
           />
         </div>
-        <div className="dest-detail-hero-scroll" aria-hidden="true">
-          <i className="fa-solid fa-chevron-down" />
-        </div>
+        <a href="#dest-featured" className="dest-detail-hero-scroll" aria-label={t.scrollDown}>
+          <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+        </a>
       </section>
 
-      <section className="dest-featured-section">
+      <section className="dest-featured-section" id="dest-featured">
         <div className="container">
           <HeroCarousel destinations={destinations} />
         </div>
@@ -84,7 +84,6 @@ export default async function DestinationsPage() {
           <div className="dest-grid-panel">
           <div className="section-hd fade-in">
             <h2>{fill(t.gridTitle, { count: destinations.length })}</h2>
-            <p>{t.gridSubtitle}</p>
           </div>
           <div className="destinations-page-grid">
             {destinations.map((dest, i) => {
