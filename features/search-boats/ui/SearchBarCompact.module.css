@@ -216,3 +216,38 @@
   color: #9ca3af;
   text-align: center;
 }
+
+/* ── Responsive mobile ───────────────────────── */
+@media (max-width: 640px) {
+  .bar {
+    flex-direction: column;
+    border-radius: 16px;
+  }
+
+  .section {
+    padding: 12px 16px;
+  }
+
+  .sep {
+    width: auto;
+    height: 1px;
+    margin: 0 16px;
+  }
+
+  .submitWrap {
+    padding: 10px 12px 12px;
+  }
+
+  .submitBtn {
+    width: 100%;
+    justify-content: center;
+    border-radius: 10px;
+    padding: 11px 20px;
+  }
+
+  .suggestions {
+    left: 0;
+    right: 0;
+    min-width: unset;
+  }
+}
