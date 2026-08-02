@@ -1,8 +1,10 @@
-import Link from "next/link";
+"use client";
+
 import type { Boat } from "../model/types";
 import BoatTypeIcon from "./BoatTypeIcon";
 import BoatCardGallery from "./BoatCardGallery";
 import { cn, formatPrice } from "@/shared/lib/utils";
+import { LocaleLink as Link, useI18n } from "@/shared/i18n";
 import "./boat-card.css";
 
 interface BoatCardProps {
@@ -12,7 +14,11 @@ interface BoatCardProps {
 }
 
 export default function BoatCard({ boat, className = "", action }: BoatCardProps) {
-  const typeLabel = boat.type.charAt(0).toUpperCase() + boat.type.slice(1);
+  const { dict } = useI18n();
+  const t = dict.boatCard;
+  const typeLabel =
+    dict.boatTypes[boat.type as keyof typeof dict.boatTypes] ??
+    boat.type.charAt(0).toUpperCase() + boat.type.slice(1);
 
   return (
     <Link
@@ -42,7 +48,7 @@ export default function BoatCard({ boat, className = "", action }: BoatCardProps
           <h3 className="boat-card-name">{boat.name}</h3>
           <span className="boat-card-rating">
             <i className="fa-solid fa-star" aria-hidden="true" />
-            {boat.reviewCount > 0 ? boat.rating.toFixed(1) : "Nouveau"}
+            {boat.reviewCount > 0 ? boat.rating.toFixed(1) : t.new}
           </span>
         </div>
 
@@ -60,22 +66,22 @@ export default function BoatCard({ boat, className = "", action }: BoatCardProps
           {boat.capacity != null && (
             <li>
               <i className="fa-solid fa-user-group" aria-hidden="true" />
-              {boat.capacity} pers.
+              {boat.capacity} {t.persons}
             </li>
           )}
           {boat.cabins != null && (
             <li>
               <i className="fa-solid fa-bed" aria-hidden="true" />
-              {boat.cabins} cabine{boat.cabins > 1 ? "s" : ""}
+              {boat.cabins} {boat.cabins > 1 ? t.cabins : t.cabin}
             </li>
           )}
         </ul>
 
         <div className="boat-card-foot">
           <span className="boat-card-price">
-            {formatPrice(boat.pricePerDay)} <span>/ jour</span>
+            {formatPrice(boat.pricePerDay)} <span>{dict.common.perDay}</span>
           </span>
-          <span className="boat-card-cta">Réserver</span>
+          <span className="boat-card-cta">{t.book}</span>
         </div>
       </div>
     </Link>

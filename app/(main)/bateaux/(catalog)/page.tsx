@@ -5,6 +5,7 @@ import { BoatsSidebar, ResultsControls, BoatsSplitMapView } from "@/widgets/boat
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
 
 const adaptBoat = adaptBoatFromApi;
@@ -18,16 +19,6 @@ function boatMatchesType(labelTypeBateau: string | undefined, slug: string): boo
   return label.includes(needle);
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  voilier: "Voiliers",
-  catamaran: "Catamarans",
-  moteur: "Bateaux à moteur",
-  habitable: "Habitables",
-  "semi-rigide": "Semi-rigides",
-  "sans-permis": "Sans permis",
-  ponton: "Pontons",
-};
-
 interface PageProps {
   searchParams: Promise<{
     type?: string;
@@ -39,11 +30,12 @@ interface PageProps {
     arrivee?: string;
     depart?: string;
     vue?: string;
+    tri?: string;
   }>;
 }
 
 export default async function BoatsPage({ searchParams }: PageProps) {
-  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue } = await searchParams;
+  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue, tri } = await searchParams;
 
   const types = (type?.split(",").filter((t) => t && t !== "tous") ?? []) as BoatType[];
 
@@ -128,12 +120,36 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     }
   }
 
+  if (tri === "prix-asc")        boats.sort((a, b) => a.pricePerDay - b.pricePerDay);
+  else if (tri === "prix-desc")  boats.sort((a, b) => b.pricePerDay - a.pricePerDay);
+  else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
+  else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
+
+  const tc = getDictionary(await getRequestLocale()).catalog;
+
+  const fmtDate = (iso: string) => {
+    const [, m, d] = iso.split("-");
+    return `${parseInt(d)} ${tc.monthsShort[parseInt(m) - 1]}`;
+  };
+  const fill = (tpl: string, vars: Record<string, string>) =>
+    tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+
   const subtitle = [
-    types.length > 0 ? types.map((t) => TYPE_LABELS[t] ?? t).join(", ") : null,
-    destination ? `à ${destination}` : null,
+    types.length > 0
+      ? types.map((ty) => tc.typeLabels[ty as keyof typeof tc.typeLabels] ?? ty).join(", ")
+      : null,
+    destination ? `${tc.subAt} ${destination}` : null,
+    skipper === "avec" ? tc.subWithSkipper : skipper === "sans" ? tc.subWithoutSkipper : null,
+    arrivee && depart
+      ? fill(tc.subDateRange, { from: fmtDate(arrivee), to: fmtDate(depart) })
+      : arrivee
+      ? fill(tc.subDateFrom, { date: fmtDate(arrivee) })
+      : depart
+      ? fill(tc.subDateUntil, { date: fmtDate(depart) })
+      : null,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" · ");
 
   return (
     <div className="container">
@@ -145,7 +161,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
 
           {boats.length === 0 ? (
             <p style={{ color: "var(--text-2)", padding: "48px 0" }}>
-              Aucun bateau ne correspond à votre recherche.
+              {tc.empty}
             </p>
           ) : vue === "carte" ? (
             <BoatsSplitMapView boats={boats} />

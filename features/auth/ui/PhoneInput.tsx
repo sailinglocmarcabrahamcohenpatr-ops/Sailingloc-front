@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useI18n } from "@/shared/i18n";
 
 interface Country {
   code: string;
@@ -60,6 +61,7 @@ interface PhoneInputProps {
 }
 
 export default function PhoneInput({ id = "reg-phone", value, onChange }: PhoneInputProps) {
+  const tp = useI18n().dict.phoneInput;
   const [country, setCountry] = useState<Country>(COUNTRIES[0]);
   const [digits, setDigits]   = useState("");
   const [open, setOpen]       = useState(false);
@@ -117,13 +119,15 @@ export default function PhoneInput({ id = "reg-phone", value, onChange }: PhoneI
     setCountry(c);
     setOpen(false);
     setSearch("");
-    // keep digits, re-cap for new country
     const recapped = digits.slice(0, c.maxDigits);
     setDigits(recapped);
     onChange(recapped ? c.dial + recapped : "");
   };
 
   const displayValue = format(digits, country.groups);
+  const dialAriaLabel = tp.ariaDialCode
+    .replace("{name}", country.name)
+    .replace("{dial}", country.dial);
 
   return (
     <div className="phone-wrap" ref={wrapRef}>
@@ -134,7 +138,7 @@ export default function PhoneInput({ id = "reg-phone", value, onChange }: PhoneI
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Indicatif : ${country.name} ${country.dial}`}
+        aria-label={dialAriaLabel}
       >
         <span className="phone-flag">{country.flag}</span>
         <span className="phone-dial">{country.dial}</span>
@@ -151,26 +155,26 @@ export default function PhoneInput({ id = "reg-phone", value, onChange }: PhoneI
         value={displayValue}
         onChange={handleNumberChange}
         autoComplete="tel-national"
-        aria-label="Numéro de téléphone"
+        aria-label={tp.ariaPhone}
       />
 
       {/* ── Dropdown ── */}
       {open && (
-        <div className="phone-dropdown" role="listbox" aria-label="Sélectionner un pays">
+        <div className="phone-dropdown" role="listbox" aria-label={tp.ariaSelect}>
           <div className="phone-search-wrap">
             <i className="fa-solid fa-magnifying-glass phone-search-icon" aria-hidden="true" />
             <input
               ref={searchRef}
               type="text"
               className="phone-search-input"
-              placeholder="Rechercher un pays…"
+              placeholder={tp.searchPh}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <ul className="phone-country-list">
             {filtered.length === 0 && (
-              <li className="phone-no-result">Aucun résultat</li>
+              <li className="phone-no-result">{tp.noResult}</li>
             )}
             {filtered.map((c) => (
               <li key={c.code}>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { useAuth, boatsApi } from "@/shared/lib";
+import { useI18n, LocaleLink as Link, localizeHref } from "@/shared/i18n";
 import GuestCounter from "./GuestCounter";
 import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
 import { BOOKING_GUARANTEES } from "../model/constants";
@@ -37,10 +37,13 @@ export default function BookingCard({
   rating,
   reviewCount,
   capacity,
-  ownerName = "le propriétaire",
+  ownerName,
 }: BookingCardProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const { locale, dict } = useI18n();
+  const t = dict.boatDetail;
+  const ownerLabel = ownerName ?? t.defaultOwnerName;
   const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
@@ -83,9 +86,12 @@ export default function BookingCard({
 
   const handleBook = () => {
     if (!canBook || isOwnerAccount) return;
-    const destination = `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`;
+    const destination = localizeHref(
+      `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`,
+      locale
+    );
     if (!user) {
-      router.push(`/connexion?redirect=${encodeURIComponent(destination)}`);
+      router.push(localizeHref(`/connexion?redirect=${encodeURIComponent(destination)}`, locale));
       return;
     }
     router.push(destination);
@@ -96,18 +102,18 @@ export default function BookingCard({
       <div className="booking-card">
         <div className="booking-header">
           <div className="booking-price">
-            {formatPrice(pricePerDay)} <span>/ jour</span>
+            {formatPrice(pricePerDay)} <span>{t.perDay}</span>
           </div>
           <div className="booking-rating">
             <i className="fa-solid fa-star" aria-hidden="true" />
             <span>
-              {rating} · {reviewCount} avis
+              {rating} · {reviewCount} {t.reviews}
             </span>
           </div>
         </div>
         <div className="booking-body">
           <div className="booking-dates booking-dates-cal">
-            <label>Dates de location</label>
+            <label>{t.rentalDates}</label>
             <AvailabilityCalendar
               value={range}
               onChange={setRange}
@@ -127,31 +133,31 @@ export default function BookingCard({
             <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
             <span>
               {calLoading
-                ? "Vérification des disponibilités…"
+                ? t.checkingAvailability
                 : hasAvailability
-                ? "Cliquez sur le calendrier pour choisir vos dates de location."
-                : "Aucune date disponible pour ce bateau."}
+                ? t.bookingHint
+                : t.noDatesAvailable}
             </span>
           </div>
 
           <div className="booking-total">
             <div className="booking-total-row">
               <span>
-                {formatPrice(pricePerDay)} × {days} jour{days > 1 ? "s" : ""}
+                {formatPrice(pricePerDay)} × {days} {days > 1 ? t.daysLabel : t.dayLabel}
               </span>
               <strong>{formatPrice(subtotal)}</strong>
             </div>
             <div className="booking-total-row">
-              <span>Frais de service SailingLoc</span>
+              <span>{t.serviceFee}</span>
               <strong>{formatPrice(serviceFee)}</strong>
             </div>
             <div className="booking-total-row">
-              <span>Assurance incluse</span>
-              <strong className="text-green">Offerte</strong>
+              <span>{t.insuranceIncluded}</span>
+              <strong className="text-green">{t.free}</strong>
             </div>
             <div className="booking-total-divider" />
             <div className="booking-total-final">
-              <span>Total</span>
+              <span>{t.total}</span>
               <span>{formatPrice(total)}</span>
             </div>
           </div>
@@ -163,51 +169,52 @@ export default function BookingCard({
             disabled={!canBook || isOwnerAccount}
             title={
               isOwnerAccount
-                ? "La réservation est réservée aux comptes locataires"
+                ? t.titleOwnerOnly
                 : !canBook
-                ? "Choisissez vos dates sur le calendrier"
+                ? t.titleChooseDates
                 : undefined
             }
           >
             <i className="fa-solid fa-calendar-check" aria-hidden="true" />
             {isOwnerAccount
-              ? "Réservé aux locataires"
+              ? t.ctaOwnerOnly
               : !canBook
-              ? "Choisir des dates"
+              ? t.ctaChooseDates
               : user
-              ? "Réserver maintenant"
-              : "Se connecter pour réserver"}
+              ? t.ctaBookNow
+              : t.ctaLoginToBook}
           </button>
           <p className="booking-note">
-            {isOwnerAccount
-              ? "Basculez vers l'espace locataire pour réserver ce bateau."
-              : "Vous ne serez débité qu'après confirmation du propriétaire"}
+            {isOwnerAccount ? t.noteOwner : t.noteDefault}
           </p>
           <div className="booking-contact">
             <Link href="/contact">
-              <i className="fa-regular fa-comment" aria-hidden="true" /> Contacter{" "}
-              {ownerName}
+              <i className="fa-regular fa-comment" aria-hidden="true" /> {t.contact}{" "}
+              {ownerLabel}
             </Link>
-            <Link href="tel:+33612345678">
-              <i className="fa-solid fa-phone" aria-hidden="true" /> Appeler
-            </Link>
+            <a href="tel:+33612345678">
+              <i className="fa-solid fa-phone" aria-hidden="true" /> {t.call}
+            </a>
           </div>
         </div>
       </div>
 
       <div className="booking-guarantees">
-        {BOOKING_GUARANTEES.map((g) => (
-          <div key={g.title} className="booking-guarantee-item">
-            <i
-              className={`fa-solid ${g.icon} booking-guarantee-icon`}
-              style={{ color: g.color }}
-              aria-hidden="true"
-            />
-            <span>
-              <strong>{g.title}</strong> — {g.desc}
-            </span>
-          </div>
-        ))}
+        {BOOKING_GUARANTEES.map((g, i) => {
+          const label = t.guarantees[i];
+          return (
+            <div key={g.icon} className="booking-guarantee-item">
+              <i
+                className={`fa-solid ${g.icon} booking-guarantee-icon`}
+                style={{ color: g.color }}
+                aria-hidden="true"
+              />
+              <span>
+                <strong>{label.title}</strong> — {label.desc}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </aside>
   );

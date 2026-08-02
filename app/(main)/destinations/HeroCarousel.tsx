@@ -2,40 +2,40 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import type { FullDestination } from "@/entities/destination";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 
 const AUTOPLAY_MS = 5500;
-const THUMB_COUNT = 3;
 
 type DestinationWithPhotos = FullDestination & { photo: string; heroPhoto: string };
 
 export default function HeroCarousel({ destinations }: { destinations: DestinationWithPhotos[] }) {
+  const t = useI18n().dict.destinationsPage;
+  const count = destinations.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const count = destinations.length;
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const goTo = useCallback(
-    (i: number) => setIndex(((i % count) + count) % count),
-    [count]
-  );
+  const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
+  const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
+  const goTo = useCallback((i: number) => setIndex(i), []);
 
   useEffect(() => {
     if (paused || count <= 1) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS);
+    const timer = setInterval(next, AUTOPLAY_MS);
     return () => clearInterval(timer);
-  }, [paused, count]);
-
-  const containerRef = useRef<HTMLDivElement>(null);
+  }, [paused, count, next]);
 
   if (count === 0) return null;
 
   const current = destinations[index];
-  const thumbs = Array.from({ length: Math.min(THUMB_COUNT, count - 1) }, (_, n) => {
-    const i = (index + 1 + n) % count;
-    return { i, dest: destinations[i] };
-  });
+  const thumbs =
+    count > 2
+      ? [destinations[(index + 1) % count], destinations[(index + 2) % count]]
+      : count > 1
+        ? [destinations[(index + 1) % count]]
+        : [];
 
   return (
     <div
@@ -49,14 +49,14 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       }}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Destinations à la une"
+      aria-label={t.carouselAria}
     >
+      {/* Cross-fading full-bleed backgrounds with Ken Burns */}
       <div className="dest-featured-bg">
         {destinations.map((dest, i) => (
           <div
             key={dest.slug}
-            className="dest-featured-bg-img"
-            style={{ opacity: i === index ? 1 : 0 }}
+            className={`dest-featured-bg-img${i === index ? " is-active" : ""}`}
             aria-hidden={i !== index}
           >
             <Image
@@ -72,14 +72,37 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         <div className="dest-featured-overlay" />
       </div>
 
+      {/* Progress bar — keyed on index so it restarts on every slide change */}
+      {count > 1 && (
+        <div
+          key={`progress-${index}`}
+          className="dest-featured-progress"
+          style={{
+            animationDuration: `${AUTOPLAY_MS}ms`,
+            animationPlayState: paused ? "paused" : "running",
+          }}
+        />
+      )}
+
+      {/* Text stack — CSS opacity+transform transitions, no remount */}
       <div className="dest-featured-content">
-        <div className="dest-featured-eyebrow">{current.flag} {current.country}</div>
-        <h2 className="dest-featured-title">{current.name}</h2>
-        <p className="dest-featured-desc">{current.tagline}</p>
+        <div className="dest-featured-text-layer">
+          {destinations.map((dest, i) => (
+            <div
+              key={dest.slug}
+              className={`dest-featured-text${i === index ? " is-active" : ""}`}
+            >
+              <div className="dest-featured-eyebrow">{dest.country} {dest.flag}</div>
+              <h2 className="dest-featured-title">{dest.name}</h2>
+              <p className="dest-featured-desc">{dest.tagline}</p>
+            </div>
+          ))}
+        </div>
 
         <div className="dest-featured-actions">
           <Link href={`/destinations/${current.slug}`} className="dest-featured-cta">
-            Découvrir <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t.carouselDiscover}{" "}
+            <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </Link>
 
           {count > 1 && (
@@ -87,8 +110,8 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
               <button
                 type="button"
                 className="dest-featured-pager-btn"
-                aria-label="Destination précédente"
-                onClick={() => goTo(index - 1)}
+                aria-label={t.carouselPrev}
+                onClick={prev}
               >
                 <i className="fa-solid fa-chevron-left" aria-hidden="true" />
               </button>
@@ -98,8 +121,8 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
               <button
                 type="button"
                 className="dest-featured-pager-btn"
-                aria-label="Destination suivante"
-                onClick={() => goTo(index + 1)}
+                aria-label={t.carouselNext}
+                onClick={next}
               >
                 <i className="fa-solid fa-chevron-right" aria-hidden="true" />
               </button>
@@ -108,15 +131,16 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         </div>
       </div>
 
+      {/* Thumbnails — keyed on index so they animate in on every slide change */}
       {thumbs.length > 0 && (
-        <div className="dest-featured-thumbs" aria-label="Autres destinations">
-          {thumbs.map(({ i, dest }) => (
+        <div key={index} className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
+          {thumbs.map((dest) => (
             <button
               key={dest.slug}
               type="button"
               className="dest-featured-thumb"
-              onClick={() => goTo(i)}
-              aria-label={`Aller à ${dest.name}`}
+              onClick={() => goTo(destinations.indexOf(dest))}
+              aria-label={t.carouselGoTo.replace("{name}", dest.name)}
             >
               <span className="dest-featured-thumb-img">
                 <Image
@@ -128,7 +152,7 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
                 />
               </span>
               <span className="dest-featured-thumb-name">{dest.name}</span>
-              <span className="dest-featured-thumb-tag">Explorer</span>
+              <span className="dest-featured-thumb-tag">{t.carouselExplore}</span>
             </button>
           ))}
         </div>

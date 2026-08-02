@@ -30,12 +30,12 @@ export const BOAT_TYPES: { value: BoatType; label: string; icon: string }[] = [
 ];
 
 export const DESTINATIONS: Destination[] = [
-  { name: "Marseille", boatCount: 450, imageSeed: "marseille-port" },
   { name: "Côte d'Azur", boatCount: 380, imageSeed: "cote-azur" },
-  { name: "Bretagne", boatCount: 290, imageSeed: "bretagne-mer" },
   { name: "Corse", boatCount: 340, imageSeed: "corse-plage" },
-  { name: "Méditerranée", boatCount: 520, imageSeed: "mediterr-sea" },
-  { name: "Caraïbes", boatCount: 180, imageSeed: "caribbean-sea" },
+  { name: "Bretagne", boatCount: 290, imageSeed: "bretagne-mer" },
+  { name: "La Rochelle", boatCount: 150, imageSeed: "la-rochelle-voile" },
+  { name: "Languedoc", boatCount: 160, imageSeed: "sete-languedoc" },
+  { name: "Camargue", boatCount: 120, imageSeed: "camargue-delta" },
 ];
 
 export const COUNTRIES: Country[] = [

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiForgotPassword, ApiError } from "@/shared/lib";
 
 export default function ForgotPasswordForm() {
+  const t = useI18n().dict.forgotPasswordPage;
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,23 +20,21 @@ export default function ForgotPasswordForm() {
       await apiForgotPassword(email);
       setSent(true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Une erreur est survenue. Réessayez dans un instant.");
+      setError(err instanceof ApiError ? err.message : t.errServer);
     } finally {
       setLoading(false);
     }
   };
 
   if (sent) {
+    const parts = t.sentText.split("{email}");
     return (
       <div className="auth-success">
         <div className="auth-success-icon"><i className="fa-solid fa-envelope-circle-check" /></div>
-        <h3>E-mail envoyé !</h3>
-        <p>
-          Un lien de réinitialisation a été envoyé à <strong>{email}</strong>.
-          Vérifiez vos spams si vous ne le voyez pas dans les 5 minutes.
-        </p>
+        <h3>{t.sentTitle}</h3>
+        <p>{parts[0]}<strong>{email}</strong>{parts[1]}</p>
         <Link href="/connexion" className="btn btn-primary btn-full">
-          <i className="fa-solid fa-right-to-bracket" /> Retour à la connexion
+          <i className="fa-solid fa-right-to-bracket" /> {t.backToLogin}
         </Link>
       </div>
     );
@@ -43,15 +42,13 @@ export default function ForgotPasswordForm() {
 
   return (
     <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <p className="auth-desc">
-        Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-      </p>
+      <p className="auth-desc">{t.desc}</p>
       <div className="form-group">
-        <label htmlFor="forgot-email">Adresse e-mail</label>
+        <label htmlFor="forgot-email">{t.labelEmail}</label>
         <input
           id="forgot-email"
           type="email"
-          placeholder="vous@exemple.com"
+          placeholder={t.phEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -60,11 +57,14 @@ export default function ForgotPasswordForm() {
       </div>
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-        {loading ? <><i className="fa-solid fa-circle-notch fa-spin" /> Envoi…</> : <><i className="fa-solid fa-paper-plane" /> Envoyer le lien</>}
+        {loading
+          ? <><i className="fa-solid fa-circle-notch fa-spin" /> {t.submitLoading}</>
+          : <><i className="fa-solid fa-paper-plane" /> {t.submit}</>
+        }
       </button>
       <p className="auth-switch">
         <Link href="/connexion" className="auth-link">
-          <i className="fa-solid fa-arrow-left" /> Retour à la connexion
+          <i className="fa-solid fa-arrow-left" /> {t.backToLogin}
         </Link>
       </p>
     </form>

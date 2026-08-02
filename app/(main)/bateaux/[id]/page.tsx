@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Gallery } from "@/features/view-gallery";
 import { BookingCard } from "@/features/book-boat";
 import { LocationMapLoader } from "@/features/list-boat";
 import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI } from "@/shared/lib";
+import { LocaleLink as Link } from "@/shared/i18n";
+import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
+
+type BoatDetailDict = ReturnType<typeof getDictionary>["boatDetail"];
+
+/** Remplace les {placeholders} d'un gabarit par leurs valeurs. */
+function fill(tpl: string, vars: Record<string, string | number>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
+}
 
 interface RatingSummary {
   rating: number;
@@ -30,8 +38,8 @@ function summarizeAvis(avis: AvisAPI[]): RatingSummary {
   };
 }
 
-const fmtReviewDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+const fmtReviewDate = (d: string, intlLocale: string) =>
+  new Date(d).toLocaleDateString(intlLocale, { month: "long", year: "numeric" });
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -61,26 +69,27 @@ interface BoatPageData {
   galleryImages: { src: string; alt: string }[];
 }
 
-function adaptBoat(b: BoatAPI): BoatPageData {
+function adaptBoat(b: BoatAPI, t: BoatDetailDict): BoatPageData {
   const sortedPhotos = (b.photos ?? [])
     .slice()
     .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99));
 
+  const mainAlt = fill(t.galleryMainViewAlt, { name: b.nomBateau });
   const galleryImages =
     sortedPhotos.length > 0
       ? sortedPhotos.slice(0, 3).map((p, i) => ({
           src: resolvePhotoUrl(p.url),
-          alt: p.description ?? (i === 0 ? `${b.nomBateau} vue principale` : `Photo ${i + 1}`),
+          alt: p.description ?? (i === 0 ? mainAlt : fill(t.galleryPhotoAlt, { n: i + 1 })),
         }))
       : [
-          { src: `https://picsum.photos/seed/${b.id}-main/1200/800`, alt: `${b.nomBateau} vue principale` },
-          { src: `https://picsum.photos/seed/${b.id}-cockpit/600/400`, alt: "Cockpit" },
-          { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: "Cabine principale" },
+          { src: `https://picsum.photos/seed/${b.id}-main/1200/800`, alt: mainAlt },
+          { src: `https://picsum.photos/seed/${b.id}-cockpit/600/400`, alt: t.galleryCockpit },
+          { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: t.galleryMainCabin },
         ];
 
   const owner = b.proprietaire ?? b.utilisateur;
   const ownerId = owner?.id ?? b.id_utilisateur ?? null;
-  const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : "Propriétaire";
+  const ownerName = owner ? `${owner.prenom} ${owner.nom}`.trim() : t.defaultOwner;
   const ownerInitials = owner
     ? `${owner.prenom?.[0] ?? ""}${owner.nom?.[0] ?? ""}`.toUpperCase() || "?"
     : "?";
@@ -115,59 +124,45 @@ function adaptBoat(b: BoatAPI): BoatPageData {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  const t = getDictionary(await getRequestLocale()).boatDetail;
   try {
     const b = await boatsApi.getOne(id);
-    const boat = adaptBoat(b);
+    const boat = adaptBoat(b, t);
     return {
       title: boat.name,
-      description: `Louez le ${boat.name} à ${boat.location} — ${boat.pricePerDay.toLocaleString("fr-FR")} € / jour.`,
+      description: fill(t.metaDescription, {
+        name: boat.name,
+        location: boat.location,
+        price: boat.pricePerDay.toLocaleString("fr-FR"),
+      }),
     };
   } catch {
-    return { title: "Bateau introuvable" };
+    return { title: t.metaNotFound };
   }
 }
 
-const SPECS = (boat: BoatPageData) =>
+const SPECS = (boat: BoatPageData, t: BoatDetailDict) =>
   [
-    { icon: "fa-ruler-horizontal", val: boat.taille, label: "Longueur" },
-    { icon: "fa-table-cells", val: boat.cabins ? `${boat.cabins}` : "—", label: "Cabines" },
-    { icon: "fa-bed", val: boat.capacity ? `${boat.capacity}` : "—", label: "Couchages" },
-    { icon: "fa-gas-pump", val: boat.motorisation, label: "Motorisation" },
-    { icon: "fa-anchor", val: boat.location, label: "Port d'attache" },
+    { icon: "fa-ruler-horizontal", val: boat.taille, label: t.specSize },
+    { icon: "fa-table-cells", val: boat.cabins ? `${boat.cabins}` : t.dash, label: t.specCabins },
+    { icon: "fa-bed", val: boat.capacity ? `${boat.capacity}` : t.dash, label: t.specBerths },
+    { icon: "fa-gas-pump", val: boat.motorisation, label: t.specMotor },
+    { icon: "fa-anchor", val: boat.location, label: t.specLocation },
   ];
 
-const RULES = [
-  {
-    icon: "fa-clock",
-    title: "Heure d'arrivée",
-    desc: "À partir de 17h00. Départ avant 09h00. Remise des clés au port.",
-  },
-  {
-    icon: "fa-shield-halved",
-    title: "Caution",
-    desc: "Caution par empreinte bancaire. Restituée sous 5 jours après le retour.",
-  },
-  {
-    icon: "fa-gas-pump",
-    title: "Carburant",
-    desc: "Plein fourni au départ. Retour avec le même niveau de carburant.",
-  },
-  {
-    icon: "fa-circle-question",
-    title: "Comment ?",
-    desc: "Check-in avec briefing de 45 minutes. Skipper disponible sur demande.",
-  },
-];
+const RULE_ICONS = ["fa-clock", "fa-shield-halved", "fa-gas-pump", "fa-circle-question"] as const;
 
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
+  const dict = getDictionary(await getRequestLocale());
+  const t = dict.boatDetail;
 
   let boat: BoatPageData;
   let statut: string;
   try {
     const data = await boatsApi.getOne(id);
     statut = data.statut;
-    boat = adaptBoat(data);
+    boat = adaptBoat(data, t);
   } catch {
     notFound();
   }
@@ -184,10 +179,10 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <div className="container">
-      <nav className="breadcrumb" aria-label="Fil d'Ariane">
-        <Link href="/"><i className="fa-solid fa-house" aria-hidden="true" /> Accueil</Link>
+      <nav className="breadcrumb" aria-label={t.breadcrumbAria}>
+        <Link href="/"><i className="fa-solid fa-house" aria-hidden="true" /> {t.home}</Link>
         <span className="breadcrumb-sep" aria-hidden="true"><i className="fa-solid fa-chevron-right" /></span>
-        <Link href="/bateaux">Bateaux disponibles</Link>
+        <Link href="/bateaux">{t.boatsAvailable}</Link>
         <span className="breadcrumb-sep" aria-hidden="true"><i className="fa-solid fa-chevron-right" /></span>
         <span aria-current="page">{boat.name}</span>
       </nav>
@@ -205,8 +200,8 @@ export default async function ProductPage({ params }: PageProps) {
             <div className="product-meta">
               <div className="product-rating">
                 <i className="fa-solid fa-star" aria-hidden="true" />
-                {boat.rating > 0 ? boat.rating : "Nouveau"} &nbsp;·&nbsp;
-                <a href="#avis">{boat.reviewCount} avis</a>
+                {boat.rating > 0 ? boat.rating : t.new} &nbsp;·&nbsp;
+                <a href="#avis">{boat.reviewCount} {t.reviews}</a>
               </div>
               <div className="product-loc">
                 <i className="fa-solid fa-location-dot" aria-hidden="true" />
@@ -218,11 +213,11 @@ export default async function ProductPage({ params }: PageProps) {
                 {boat.ownerInitials}
               </div>
               <div className="product-owner-info">
-                <small>Proposé par</small>
+                <small>{t.offeredBy}</small>
                 <strong>{boat.ownerName}</strong>
                 {boat.ownerId != null && (
                   <Link href={`/proprietaires/${boat.ownerId}`}>
-                    Voir le profil{" "}
+                    {t.viewProfile}{" "}
                     <i className="fa-solid fa-arrow-right" style={{ fontSize: ".7rem" }} aria-hidden="true" />
                   </Link>
                 )}
@@ -231,9 +226,9 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           <div className="characteristics">
-            <h3>Caractéristiques</h3>
-            <div className="char-grid" role="list" aria-label="Caractéristiques du bateau">
-              {SPECS(boat).map((spec) => (
+            <h3>{t.characteristicsTitle}</h3>
+            <div className="char-grid" role="list" aria-label={t.specsAria}>
+              {SPECS(boat, t).map((spec) => (
                 <div key={spec.label} className="char-item" role="listitem">
                   <div className="char-icon">
                     <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
@@ -248,31 +243,29 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           <div className="description">
-            <h3>Description</h3>
+            <h3>{t.descriptionTitle}</h3>
             {boat.description ? (
               <p>{boat.description}</p>
             ) : (
               <>
                 <p>
-                  Le {boat.name} est un bateau moderne et confortable, idéal pour une croisière en
-                  famille ou entre amis. Alliant performance et habitabilité grâce à son large
-                  cockpit ouvert{boat.cabins > 0 ? ` et ses ${boat.cabins} cabines indépendantes` : ""}.
+                  {fill(t.descFallback1, {
+                    name: boat.name,
+                    cabins: boat.cabins > 0 ? fill(t.descFallbackCabins, { n: boat.cabins }) : "",
+                  })}
                 </p>
-                <p>
-                  Basé à {boat.location}, ce bateau vous permettra d'explorer les plus belles
-                  destinations de la région. Un vrai bijou de navigation pour les passionnés.
-                </p>
+                <p>{fill(t.descFallback2, { location: boat.location })}</p>
               </>
             )}
           </div>
 
           <div className="rules">
-            <h3>Règles &amp; conditions de location</h3>
+            <h3>{t.rulesTitle}</h3>
             <div className="rules-grid">
-              {RULES.map((rule) => (
+              {t.rules.map((rule, i) => (
                 <div key={rule.title} className="rule-item">
                   <strong>
-                    <i className={`fa-solid ${rule.icon}`} aria-hidden="true" /> {rule.title}
+                    <i className={`fa-solid ${RULE_ICONS[i]}`} aria-hidden="true" /> {rule.title}
                   </strong>
                   <p>{rule.desc}</p>
                 </div>
@@ -283,14 +276,16 @@ export default async function ProductPage({ params }: PageProps) {
           <section className="reviews-section" id="avis" aria-labelledby="reviews-title">
             <h3 id="reviews-title">
               <i className="fa-solid fa-star" style={{ color: "var(--star)" }} aria-hidden="true" />{" "}
-              {boat.reviewCount > 0 ? `${boat.rating} · ${boat.reviewCount} avis` : "Aucun avis pour l'instant"}
+              {boat.reviewCount > 0
+                ? fill(t.reviewsSummary, { rating: boat.rating, count: boat.reviewCount })
+                : t.reviewsNoneTitle}
             </h3>
 
             {boat.reviewCount > 0 && (
               <div className="reviews-overview">
                 <div className="reviews-score-big">
                   <div className="reviews-score-num">{boat.rating}</div>
-                  <div className="reviews-score-max">/ 5</div>
+                  <div className="reviews-score-max">{t.outOf5}</div>
                   <div className="stars" aria-hidden="true">
                     {[...Array(5)].map((_, i) => (
                       <i
@@ -308,9 +303,9 @@ export default async function ProductPage({ params }: PageProps) {
                 </div>
                 <div className="reviews-bars">
                   {[
-                    { label: "Propriétaire", pct: (summary.proprietaire / 5) * 100 },
-                    { label: "Bateau", pct: (summary.bateau / 5) * 100 },
-                    { label: "Lieu visité", pct: (summary.lieu / 5) * 100 },
+                    { label: t.barOwner, pct: (summary.proprietaire / 5) * 100 },
+                    { label: t.barBoat, pct: (summary.bateau / 5) * 100 },
+                    { label: t.barPlace, pct: (summary.lieu / 5) * 100 },
                   ].map((bar) => (
                     <div key={bar.label} className="review-bar-row">
                       <span className="review-bar-label">{bar.label}</span>
@@ -333,12 +328,12 @@ export default async function ProductPage({ params }: PageProps) {
 
             {avis.length === 0 ? (
               <p style={{ color: "var(--text-2)" }}>
-                Ce bateau n&apos;a pas encore reçu d&apos;avis. Soyez le premier à le noter après votre location !
+                {t.noReviewsYet}
               </p>
             ) : (
               avis.map((a) => {
                 const reviewer = a.utilisateur;
-                const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Locataire SailingLoc";
+                const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : t.defaultReviewer;
                 const initial = reviewer?.prenom?.[0]?.toUpperCase() ?? "?";
 
                 return (
@@ -347,10 +342,10 @@ export default async function ProductPage({ params }: PageProps) {
                       <div className="review-author-avatar" aria-hidden="true">{initial}</div>
                       <div className="review-author-info">
                         <strong>{authorName}</strong>
-                        <span>{fmtReviewDate(a.dateAvis)}</span>
+                        <span>{fmtReviewDate(a.dateAvis, dict.dateField.intlLocale)}</span>
                       </div>
                     </div>
-                    <div className="review-rating" aria-label={`Note : ${a.note} sur 5`}>
+                    <div className="review-rating" aria-label={fill(t.ratingAria, { note: a.note })}>
                       {[...Array(5)].map((_, i) => (
                         <i
                           key={i}
@@ -367,20 +362,20 @@ export default async function ProductPage({ params }: PageProps) {
           </section>
 
           <section className="location-section" aria-labelledby="location-title">
-            <h3 id="location-title">Localisation</h3>
+            <h3 id="location-title">{t.locationTitle}</h3>
             {boat.coordinates ? (
               <div className="location-map location-map--interactive">
                 <LocationMapLoader lat={boat.coordinates.lat} lng={boat.coordinates.lng} />
               </div>
             ) : (
-              <div className="location-map" role="img" aria-label={`Carte : ${boat.location}`}>
+              <div className="location-map" role="img" aria-label={fill(t.mapAria, { location: boat.location })}>
                 <i className="fa-solid fa-map-location-dot" aria-hidden="true" />
                 <span>{boat.location}</span>
               </div>
             )}
             <p className="location-label">
               <i className="fa-solid fa-location-dot" aria-hidden="true" />
-              {boat.location} — L'adresse exacte vous sera communiquée après confirmation de la réservation.
+              {fill(t.locationDisclaimer, { location: boat.location })}
             </p>
           </section>
         </div>

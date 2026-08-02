@@ -1,22 +1,10 @@
-import type { BookingGuarantee } from "@/shared/types";
-
-export const BOOKING_GUARANTEES: BookingGuarantee[] = [
-  {
-    icon: "fa-shield-halved",
-    color: "var(--green)",
-    title: "Réservation sécurisée",
-    desc: "Paiement protégé par SailingLoc",
-  },
-  {
-    icon: "fa-rotate-left",
-    color: "var(--primary)",
-    title: "Annulation gratuite",
-    desc: "jusqu'à 72h avant le départ",
-  },
-  {
-    icon: "fa-headset",
-    color: "var(--primary)",
-    title: "Support 7j/7",
-    desc: "en cas de problème pendant votre croisière",
-  },
-];
+/**
+ * Aspect visuel des garanties de réservation (icône + couleur).
+ * Les libellés (titre/description) proviennent du dictionnaire i18n
+ * (`dict.boatDetail.guarantees`), indexés dans le même ordre que ce tableau.
+ */
+export const BOOKING_GUARANTEES = [
+  { icon: "fa-shield-halved", color: "var(--green)" },
+  { icon: "fa-rotate-left", color: "var(--primary)" },
+  { icon: "fa-headset", color: "var(--primary)" },
+] as const;

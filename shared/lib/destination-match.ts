@@ -15,9 +15,12 @@ export function normalizeText(str: string): string {
 
 /** Villes/mots-clés associés à chaque destination française (le pays seul ne suffit pas à les distinguer). */
 export const FRANCE_CITY_KEYWORDS: Record<string, string[]> = {
-  "cote-azur": ["marseille", "nice", "cannes", "antibes", "toulon", "hyeres", "beziers", "tropez", "grimaud", "cassis", "ciotat", "seyne", "monaco", "menton"],
+  "cote-azur": ["marseille", "nice", "cannes", "antibes", "toulon", "hyeres", "tropez", "grimaud", "cassis", "ciotat", "seyne", "monaco", "menton", "bandol"],
   corse: ["corse", "ajaccio", "bonifacio", "bastia", "calvi", "porto-vecchio", "propriano", "calenzana"],
-  bretagne: ["bretagne", "brest", "lorient", "vannes", "quimper", "concarneau", "morbihan", "glenan", "raz"],
+  bretagne: ["bretagne", "brest", "lorient", "vannes", "quimper", "concarneau", "morbihan", "glenan", "raz", "arzon", "crouesty"],
+  "la-rochelle": ["la rochelle", "larochelle", "rochefort", "ile re", "ile de re", "oleron", "oléron", "fouras", "royan", "charente", "chatelaillon"],
+  languedoc: ["sete", "sète", "agde", "montpellier", "palavas", "grande motte", "marseillan", "frontignan", "thau", "beziers", "béziers", "valras"],
+  camargue: ["camargue", "grau", "grau-du-roi", "saintes maries", "aigues mortes", "port saint louis", "fos", "martigues"],
 };
 
 export interface PortLike {
