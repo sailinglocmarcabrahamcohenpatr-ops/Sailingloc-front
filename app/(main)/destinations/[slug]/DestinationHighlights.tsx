@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useI18n } from "@/shared/i18n";
 
@@ -30,6 +31,8 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
   const t = useI18n().dict.destinationDetail;
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const hasPhotos = photos.length > 0;
+  const thumbsRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
 
   const open = useCallback(
     (fallbackIndex: number, image?: string) => {
@@ -72,6 +75,23 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
 
   const active = openIndex === null ? null : photos[openIndex];
 
+  // Auto-scroll active thumbnail into view
+  useEffect(() => {
+    if (openIndex === null || !thumbsRef.current) return;
+    const thumb = thumbsRef.current.children[openIndex] as HTMLElement | undefined;
+    thumb?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [openIndex]);
+
+  // Swipe support
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (dx > 48) prev();
+    else if (dx < -48) next();
+    touchStartX.current = null;
+  };
+
   return (
     <>
       <div className="dest-highlights-grid">
@@ -109,7 +129,7 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
         ))}
       </div>
 
-      {active && (
+      {active && createPortal(
         <div
           className="dest-lightbox"
           role="dialog"
@@ -117,75 +137,85 @@ export default function DestinationHighlights({ highlights, photos, destName }: 
           aria-label={fill(t.lightboxAria, { name: destName })}
           onClick={close}
         >
-          <button
-            type="button"
-            className="dest-lightbox-close"
-            onClick={close}
-            aria-label={t.lightboxClose}
-          >
-            <i className="fa-solid fa-xmark" aria-hidden="true" />
-          </button>
+          <div className="dest-lightbox-dialog" onClick={(e) => e.stopPropagation()}>
 
-          <div className="dest-lightbox-stage" onClick={(e) => e.stopPropagation()}>
-            {photos.length > 1 && (
+            {/* En-tête : titre + compteur + fermer */}
+            <div className="dest-lightbox-header">
+              <span className="dest-lightbox-caption">{active.caption}</span>
+              {photos.length > 1 && (
+                <span className="dest-lightbox-counter">{openIndex! + 1} / {photos.length}</span>
+              )}
               <button
                 type="button"
-                className="dest-lightbox-nav dest-lightbox-prev"
-                onClick={prev}
-                aria-label={t.lightboxPrev}
+                className="dest-lightbox-close"
+                onClick={close}
+                aria-label={t.lightboxClose}
               >
-                <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
               </button>
-            )}
+            </div>
 
-            <figure className="dest-lightbox-figure">
+            {/* Zone image avec flèches flottantes */}
+            <div
+              className="dest-lightbox-media"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <div className="dest-lightbox-img">
                 <Image
                   src={active.src}
                   alt={active.caption}
                   fill
-                  sizes="90vw"
+                  sizes="(max-width: 900px) 100vw, 900px"
                   style={{ objectFit: "contain" }}
                   priority
                 />
               </div>
-              <figcaption className="dest-lightbox-caption">
-                <span>{active.caption}</span>
-                <span className="dest-lightbox-counter">
-                  {openIndex! + 1} / {photos.length}
-                </span>
-              </figcaption>
-            </figure>
-
-            {photos.length > 1 && (
-              <button
-                type="button"
-                className="dest-lightbox-nav dest-lightbox-next"
-                onClick={next}
-                aria-label={t.lightboxNext}
-              >
-                <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-              </button>
-            )}
-          </div>
-
-          {photos.length > 1 && (
-            <div className="dest-lightbox-thumbs" onClick={(e) => e.stopPropagation()}>
-              {photos.map((p, i) => (
+              {photos.length > 1 && (
                 <button
-                  key={p.src}
                   type="button"
-                  className={`dest-lightbox-thumb${i === openIndex ? " is-active" : ""}`}
-                  onClick={() => setOpenIndex(i)}
-                  aria-label={p.caption}
-                  aria-current={i === openIndex}
+                  className="dest-lightbox-nav dest-lightbox-prev"
+                  onClick={prev}
+                  aria-label={t.lightboxPrev}
                 >
-                  <Image src={p.src} alt="" fill sizes="90px" style={{ objectFit: "cover" }} />
+                  <i className="fa-solid fa-chevron-left" aria-hidden="true" />
                 </button>
-              ))}
+              )}
+              {photos.length > 1 && (
+                <button
+                  type="button"
+                  className="dest-lightbox-nav dest-lightbox-next"
+                  onClick={next}
+                  aria-label={t.lightboxNext}
+                >
+                  <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+                </button>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Pied : vignettes */}
+            {photos.length > 1 && (
+              <div className="dest-lightbox-footer">
+                <div className="dest-lightbox-thumbs" ref={thumbsRef}>
+                  {photos.map((p, i) => (
+                    <button
+                      key={p.src}
+                      type="button"
+                      className={`dest-lightbox-thumb${i === openIndex ? " is-active" : ""}`}
+                      onClick={() => setOpenIndex(i)}
+                      aria-label={p.caption}
+                      aria-current={i === openIndex}
+                    >
+                      <Image src={p.src} alt="" fill sizes="90px" style={{ objectFit: "cover" }} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>,
+        document.body
       )}
     </>
   );

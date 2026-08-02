@@ -170,73 +170,121 @@
 .dest-highlight-card:hover .dest-highlight-view,
 .dest-highlight-card:focus-visible .dest-highlight-view { opacity: 1; transform: none; }
 
-/* ── Lightbox photos du lieu ── */
+/* ── Lightbox — backdrop ── */
 .dest-lightbox {
-  position: fixed; inset: 0; z-index: 1000;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 18px; padding: 24px;
-  background: rgba(4, 10, 22, .92);
-  backdrop-filter: blur(10px);
-  animation: dest-lightbox-in .25s ease both;
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(4, 10, 22, .82);
+  backdrop-filter: blur(8px);
+  animation: dest-lightbox-in .2s ease both;
 }
 @keyframes dest-lightbox-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Fenêtre modale centrée ── */
+.dest-lightbox-dialog {
+  position: relative;
+  width: 100%; max-width: 900px;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  background: var(--navy, #0b1628);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, .75), 0 0 0 1px rgba(255, 255, 255, .09);
+  animation: dest-lightbox-dialog-in .22s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes dest-lightbox-dialog-in {
+  from { transform: scale(.93); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* ── En-tête : titre + compteur + fermer ── */
+.dest-lightbox-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  flex-shrink: 0;
+}
+.dest-lightbox-caption {
+  flex: 1; min-width: 0;
+  color: var(--white); font-size: .9375rem; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dest-lightbox-counter {
+  color: rgba(255, 255, 255, .45); font-size: .8125rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0;
+}
 .dest-lightbox-close {
-  position: absolute; top: 20px; right: 22px; z-index: 2;
-  width: 46px; height: 46px; border-radius: 50%;
-  background: rgba(255, 255, 255, .12);
-  border: 1px solid rgba(255, 255, 255, .3);
-  color: var(--white); font-size: 1.05rem; cursor: pointer;
+  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .22);
+  color: var(--white); font-size: 1rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
 .dest-lightbox-close:hover { background: var(--white); color: var(--navy); }
-.dest-lightbox-stage {
-  display: flex; align-items: center; gap: 18px;
-  width: 100%; max-width: 1100px; flex: 1; min-height: 0;
+
+/* ── Zone image avec nav flottante ── */
+.dest-lightbox-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: rgba(0, 0, 0, .35);
+  flex-shrink: 0;
+  overflow: hidden;
 }
+.dest-lightbox-img { position: absolute; inset: 0; }
+
 .dest-lightbox-nav {
-  flex: 0 0 auto;
-  width: 48px; height: 48px; border-radius: 50%;
-  background: rgba(255, 255, 255, .1);
-  border: 1px solid rgba(255, 255, 255, .28);
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(4, 10, 22, .58);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, .22);
   color: var(--white); font-size: 1rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: var(--transition);
 }
 .dest-lightbox-nav:hover { background: var(--white); color: var(--navy); }
-.dest-lightbox-figure {
-  flex: 1; min-width: 0; height: 100%;
-  display: flex; flex-direction: column; gap: 12px; margin: 0;
+.dest-lightbox-prev { left: 14px; }
+.dest-lightbox-next { right: 14px; }
+
+/* ── Pied : vignettes ── */
+.dest-lightbox-footer {
+  padding: 14px 18px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 255, 255, .08);
 }
-.dest-lightbox-img {
-  position: relative; flex: 1; min-height: 0;
-  border-radius: var(--radius-lg); overflow: hidden;
-}
-.dest-lightbox-caption {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  color: rgba(255, 255, 255, .9); font-size: .9375rem; font-weight: 600;
-}
-.dest-lightbox-counter { color: rgba(255, 255, 255, .6); font-variant-numeric: tabular-nums; }
 .dest-lightbox-thumbs {
-  display: flex; gap: 10px; max-width: 100%; overflow-x: auto; padding: 4px;
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 0;
   scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .18) transparent;
 }
 .dest-lightbox-thumb {
   flex: 0 0 auto;
-  position: relative; width: 84px; height: 60px;
+  position: relative; width: 76px; height: 54px;
   border-radius: 8px; overflow: hidden; cursor: pointer;
-  border: 2px solid transparent; opacity: .55; padding: 0; background: none;
-  transition: opacity .2s ease, border-color .2s ease;
+  border: 2px solid transparent; opacity: .48; padding: 0; background: none;
+  transition: opacity .18s ease, border-color .18s ease;
 }
-.dest-lightbox-thumb:hover { opacity: .85; }
-.dest-lightbox-thumb.is-active { opacity: 1; border-color: var(--white); }
+.dest-lightbox-thumb:hover { opacity: .8; }
+.dest-lightbox-thumb.is-active { opacity: 1; border-color: var(--primary, #1866f2); }
 
-@media (max-width: 640px) {
-  .dest-lightbox-nav { display: none; }
-  .dest-lightbox-stage { max-width: 100%; }
+/* ── Mobile ── */
+@media (max-width: 540px) {
+  .dest-lightbox { padding: 12px; }
+  .dest-lightbox-dialog { border-radius: 14px; max-height: 92vh; }
+  .dest-lightbox-header { padding: 11px 14px; }
+  .dest-lightbox-caption { font-size: .875rem; }
+  .dest-lightbox-footer { padding: 10px 12px; }
+  .dest-lightbox-thumb { width: 62px; height: 44px; border-radius: 6px; }
+  .dest-lightbox-nav { width: 38px; height: 38px; font-size: .875rem; }
+  .dest-lightbox-prev { left: 8px; }
+  .dest-lightbox-next { right: 8px; }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .dest-lightbox { animation: none; }
+  .dest-lightbox, .dest-lightbox-dialog { animation: none; }
   .dest-highlight-view { transition: none; }
 }
 
