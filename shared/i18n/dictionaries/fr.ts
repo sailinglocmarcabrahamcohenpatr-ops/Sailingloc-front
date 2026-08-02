@@ -269,6 +269,13 @@ export const fr = {
     portPriceFrom: "Dès {price}",
     galleryTitle: "Galerie photos",
     galleryAlt: "{name} — photo {n}",
+    /* Lightbox points forts */
+    highlightViewPhotos: "Voir les photos",
+    highlightOpenAria: "Ouvrir la galerie photos : {title}",
+    lightboxAria: "Galerie photos de {name}",
+    lightboxClose: "Fermer la galerie",
+    lightboxPrev: "Photo précédente",
+    lightboxNext: "Photo suivante",
     /* Aside météo */
     weatherTitle: "Météo & Navigation",
     avgTemp: "Température moy.",

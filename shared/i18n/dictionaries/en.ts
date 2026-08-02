@@ -270,6 +270,13 @@ export const en: Dictionary = {
     portPriceFrom: "From {price}",
     galleryTitle: "Photo gallery",
     galleryAlt: "{name} — photo {n}",
+    /* Highlights lightbox */
+    highlightViewPhotos: "View photos",
+    highlightOpenAria: "Open photo gallery: {title}",
+    lightboxAria: "Photo gallery of {name}",
+    lightboxClose: "Close gallery",
+    lightboxPrev: "Previous photo",
+    lightboxNext: "Next photo",
     /* Weather aside */
     weatherTitle: "Weather & Sailing",
     avgTemp: "Avg. temperature",

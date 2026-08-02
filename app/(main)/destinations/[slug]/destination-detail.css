@@ -86,7 +86,15 @@
   padding-top: 190px;
   min-height: 300px;
   transition: var(--transition);
+  /* Carte cliquable rendue en <button> : on neutralise les styles natifs. */
+  width: 100%;
+  text-align: left;
+  color: var(--text-1);
+  font: inherit;
+  cursor: pointer;
 }
+.dest-highlight-card:disabled { cursor: default; }
+.dest-highlight-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .dest-highlight-card:has(.dest-highlight-card-img) {
   padding-top: 224px;
   min-height: 330px;
@@ -140,6 +148,97 @@
 .dest-gallery-item:hover img { transform: scale(1.05); }
 .dest-gallery-main { grid-row: span 2; }
 @media (max-width: 700px) { .dest-gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 160px 160px; } .dest-gallery-main { grid-row: span 1; } }
+
+/* ── Affordance « Voir les photos » sur la carte point fort ── */
+.dest-highlight-view {
+  position: absolute; z-index: 2; bottom: 20px; right: 20px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: 999px;
+  background: rgba(6, 14, 30, .58);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, .3);
+  color: var(--white); font-size: .75rem; font-weight: 700;
+  letter-spacing: .02em;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .28s ease, transform .28s ease;
+  pointer-events: none;
+}
+.dest-highlight-card:has(.dest-highlight-card-img) .dest-highlight-view { display: inline-flex; }
+.dest-highlight-card:not(:has(.dest-highlight-card-img)) .dest-highlight-view {
+  background: var(--primary); border-color: transparent;
+}
+.dest-highlight-card:hover .dest-highlight-view,
+.dest-highlight-card:focus-visible .dest-highlight-view { opacity: 1; transform: none; }
+
+/* ── Lightbox photos du lieu ── */
+.dest-lightbox {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 24px;
+  background: rgba(4, 10, 22, .92);
+  backdrop-filter: blur(10px);
+  animation: dest-lightbox-in .25s ease both;
+}
+@keyframes dest-lightbox-in { from { opacity: 0; } to { opacity: 1; } }
+.dest-lightbox-close {
+  position: absolute; top: 20px; right: 22px; z-index: 2;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .3);
+  color: var(--white); font-size: 1.05rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.dest-lightbox-close:hover { background: var(--white); color: var(--navy); }
+.dest-lightbox-stage {
+  display: flex; align-items: center; gap: 18px;
+  width: 100%; max-width: 1100px; flex: 1; min-height: 0;
+}
+.dest-lightbox-nav {
+  flex: 0 0 auto;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .28);
+  color: var(--white); font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.dest-lightbox-nav:hover { background: var(--white); color: var(--navy); }
+.dest-lightbox-figure {
+  flex: 1; min-width: 0; height: 100%;
+  display: flex; flex-direction: column; gap: 12px; margin: 0;
+}
+.dest-lightbox-img {
+  position: relative; flex: 1; min-height: 0;
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+.dest-lightbox-caption {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  color: rgba(255, 255, 255, .9); font-size: .9375rem; font-weight: 600;
+}
+.dest-lightbox-counter { color: rgba(255, 255, 255, .6); font-variant-numeric: tabular-nums; }
+.dest-lightbox-thumbs {
+  display: flex; gap: 10px; max-width: 100%; overflow-x: auto; padding: 4px;
+  scrollbar-width: thin;
+}
+.dest-lightbox-thumb {
+  flex: 0 0 auto;
+  position: relative; width: 84px; height: 60px;
+  border-radius: 8px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; opacity: .55; padding: 0; background: none;
+  transition: opacity .2s ease, border-color .2s ease;
+}
+.dest-lightbox-thumb:hover { opacity: .85; }
+.dest-lightbox-thumb.is-active { opacity: 1; border-color: var(--white); }
+
+@media (max-width: 640px) {
+  .dest-lightbox-nav { display: none; }
+  .dest-lightbox-stage { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dest-lightbox { animation: none; }
+  .dest-highlight-view { transition: none; }
+}
 
 .dest-detail-aside { display: flex; flex-direction: column; gap: 20px; }
 .dest-aside-card { background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 24px; box-shadow: var(--shadow); }

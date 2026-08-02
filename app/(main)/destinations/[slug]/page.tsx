@@ -8,6 +8,7 @@ import { LocaleLink as Link } from "@/shared/i18n";
 import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
 import { getDestinationBoats, groupBoatsByPort } from "./ports-data";
 import DestinationMapSection from "./DestinationMapSection";
+import DestinationHighlights, { type PlacePhoto } from "./DestinationHighlights";
 import "./destination-detail.css";
 
 /** Remplace les {placeholders} d'un gabarit par leurs valeurs. */
@@ -58,6 +59,23 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         .map((h, i) => getCoherentPhoto(h.title, dest.gallerySeeds[i] ?? `${dest.slug}-${i}`))
     ));
 
+  // Pool de vraies photos du lieu pour la lightbox : images des points forts
+  // (légendées par leur titre) puis photos de galerie, sans doublon.
+  const placePhotos: PlacePhoto[] = [];
+  const seenPhotos = new Set<string>();
+  for (const h of dest.highlights) {
+    if (h.image && !seenPhotos.has(h.image)) {
+      seenPhotos.add(h.image);
+      placePhotos.push({ src: h.image, caption: h.title });
+    }
+  }
+  for (const src of galleryPhotos) {
+    if (!seenPhotos.has(src)) {
+      seenPhotos.add(src);
+      placePhotos.push({ src, caption: dest.name });
+    }
+  }
+
   return (
     <>
       <section className="dest-detail-hero">
@@ -101,28 +119,11 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
             <div className="dest-detail-section fade-in">
               <h2>{t.highlightsTitle}</h2>
-              <div className="dest-highlights-grid">
-                {dest.highlights.map((h, i) => (
-                  <div key={h.title} className="dest-highlight-card">
-                    {h.image && (
-                      <div className="dest-highlight-card-img">
-                        <Image
-                          src={h.image}
-                          alt={h.title}
-                          fill
-                          sizes="(max-width: 600px) 100vw, 50vw"
-                          style={{ objectFit: "cover" }}
-                        />
-                        <div className="dest-highlight-card-overlay" />
-                      </div>
-                    )}
-                    <span className="dest-highlight-num">{String(i + 1).padStart(2, "0")}</span>
-                    <div className="dest-highlight-icon"><i className={`fa-solid ${h.icon}`} aria-hidden="true" /></div>
-                    <h4>{h.title}</h4>
-                    <p>{h.desc}</p>
-                  </div>
-                ))}
-              </div>
+              <DestinationHighlights
+                highlights={dest.highlights}
+                photos={placePhotos}
+                destName={dest.name}
+              />
             </div>
 
             {ports.length > 0 && (
