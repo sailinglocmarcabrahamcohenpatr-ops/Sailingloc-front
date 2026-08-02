@@ -44,14 +44,20 @@ function saveDraftNow(data: DraftData): void {
   localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
 }
 
-/** Auto-sauvegarde avec debounce à chaque changement de données */
-export function useFormDraft(data: DraftData): void {
+/** Auto-sauvegarde avec debounce à chaque changement de données.
+ *  `enabled=false` coupe l'auto-sauvegarde (ex: juste après soumission) —
+ *  sans ça, cet effet (sans tableau de dépendances, il se relance à chaque
+ *  rendu) réécrivait le brouillon avec les données déjà soumises quelques
+ *  centaines de ms après `clearDraft()`, empêchant de repartir sur un
+ *  formulaire vide pour une nouvelle demande. */
+export function useFormDraft(data: DraftData, enabled = true): void {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const save = useCallback((d: DraftData) => saveDraftNow(d), []);
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (!enabled) return;
     timerRef.current = setTimeout(() => save(data), DEBOUNCE_MS);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   });
