@@ -51,13 +51,12 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
       aria-roledescription="carousel"
       aria-label={t.carouselAria}
     >
-      {/* Cross-fading full-bleed background */}
+      {/* Cross-fading full-bleed backgrounds with Ken Burns */}
       <div className="dest-featured-bg">
         {destinations.map((dest, i) => (
           <div
             key={dest.slug}
-            className="dest-featured-bg-img"
-            style={{ opacity: i === index ? 1 : 0 }}
+            className={`dest-featured-bg-img${i === index ? " is-active" : ""}`}
             aria-hidden={i !== index}
           >
             <Image
@@ -73,14 +72,31 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         <div className="dest-featured-overlay" />
       </div>
 
-      {/* Text + actions — keyed so entry animation replays on slide change */}
+      {/* Progress bar — keyed on index so it restarts on every slide change */}
+      {count > 1 && (
+        <div
+          key={index}
+          className="dest-featured-progress"
+          style={{
+            animationDuration: `${AUTOPLAY_MS}ms`,
+            animationPlayState: paused ? "paused" : "running",
+          }}
+        />
+      )}
+
+      {/* Text stack — CSS opacity+transform transitions, no remount */}
       <div className="dest-featured-content">
-        <div className="dest-featured-text" key={current.slug}>
-          <div className="dest-featured-eyebrow">
-            {current.country} {current.flag}
-          </div>
-          <h2 className="dest-featured-title">{current.name}</h2>
-          <p className="dest-featured-desc">{current.tagline}</p>
+        <div className="dest-featured-text-layer">
+          {destinations.map((dest, i) => (
+            <div
+              key={dest.slug}
+              className={`dest-featured-text${i === index ? " is-active" : ""}`}
+            >
+              <div className="dest-featured-eyebrow">{dest.country} {dest.flag}</div>
+              <h2 className="dest-featured-title">{dest.name}</h2>
+              <p className="dest-featured-desc">{dest.tagline}</p>
+            </div>
+          ))}
         </div>
 
         <div className="dest-featured-actions">
@@ -115,9 +131,9 @@ export default function HeroCarousel({ destinations }: { destinations: Destinati
         </div>
       </div>
 
-      {/* Upcoming destination thumbnails, floating bottom-right */}
+      {/* Thumbnails — keyed on index so they animate in on every slide change */}
       {thumbs.length > 0 && (
-        <div className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
+        <div key={index} className="dest-featured-thumbs" aria-label={t.carouselThumbsAria}>
           {thumbs.map((dest) => (
             <button
               key={dest.slug}
