@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.staticflickr.com" },
       { protocol: "https", hostname: "images.pexels.com" },
       { protocol: "https", hostname: "api.dsp-dev-o24a-g1.cloud" },
+      { protocol: "https", hostname: "api-test.dsp-dev-o24a-g1.cloud" },
     ],
   },
 };

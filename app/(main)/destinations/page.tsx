@@ -64,7 +64,7 @@ export default async function DestinationsPage() {
         <div className="container">
           <div className="section-hd fade-in">
             <h2>{destinations.length} destinations d'exception</h2>
-            <p>Des criques sauvages de Corse aux îles dorées des Cyclades</p>
+            <p>Des criques sauvages de Corse aux caps sauvages de Bretagne</p>
           </div>
           <div className="destinations-page-grid">
             {destinations.map((dest, i) => {
