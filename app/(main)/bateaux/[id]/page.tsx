@@ -129,14 +129,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const SPECS = (boat: BoatPageData) =>
   [
-    { icon: "fa-ruler-horizontal", val: boat.taille, label: "Taille" },
-    { icon: "fa-users", val: boat.capacity ? `${boat.capacity} pers.` : "—", label: "Capacité" },
-    { icon: "fa-bed", val: boat.cabins ? `${boat.cabins} cab.` : "—", label: "Couchettes" },
-    { icon: "fa-id-card", val: boat.permisRequis ? "Requis" : "Non requis", label: "Permis" },
+    { icon: "fa-ruler-horizontal", val: boat.taille, label: "Longueur" },
+    { icon: "fa-table-cells", val: boat.cabins ? `${boat.cabins}` : "—", label: "Cabines" },
+    { icon: "fa-bed", val: boat.capacity ? `${boat.capacity}` : "—", label: "Couchages" },
     { icon: "fa-gas-pump", val: boat.motorisation, label: "Motorisation" },
-    { icon: "fa-shield-halved", val: boat.caution ? `${boat.caution.toLocaleString("fr-FR")} €` : "—", label: "Caution" },
-    { icon: "fa-user-tie", val: boat.avecSkipper ? "Inclus" : "Non inclus", label: "Skipper" },
-    { icon: "fa-droplet", val: boat.carburantInclus ? "Inclus" : "Non inclus", label: "Carburant" },
+    { icon: "fa-anchor", val: boat.location, label: "Port d'attache" },
   ];
 
 const RULES = [
@@ -195,7 +192,7 @@ export default async function ProductPage({ params }: PageProps) {
         <span aria-current="page">{boat.name}</span>
       </nav>
 
-      <Gallery images={boat.galleryImages} />
+      <Gallery images={boat.galleryImages} title={boat.name} />
 
       <div className="product-layout">
         <div style={{ position: "relative" }}>
@@ -233,16 +230,21 @@ export default async function ProductPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="specs-grid" role="list" aria-label="Caractéristiques du bateau">
-            {SPECS(boat).map((spec) => (
-              <div key={spec.label} className="spec-card" role="listitem">
-                <div className="spec-icon">
-                  <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+          <div className="characteristics">
+            <h3>Caractéristiques</h3>
+            <div className="char-grid" role="list" aria-label="Caractéristiques du bateau">
+              {SPECS(boat).map((spec) => (
+                <div key={spec.label} className="char-item" role="listitem">
+                  <div className="char-icon">
+                    <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
+                  </div>
+                  <div className="char-text">
+                    <div className="char-label">{spec.label}</div>
+                    <div className="char-value">{spec.val}</div>
+                  </div>
                 </div>
-                <div className="spec-val">{spec.val}</div>
-                <div className="spec-lbl">{spec.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div className="description">

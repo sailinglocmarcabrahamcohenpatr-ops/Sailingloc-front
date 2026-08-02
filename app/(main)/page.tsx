@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
@@ -175,6 +176,66 @@ export default async function HomePage() {
             <Link href="/comment-ca-marche" className="btn btn-ghost">
               En savoir plus <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Application mobile ── */}
+      <section className="home-section app-teaser" aria-labelledby="app-title">
+        <div className="container">
+          <div className="app-teaser-grid">
+            <div className="app-teaser-text fade-in">
+              <p className="home-eyebrow">Application mobile</p>
+              <h2 id="app-title">SailingLoc dans votre poche</h2>
+              <p className="app-teaser-lead">
+                Réservez, gérez vos locations et recevez vos notifications où que vous
+                soyez. L&rsquo;application native iOS et Android arrive bientôt. Installez déjà
+                le site sur votre écran d&rsquo;accueil.
+              </p>
+              <ul className="app-teaser-features">
+                <li><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Recherche instantanée</li>
+                <li><i className="fa-solid fa-calendar-check" aria-hidden="true" /> Réservations & calendrier</li>
+                <li><i className="fa-solid fa-bell" aria-hidden="true" /> Notifications en direct</li>
+              </ul>
+              <div className="app-teaser-stores">
+                <div className="app-store-btn app-store-btn--dark">
+                  <span className="app-store-btn-badge">Prochainement</span>
+                  <i className="fa-brands fa-apple" aria-hidden="true" />
+                  <span className="app-store-btn-text"><small>Télécharger sur l&rsquo;</small>App Store</span>
+                </div>
+                <div className="app-store-btn app-store-btn--outline">
+                  <span className="app-store-btn-badge">Prochainement</span>
+                  <i className="fa-brands fa-google-play" aria-hidden="true" />
+                  <span className="app-store-btn-text"><small>Disponible sur</small>Google Play</span>
+                </div>
+              </div>
+              <div className="app-teaser-note">
+                <div className="app-teaser-note-icon">
+                  <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" />
+                </div>
+                <div>
+                  <strong>Disponible dès maintenant sur mobile</strong>
+                  <p>Ajoutez SailingLoc à votre écran d&rsquo;accueil (Safari, Chrome) pour une expérience proche d&rsquo;une application.</p>
+                  <Link href="/bateaux" className="app-teaser-note-link">
+                    Explorer les bateaux <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="app-teaser-visual fade-in" aria-hidden="true">
+              <div className="app-phone-shot">
+                <Image
+                  src="/images/tel-cutout.png"
+                  alt=""
+                  width={543}
+                  height={737}
+                  sizes="(max-width: 1024px) 260px, 300px"
+                  priority={false}
+                />
+              </div>
+              <span className="app-teaser-badge">Prochainement</span>
+            </div>
           </div>
         </div>
       </section>
