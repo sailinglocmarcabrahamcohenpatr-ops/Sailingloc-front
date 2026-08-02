@@ -5,12 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin, Search } from "lucide-react";
 import { api } from "@/shared/lib/api-client";
 import type { PortAPI } from "@/shared/lib/referentiels-api";
+import { useI18n, localizeHref } from "@/shared/i18n";
 import DateField from "./DateField";
 import s from "./SearchBarCompact.module.css";
 
 export default function SearchBarCompact() {
   const router       = useRouter();
   const searchParams = useSearchParams();
+  const { locale, dict } = useI18n();
+  const t = dict.search;
 
   const [dest,      setDest]      = useState(searchParams.get("destination") ?? "");
   const [arrival,   setArrival]   = useState(searchParams.get("arrivee") ?? "");
@@ -56,7 +59,7 @@ export default function SearchBarCompact() {
       const params = new URLSearchParams(searchParams.toString());
       if (next) params.set("destination", next);
       else params.delete("destination");
-      router.replace(`/bateaux?${params.toString()}`, { scroll: false });
+      router.replace(localizeHref(`/bateaux?${params.toString()}`, locale), { scroll: false });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, 350);
 
@@ -80,7 +83,7 @@ export default function SearchBarCompact() {
     setShowSug(false);
     const params = new URLSearchParams(searchParams.toString());
     params.set("destination", p.ville);
-    router.push(`/bateaux?${params.toString()}`);
+    router.push(localizeHref(`/bateaux?${params.toString()}`, locale));
   };
 
   const handleSearch = () => {
@@ -93,7 +96,7 @@ export default function SearchBarCompact() {
     if (departure)  params.set("depart",  departure);
     else            params.delete("depart");
     const qs = params.toString();
-    router.push(`/bateaux${qs ? "?" + qs : ""}`);
+    router.push(localizeHref(`/bateaux${qs ? "?" + qs : ""}`, locale));
   };
 
   return (
@@ -101,13 +104,13 @@ export default function SearchBarCompact() {
 
       {/* ── DESTINATION ── */}
       <div className={`${s.section} ${s["section--dest"]}`}>
-        <span className={s.label}>Destination</span>
+        <span className={s.label}>{t.destination}</span>
         <div className={s.destWrap} ref={destRef}>
           <div className={s.destRow}>
             <MapPin className={s.destIcon} aria-hidden="true" />
             <input
               className={s.destInput}
-              placeholder="Où souhaitez-vous naviguer ?"
+              placeholder={t.compactPlaceholder}
               value={dest}
               onChange={e => { setDest(e.target.value); setShowSug(true); }}
               onFocus={() => ports.length > 0 && setShowSug(true)}
@@ -115,7 +118,7 @@ export default function SearchBarCompact() {
                 if (e.key === "Enter")  handleSearch();
                 if (e.key === "Escape") setShowSug(false);
               }}
-              aria-label="Destination"
+              aria-label={t.destination}
               aria-autocomplete="list"
               aria-expanded={showSug}
               autoComplete="off"
@@ -123,7 +126,7 @@ export default function SearchBarCompact() {
             {dest && (
               <button
                 type="button"
-                aria-label="Effacer"
+                aria-label={t.clear}
                 className={s.clearBtn}
                 onClick={() => { setDest(""); setShowSug(false); }}
               >
@@ -133,7 +136,7 @@ export default function SearchBarCompact() {
           </div>
 
           {showSug && suggestions.length > 0 && (
-            <div className={s.suggestions} role="listbox" aria-label="Ports disponibles">
+            <div className={s.suggestions} role="listbox" aria-label={t.portsAria}>
               {suggestions.map((p) => (
                 <button
                   key={p.id}
@@ -160,12 +163,11 @@ export default function SearchBarCompact() {
 
       {/* ── ARRIVÉE ── */}
       <div className={s.section}>
-        <span className={s.label}>Arrivée</span>
+        <span className={s.label}>{t.arrival}</span>
         <DateField
           id="cbc-arrival"
           value={arrival}
           onChange={setArrival}
-          placeholder="Choisir"
         />
       </div>
 
@@ -173,13 +175,12 @@ export default function SearchBarCompact() {
 
       {/* ── DÉPART ── */}
       <div className={s.section}>
-        <span className={s.label}>Départ</span>
+        <span className={s.label}>{t.departure}</span>
         <DateField
           id="cbc-departure"
           value={departure}
           onChange={setDeparture}
           min={arrival}
-          placeholder="Choisir"
           align="right"
         />
       </div>
@@ -188,7 +189,7 @@ export default function SearchBarCompact() {
       <div className={s.submitWrap}>
         <button type="button" className={s.submitBtn} onClick={handleSearch}>
           <Search className={s.submitIcon} aria-hidden="true" />
-          Rechercher
+          {t.submit}
         </button>
       </div>
 

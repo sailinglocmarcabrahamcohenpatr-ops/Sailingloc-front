@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BOAT_TYPES } from "@/shared/config";
 import type { BoatType } from "@/shared/types";
+import { useI18n, localizeHref } from "@/shared/i18n";
 import { PRICE_OPTIONS, CAPACITY_OPTIONS, RATING_OPTIONS } from "../model/constants";
 
 const TYPE_CHOICES = BOAT_TYPES.filter((t) => t.value !== "tous");
@@ -11,6 +12,9 @@ const TYPE_CHOICES = BOAT_TYPES.filter((t) => t.value !== "tous");
 export default function FiltersBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale, dict } = useI18n();
+  const f = dict.filters;
+  const bt = dict.boatTypes;
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -42,7 +46,7 @@ export default function FiltersBar() {
       else params.delete(key);
     }
     const qs = params.toString();
-    router.push(`/bateaux${qs ? "?" + qs : ""}`);
+    router.push(localizeHref(`/bateaux${qs ? "?" + qs : ""}`, locale));
   };
 
   const toggleType = (value: BoatType) => {
@@ -70,7 +74,7 @@ export default function FiltersBar() {
           aria-expanded={open}
           aria-haspopup="dialog"
         >
-          <i className="fa-solid fa-sliders" aria-hidden="true" /> Filtres
+          <i className="fa-solid fa-sliders" aria-hidden="true" /> {f.button}
           {activeCount > 0 && <span className="filter-count-badge">{activeCount}</span>}
         </button>
 
@@ -79,16 +83,16 @@ export default function FiltersBar() {
             type="button"
             className="clear-filters"
             onClick={clearAll}
-            aria-label="Effacer tous les filtres"
+            aria-label={f.clearAllAria}
           >
-            Tout effacer
+            {f.clearAll}
           </button>
         )}
 
         {open && (
-          <div className="filter-panel" role="dialog" aria-label="Filtres avancés">
+          <div className="filter-panel" role="dialog" aria-label={f.panelAria}>
             <div className="filter-panel-section">
-              <span className="filter-panel-label">Type de bateau</span>
+              <span className="filter-panel-label">{f.boatType}</span>
               <div className="filter-panel-chips">
                 {TYPE_CHOICES.map((t) => (
                   <button
@@ -99,14 +103,14 @@ export default function FiltersBar() {
                     onClick={() => toggleType(t.value)}
                   >
                     <i className={`fa-solid ${t.icon}`} aria-hidden="true" />
-                    {t.label}
+                    {bt[t.value as keyof typeof bt] ?? t.label}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="filter-panel-section">
-              <span className="filter-panel-label">Skipper</span>
+              <span className="filter-panel-label">{f.skipper}</span>
               <div className="filter-panel-chips">
                 <button
                   type="button"
@@ -114,7 +118,7 @@ export default function FiltersBar() {
                   aria-pressed={skipper === "avec"}
                   onClick={() => toggleSkipper("avec")}
                 >
-                  Avec
+                  {f.skipperWith}
                 </button>
                 <button
                   type="button"
@@ -122,7 +126,7 @@ export default function FiltersBar() {
                   aria-pressed={skipper === "sans"}
                   onClick={() => toggleSkipper("sans")}
                 >
-                  Sans
+                  {f.skipperWithout}
                 </button>
               </div>
             </div>
@@ -130,48 +134,48 @@ export default function FiltersBar() {
             <div className="filter-panel-row">
               <div className="filter-panel-section">
                 <label className="filter-panel-label" htmlFor="filter-price">
-                  Budget
+                  {f.budget}
                 </label>
                 <select
                   id="filter-price"
                   value={priceMax}
                   onChange={(e) => updateParams({ prixMax: e.target.value || null })}
                 >
-                  {PRICE_OPTIONS.map((o) => (
+                  {PRICE_OPTIONS.map((o, i) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {f.priceOptions[i] ?? o.label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="filter-panel-section">
                 <label className="filter-panel-label" htmlFor="filter-capacity">
-                  Capacité
+                  {f.capacity}
                 </label>
                 <select
                   id="filter-capacity"
                   value={capacityMin}
                   onChange={(e) => updateParams({ capacite: e.target.value || null })}
                 >
-                  {CAPACITY_OPTIONS.map((o) => (
+                  {CAPACITY_OPTIONS.map((o, i) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {f.capacityOptions[i] ?? o.label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="filter-panel-section">
                 <label className="filter-panel-label" htmlFor="filter-rating">
-                  Note
+                  {f.rating}
                 </label>
                 <select
                   id="filter-rating"
                   value={ratingMin}
                   onChange={(e) => updateParams({ note: e.target.value || null })}
                 >
-                  {RATING_OPTIONS.map((o) => (
+                  {RATING_OPTIONS.map((o, i) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {f.ratingOptions[i] ?? o.label}
                     </option>
                   ))}
                 </select>
@@ -180,14 +184,14 @@ export default function FiltersBar() {
 
             <div className="filter-panel-footer">
               <button type="button" className="clear-filters" onClick={clearAll}>
-                Réinitialiser
+                {f.reset}
               </button>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={() => setOpen(false)}
               >
-                Voir les résultats
+                {f.seeResults}
               </button>
             </div>
           </div>
