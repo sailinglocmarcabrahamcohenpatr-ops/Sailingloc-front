@@ -92,8 +92,10 @@ export default function BookingCard({
   const hasAvailability = !calLoading;
   const canBook = Boolean(startDate && endDate);
 
-  const days = canBook ? daysBetween(startDate, endDate) : 0;
-  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
+  // 1 jour par défaut tant qu'aucune date n'est choisie — évite d'afficher
+  // "× 0 jour" alors que le total ci-dessous est déjà calculé sur 1 jour.
+  const days = canBook ? daysBetween(startDate, endDate) : 1;
+  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days);
 
   const isOwnerAccount = user?.role === "proprietaire" || user?.role === "admin";
 
