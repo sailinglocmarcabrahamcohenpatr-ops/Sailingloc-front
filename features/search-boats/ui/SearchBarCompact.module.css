@@ -7,6 +7,8 @@
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: visible;
+  /* contexte de positionnement pour les popovers DateField en mobile */
+  position: relative;
 }
 
 /* ── Section générique ───────────────────────── */
@@ -85,33 +87,33 @@
   color: #637083;
 }
 
-/* ── Durée ───────────────────────────────────── */
-.dateTrigger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  white-space: nowrap;
-  color: #9ca3af;
-  transition: color 0.15s;
-}
+/* ── DateField : adapter couleurs et direction du popover ─────── */
 
-.dateTrigger:hover {
-  color: #637083;
+/* Trigger : texte foncé (sur fond blanc, pas blanc sur transparent) */
+.bar :global(.sb-date) {
+  width: auto;
 }
-
-.dateTrigger--active {
+.bar :global(.sb-date-trigger) {
   color: #1a202c;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.bar :global(.sb-date-trigger.is-empty) {
+  color: #9ca3af;
+  font-weight: 400;
 }
 
-.dateIcon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
+/* Desktop (≥769px) : popover s'ouvre vers le BAS sous le champ */
+@media (min-width: 769px) {
+  .bar :global(.sb-popover) {
+    top: calc(100% + 8px);
+    bottom: auto;
+    box-shadow: 0 14px 44px rgba(8, 20, 40, 0.22);
+  }
+  .bar :global(.sb-popover--right) {
+    left: auto;
+    right: 0;
+  }
 }
 
 /* ── Submit ──────────────────────────────────── */
