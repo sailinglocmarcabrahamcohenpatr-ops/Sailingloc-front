@@ -3,7 +3,6 @@ import { HeroSection } from "@/widgets/hero";
 import { Testimonials } from "@/widgets/testimonials";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import Image from "next/image";
-import { getBoatImageUrl } from "@/entities/boat";
 import { getDestinationsWithLiveBoatCounts } from "@/entities/destination";
 import { DestinationsHome } from "@/widgets/destinations-home";
 import { LocaleLink as Link } from "@/shared/i18n";
@@ -27,9 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /* imageQuery explicite avec le suffixe /all : sans lui LoremFlickr traite les
    mots-clés en OU et renvoyait des photos hors sujet (personnes, gros plans). */
 const BOAT_CATEGORIES = [
-  { type: "voilier" as const,   labelKey: "catSailboat" as const,  imageQuery: "sailboat,sea/all" },
-  { type: "catamaran" as const, labelKey: "catCatamaran" as const, imageQuery: "catamaran,sea/all" },
-  { type: "moteur" as const,    labelKey: "catMotor" as const,     imageQuery: "yacht,sea/all" },
+  { type: "voilier" as const,   labelKey: "catSailboat" as const,  image: "/images/boats/categories/pexels-solce-35030759.jpg" },
+  { type: "catamaran" as const, labelKey: "catCatamaran" as const, image: "/images/boats/categories/pexels-nikos-pentarakis-32509689.jpg" },
+  { type: "moteur" as const,    labelKey: "catMotor" as const,     image: "/images/boats/categories/pexels-samfollsf-29237512.jpg" },
 ];
 
 export default async function HomePage() {
@@ -86,16 +85,11 @@ export default async function HomePage() {
                 className="category-card"
               >
                 <Image
-                  src={getBoatImageUrl(
-                    { imageSeed: cat.type, type: cat.type, imageQuery: cat.imageQuery },
-                    800,
-                    600
-                  )}
+                  src={cat.image}
                   alt=""
                   fill
                   sizes="(max-width: 700px) 100vw, 33vw"
                   style={{ objectFit: "cover" }}
-                  unoptimized
                 />
                 <span className="category-card-veil" aria-hidden="true" />
                 <strong className="category-card-label">{t[cat.labelKey]}</strong>
