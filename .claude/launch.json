@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sailingloc-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "sailingloc-dev-branch",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-NonInteractive", "-Command", "Set-Location 'C:\\Users\\cohen\\Desktop\\Sailingloc-dev'; npm run dev -- -p 3001"],
+      "port": 3001
+    }
+  ]
+}

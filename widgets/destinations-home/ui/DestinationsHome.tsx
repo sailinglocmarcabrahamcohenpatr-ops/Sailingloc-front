@@ -38,7 +38,7 @@ export default function DestinationsHome({
         >
           <div className="dest-home-img">
             <Image
-              src={`https://picsum.photos/seed/${dest.imageSeed}/800/600`}
+              src={dest.heroImage ?? `https://picsum.photos/seed/${dest.imageSeed}/800/600`}
               alt={dest.name}
               fill
               sizes={IMG_SIZES}
