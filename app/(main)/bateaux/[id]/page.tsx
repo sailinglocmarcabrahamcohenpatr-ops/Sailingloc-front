@@ -192,7 +192,7 @@ export default async function ProductPage({ params }: PageProps) {
         <span aria-current="page">{boat.name}</span>
       </nav>
 
-      <Gallery images={boat.galleryImages} title={boat.name} />
+      <Gallery images={boat.galleryImages} title={boat.name} boatId={boat.id} />
 
       <div className="product-layout">
         <div style={{ position: "relative" }}>

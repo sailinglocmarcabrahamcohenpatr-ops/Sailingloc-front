@@ -110,9 +110,16 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
         ))}
       </div>
       <div className="gallery-actions">
-        <button className="gallery-act-btn">
-          <i className="fa-solid fa-heart" aria-hidden="true" /> Enregistrer
-        </button>
+        {boatId && (
+          <button
+            className={`gallery-act-btn${isSaved ? " liked" : ""}`}
+            onClick={() => toggle(boatId)}
+            aria-pressed={isSaved}
+          >
+            <i className={isSaved ? "fa-solid fa-heart" : "fa-regular fa-heart"} aria-hidden="true" />{" "}
+            {isSaved ? "Enregistré" : "Enregistrer"}
+          </button>
+        )}
         <button className="gallery-act-btn" onClick={handleShare}>
           <i className={`fa-solid ${shareState === "copied" ? "fa-check" : "fa-share-nodes"}`} aria-hidden="true" />{" "}
           {shareState === "copied" ? "Lien copié !" : "Partager"}
