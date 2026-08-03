@@ -232,6 +232,12 @@ h5 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
 .brand-logo-word-loc { color: var(--text); }
 .brand-logo-word-loc--on-dark { color: var(--white); }
 
+/* Variante "invert" sur fond sombre (ex. panneau photo de la page de connexion) :
+   logo entièrement blanc pour rester dans le style des autres éléments du panneau. */
+.brand-logo-mark--invert.brand-logo-mark--on-dark { color: var(--white); }
+.brand-logo-word-sailing--invert.brand-logo-word-sailing--on-dark { color: var(--white); }
+.brand-logo-word-loc--invert-on-dark { color: var(--white); }
+
 .navbar-nav {
   display: flex; gap: 2px; flex: 1;
 }
