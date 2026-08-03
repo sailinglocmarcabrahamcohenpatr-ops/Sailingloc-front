@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/shared/i18n";
 
 interface Option {
   value: number | string;
@@ -27,13 +28,17 @@ export default function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = "Sélectionner…",
-  searchPlaceholder = "Rechercher…",
+  placeholder,
+  searchPlaceholder,
   id,
   required,
   onCreate,
-  createLabel = "Ajouter",
+  createLabel,
 }: SearchableSelectProps) {
+  const t = useI18n().dict.listBoatForm;
+  const resolvedPlaceholder = placeholder ?? t.ssPlaceholder;
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t.ssSearchPlaceholder;
+  const resolvedCreateLabel = createLabel ?? t.ssCreateLabel;
   const [open,   setOpen]   = useState(false);
   const [query,  setQuery]  = useState("");
   const wrapRef  = useRef<HTMLDivElement>(null);
@@ -96,7 +101,7 @@ export default function SearchableSelect({
               {selected.sub && <span className="ss-trigger-sub">{selected.sub}</span>}
             </>
           ) : (
-            <span className="ss-trigger-placeholder">{placeholder}</span>
+            <span className="ss-trigger-placeholder">{resolvedPlaceholder}</span>
           )}
         </span>
         <i className={`fa-solid fa-chevron-${open ? "up" : "down"} ss-caret`} aria-hidden="true" />
@@ -111,13 +116,13 @@ export default function SearchableSelect({
               ref={inputRef}
               type="text"
               className="ss-search-input"
-              placeholder={searchPlaceholder}
+              placeholder={resolvedSearchPlaceholder}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoComplete="off"
             />
             {query && (
-              <button type="button" className="ss-search-clear" onClick={() => setQuery("")} aria-label="Effacer">
+              <button type="button" className="ss-search-clear" onClick={() => setQuery("")} aria-label={t.ssClearAria}>
                 <i className="fa-solid fa-xmark" />
               </button>
             )}
@@ -130,7 +135,7 @@ export default function SearchableSelect({
                 {onCreate ? (
                   <>
                     <span className="ss-no-result-text">
-                      Aucun résultat{query.trim() ? ` pour « ${query.trim()} »` : ""}.
+                      {query.trim() ? t.ssNoResultFor.replace("{q}", query.trim()) : t.ssNoResult}
                     </span>
                     <button
                       type="button"
@@ -138,11 +143,11 @@ export default function SearchableSelect({
                       onClick={handleCreate}
                     >
                       <i className="fa-solid fa-plus" aria-hidden="true" />
-                      {createLabel}
+                      {resolvedCreateLabel}
                     </button>
                   </>
                 ) : (
-                  "Aucun résultat"
+                  t.ssNoResult
                 )}
               </li>
             ) : (
@@ -175,7 +180,7 @@ export default function SearchableSelect({
                 onClick={handleCreate}
               >
                 <i className="fa-solid fa-plus" aria-hidden="true" />
-                {createLabel}
+                {resolvedCreateLabel}
               </button>
             </div>
           )}

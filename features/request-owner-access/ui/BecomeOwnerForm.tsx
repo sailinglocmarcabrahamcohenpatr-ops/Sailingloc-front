@@ -4,24 +4,7 @@ import { useEffect, useState } from "react";
 import { ownerRequestsApi } from "@/shared/lib";
 import type { OwnerRequestAPI } from "@/shared/lib";
 import { sendOwnerRequest } from "../api/request";
-
-const STATUS_META: Record<OwnerRequestAPI["status"], { icon: string; title: string; text: string }> = {
-  pending: {
-    icon: "fa-clock",
-    title: "Demande en cours d'examen",
-    text: "Votre demande d'accès à l'espace propriétaire a bien été transmise. Notre équipe l'examine sous 48h ouvrées.",
-  },
-  approved: {
-    icon: "fa-circle-check",
-    title: "Demande approuvée !",
-    text: "Votre compte a été promu propriétaire. Déconnectez-vous puis reconnectez-vous pour accéder à votre espace propriétaire.",
-  },
-  rejected: {
-    icon: "fa-circle-xmark",
-    title: "Demande refusée",
-    text: "Votre demande n'a pas été retenue. Vous pouvez en soumettre une nouvelle ci-dessous.",
-  },
-};
+import { useI18n } from "@/shared/i18n";
 
 const emptyForm = {
   phone: "",
@@ -32,6 +15,12 @@ const emptyForm = {
 };
 
 export default function BecomeOwnerForm() {
+  const t = useI18n().dict.becomeOwnerForm;
+  const STATUS_META: Record<OwnerRequestAPI["status"], { icon: string; title: string; text: string }> = {
+    pending: { icon: "fa-clock", title: t.statusPendingTitle, text: t.statusPendingText },
+    approved: { icon: "fa-circle-check", title: t.statusApprovedTitle, text: t.statusApprovedText },
+    rejected: { icon: "fa-circle-xmark", title: t.statusRejectedTitle, text: t.statusRejectedText },
+  };
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [lastRequest, setLastRequest] = useState<OwnerRequestAPI | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,7 +61,7 @@ export default function BecomeOwnerForm() {
     if (result.success && result.request) {
       setSubmitted(result.request);
     } else {
-      setError(result.error ?? "Une erreur est survenue.");
+      setError(result.error ?? t.errFallback);
     }
   };
 
@@ -97,20 +86,16 @@ export default function BecomeOwnerForm() {
     <div className="contact-form-card">
       <div className="contact-form-header">
         <h3>
-          <i className="fa-solid fa-sailboat" aria-hidden="true" /> Devenir
-          propriétaire sur SailingLoc
+          <i className="fa-solid fa-sailboat" aria-hidden="true" /> {t.formTitle}
         </h3>
-        <p>
-          Renseignez vos informations : notre équipe étudie chaque demande
-          avant d&apos;ouvrir l&apos;accès à l&apos;espace propriétaire.
-        </p>
+        <p>{t.formIntro}</p>
       </div>
 
       {lastRequest?.status === "rejected" && lastRequest.adminComment && (
         <div className="docs-info-banner" style={{ margin: "0 24px 20px" }}>
           <i className="fa-solid fa-circle-info" />
           <div>
-            <strong>Votre précédente demande a été refusée</strong>
+            <strong>{t.rejectedNote}</strong>
             <p>{lastRequest.adminComment}</p>
           </div>
         </div>
@@ -119,35 +104,35 @@ export default function BecomeOwnerForm() {
       <form className="contact-form-body" onSubmit={handleSubmit} noValidate>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label req" htmlFor="phone">Téléphone</label>
+            <label className="form-label req" htmlFor="phone">{t.labelPhone}</label>
             <input
               type="tel"
               id="phone"
               name="phone"
               className="form-input"
               defaultValue={emptyForm.phone}
-              placeholder="06 12 34 56 78"
+              placeholder={t.placeholderPhone}
               required
             />
           </div>
           <div className="form-group">
-            <label className="form-label req" htmlFor="city">Ville</label>
-            <input type="text" id="city" name="city" className="form-input" placeholder="ex. Marseille" required />
+            <label className="form-label req" htmlFor="city">{t.labelCity}</label>
+            <input type="text" id="city" name="city" className="form-input" placeholder={t.placeholderCity} required />
           </div>
         </div>
 
         <div className="form-group">
-          <label className="form-label req" htmlFor="address">Adresse</label>
-          <input type="text" id="address" name="address" className="form-input" placeholder="12 rue de la Mer" required />
+          <label className="form-label req" htmlFor="address">{t.labelAddress}</label>
+          <input type="text" id="address" name="address" className="form-input" placeholder={t.placeholderAddress} required />
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label req" htmlFor="postalCode">Code postal</label>
-            <input type="text" id="postalCode" name="postalCode" className="form-input" placeholder="13001" required />
+            <label className="form-label req" htmlFor="postalCode">{t.labelPostalCode}</label>
+            <input type="text" id="postalCode" name="postalCode" className="form-input" placeholder={t.placeholderPostal} required />
           </div>
           <div className="form-group">
-            <label className="form-label" htmlFor="country">Pays</label>
+            <label className="form-label" htmlFor="country">{t.labelCountry}</label>
             <input type="text" id="country" name="country" className="form-input" defaultValue="France" />
           </div>
         </div>
@@ -162,17 +147,17 @@ export default function BecomeOwnerForm() {
         <div className="form-rgpd">
           <input type="checkbox" id="owner-terms" required className="form-rgpd-checkbox" />
           <label htmlFor="owner-terms" className="form-rgpd-label">
-            J&apos;accepte les{" "}
-            <a href="/cgu#proprietaires" target="_blank" className="form-rgpd-link">conditions propriétaires</a>{" "}
-            de SailingLoc et certifie que les informations fournies sont exactes.
+            {t.rgpdBefore}
+            <a href="/cgu#proprietaires" target="_blank" className="form-rgpd-link">{t.rgpdLink}</a>
+            {t.rgpdAfter}
           </label>
         </div>
 
         <button type="submit" className="btn btn-primary form-submit-btn" disabled={loading} aria-busy={loading}>
           {loading ? (
-            <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Envoi en cours…</>
+            <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> {t.submitting}</>
           ) : (
-            <><i className="fa-solid fa-paper-plane" aria-hidden="true" /> Envoyer ma demande</>
+            <><i className="fa-solid fa-paper-plane" aria-hidden="true" /> {t.submit}</>
           )}
         </button>
       </form>
