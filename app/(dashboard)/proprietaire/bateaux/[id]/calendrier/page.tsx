@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { boatsApi, disponibilitesApi } from "@/shared/lib";
 import type { BoatAPI, DisponibiliteAPI, ReservationAPI } from "@/shared/lib";
 import { toLocalIsoDate } from "@/shared/lib/utils";
+import { useI18n } from "@/shared/i18n";
 
 function toDate(iso: string): Date {
   return new Date(iso);
@@ -15,8 +16,8 @@ function toDate(iso: string): Date {
 
 const toIsoDay = toLocalIsoDate;
 
-function fmtFR(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+function fmtFR(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function isCancelled(libelle?: string): boolean {
@@ -37,6 +38,7 @@ function isRefused(statut: string): boolean {
 export default function OwnerBoatCalendarPage() {
   const params = useParams<{ id: string }>();
   const boatId = params.id;
+  const t = useI18n().dict.ownerCalendarPage;
 
   const [boat, setBoat] = useState<BoatAPI | null>(null);
   const [dispos, setDispos] = useState<DisponibiliteAPI[]>([]);
@@ -58,8 +60,9 @@ export default function OwnerBoatCalendarPage() {
         setDispos(b.disponibilites ?? []);
         setReservations(r);
       })
-      .catch(() => setError("Impossible de charger le calendrier de ce bateau."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boatId]);
 
   useEffect(() => { load(); }, [load]);
@@ -106,7 +109,7 @@ export default function OwnerBoatCalendarPage() {
       setPending(undefined);
       load();
     } catch {
-      setActionError("Impossible d'ouvrir cette période. Réessayez.");
+      setActionError(t.errOpen);
     } finally {
       setSaving(false);
     }
@@ -126,7 +129,7 @@ export default function OwnerBoatCalendarPage() {
       setPending(undefined);
       load();
     } catch {
-      setActionError("Impossible de bloquer cette période. Réessayez.");
+      setActionError(t.errBlock);
     } finally {
       setSaving(false);
     }
@@ -139,7 +142,7 @@ export default function OwnerBoatCalendarPage() {
       await disponibilitesApi.delete(dispoId);
       load();
     } catch {
-      setActionError("Impossible de retirer cette période. Réessayez.");
+      setActionError(t.errRemove);
     } finally {
       setSaving(false);
     }
@@ -148,7 +151,7 @@ export default function OwnerBoatCalendarPage() {
   if (loading) {
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   }
@@ -156,7 +159,7 @@ export default function OwnerBoatCalendarPage() {
   if (error || !boat) {
     return (
       <div className="dash-page">
-        <p style={{ color: "var(--red)", padding: "24px" }}>{error || "Bateau introuvable."}</p>
+        <p style={{ color: "var(--red)", padding: "24px" }}>{error || t.notFound}</p>
       </div>
     );
   }
@@ -167,16 +170,14 @@ export default function OwnerBoatCalendarPage() {
         <div className="dash-page-hd">
           <div>
             <Link href="/proprietaire/bateaux" className="cal-back-link">
-              <i className="fa-solid fa-arrow-left" /> Mes bateaux
+              <i className="fa-solid fa-arrow-left" /> {t.backLink}
             </Link>
-            <h1 className="dash-title">Calendrier — {boat.nomBateau}</h1>
+            <h1 className="dash-title">{t.titlePrefix}{boat.nomBateau}</h1>
           </div>
         </div>
         <p style={{ color: "var(--text-2)", padding: "24px" }}>
           <i className={`fa-solid ${isRefused(boat.statut) ? "fa-circle-xmark" : "fa-hourglass-half"}`} />{" "}
-          {isRefused(boat.statut)
-            ? "Cette annonce a été refusée par l'administrateur. Le calendrier de disponibilités n'est pas accessible — soumettez une nouvelle demande pour ce bateau."
-            : "Ce bateau est en attente de validation par l'administrateur. Le calendrier de disponibilités sera accessible dès que votre annonce sera approuvée."}
+          {isRefused(boat.statut) ? t.refusedText : t.pendingText}
         </p>
       </div>
     );
@@ -187,25 +188,22 @@ export default function OwnerBoatCalendarPage() {
       <div className="dash-page-hd">
         <div>
           <Link href="/proprietaire/bateaux" className="cal-back-link">
-            <i className="fa-solid fa-arrow-left" /> Mes bateaux
+            <i className="fa-solid fa-arrow-left" /> {t.backLink}
           </Link>
-          <h1 className="dash-title">Calendrier — {boat.nomBateau}</h1>
-          <p className="dash-sub">
-            Choisissez les périodes où votre bateau est ouvert à la location, ou bloquez des
-            dates pour maintenance.
-          </p>
+          <h1 className="dash-title">{t.titlePrefix}{boat.nomBateau}</h1>
+          <p className="dash-sub">{t.sub}</p>
         </div>
         <Link href={`/bateaux/${boat.id}`} target="_blank" rel="noopener" className="btn btn-outline">
-          <i className="fa-solid fa-eye" /> Voir l&apos;annonce
+          <i className="fa-solid fa-eye" /> {t.viewListing}
         </Link>
       </div>
 
       <div className="owner-calendar-layout">
         <div className="owner-calendar-main">
           <div className="cal-legend">
-            <span><i className="cal-dot cal-dot-open" /> Ouvert à la location</span>
-            <span><i className="cal-dot cal-dot-booked" /> Réservé</span>
-            <span><i className="cal-dot cal-dot-closed" /> Bloqué (maintenance)</span>
+            <span><i className="cal-dot cal-dot-open" /> {t.legendOpen}</span>
+            <span><i className="cal-dot cal-dot-booked" /> {t.legendBooked}</span>
+            <span><i className="cal-dot cal-dot-closed" /> {t.legendClosed}</span>
           </div>
 
           <Calendar
@@ -227,9 +225,9 @@ export default function OwnerBoatCalendarPage() {
               disabled={!pending?.from || !pending?.to || saving}
             >
               {saving ? (
-                <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
+                <><i className="fa-solid fa-circle-notch fa-spin" /> {t.saving}</>
               ) : (
-                <><i className="fa-solid fa-ban" /> Bloquer pour maintenance</>
+                <><i className="fa-solid fa-ban" /> {t.blockForMaintenance}</>
               )}
             </button>
             <button
@@ -239,9 +237,9 @@ export default function OwnerBoatCalendarPage() {
               disabled={!pending?.from || !pending?.to || saving}
             >
               {saving ? (
-                <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
+                <><i className="fa-solid fa-circle-notch fa-spin" /> {t.saving}</>
               ) : (
-                <><i className="fa-solid fa-lock-open" /> Ouvrir cette période à la location</>
+                <><i className="fa-solid fa-lock-open" /> {t.openPeriod}</>
               )}
             </button>
           </div>
@@ -249,24 +247,21 @@ export default function OwnerBoatCalendarPage() {
 
         <aside className="owner-calendar-side">
           <div className="cal-side-block">
-            <h3>Périodes ouvertes ({openDispos.length})</h3>
+            <h3>{t.openPeriodsTitle.replace("{n}", String(openDispos.length))}</h3>
             {openDispos.length === 0 ? (
-              <p className="cal-empty">
-                Aucune période ouverte pour l&apos;instant — le bateau n&apos;apparaît pas comme disponible
-                auprès des locataires.
-              </p>
+              <p className="cal-empty">{t.openPeriodsEmpty}</p>
             ) : (
               <ul className="cal-period-list">
                 {openDispos.map((d) => (
                   <li key={d.id}>
                     <span>
                       <i className="fa-solid fa-calendar-day" />
-                      {fmtFR(d.dateDebut)}{d.dateFin ? ` → ${fmtFR(d.dateFin)}` : ""}
+                      {fmtFR(d.dateDebut, t.intlLocale)}{d.dateFin ? ` → ${fmtFR(d.dateFin, t.intlLocale)}` : ""}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleRemove(d.id)}
-                      aria-label="Retirer cette période"
+                      aria-label={t.removePeriodAria}
                       disabled={saving}
                     >
                       <i className="fa-solid fa-xmark" />
@@ -278,21 +273,21 @@ export default function OwnerBoatCalendarPage() {
           </div>
 
           <div className="cal-side-block">
-            <h3>Périodes bloquées ({blockedDispos.length})</h3>
+            <h3>{t.blockedPeriodsTitle.replace("{n}", String(blockedDispos.length))}</h3>
             {blockedDispos.length === 0 ? (
-              <p className="cal-empty">Aucune période bloquée pour maintenance.</p>
+              <p className="cal-empty">{t.blockedPeriodsEmpty}</p>
             ) : (
               <ul className="cal-period-list">
                 {blockedDispos.map((d) => (
                   <li key={d.id}>
                     <span>
                       <i className="fa-solid fa-ban" />
-                      {fmtFR(d.dateDebut)}{d.dateFin ? ` → ${fmtFR(d.dateFin)}` : ""}
+                      {fmtFR(d.dateDebut, t.intlLocale)}{d.dateFin ? ` → ${fmtFR(d.dateFin, t.intlLocale)}` : ""}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleRemove(d.id)}
-                      aria-label="Débloquer cette période"
+                      aria-label={t.unblockPeriodAria}
                       disabled={saving}
                     >
                       <i className="fa-solid fa-xmark" />
@@ -304,16 +299,16 @@ export default function OwnerBoatCalendarPage() {
           </div>
 
           <div className="cal-side-block">
-            <h3>Réservations ({reservations.length})</h3>
+            <h3>{t.reservationsTitle.replace("{n}", String(reservations.length))}</h3>
             {reservations.length === 0 ? (
-              <p className="cal-empty">Aucune réservation pour ce bateau pour l&apos;instant.</p>
+              <p className="cal-empty">{t.reservationsEmpty}</p>
             ) : (
               <ul className="cal-period-list">
                 {reservations.map((r) => (
                   <li key={r.id}>
                     <span>
                       <i className="fa-solid fa-user" />
-                      {fmtFR(r.dateDebut)} → {fmtFR(r.dateFin)}
+                      {fmtFR(r.dateDebut, t.intlLocale)} → {fmtFR(r.dateFin, t.intlLocale)}
                       {r.statutReservation ? ` · ${r.statutReservation}` : ""}
                     </span>
                   </li>
