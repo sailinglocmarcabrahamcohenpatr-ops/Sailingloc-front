@@ -16,16 +16,10 @@ import {
 import type { ReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
 import { resolvePhotoUrl } from "@/shared/lib/boats-api";
 import { RatingForm } from "@/features/rate-boat";
+import { useI18n } from "@/shared/i18n";
 import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
-
-const STATUS: Record<BadgeKey, { label: string; cls: string; icon: string }> = {
-  confirmed: { label: "Confirmée", cls: "badge-status green", icon: "fa-check" },
-  pending: { label: "En attente", cls: "badge-status orange", icon: "fa-clock" },
-  cancelled: { label: "Annulée", cls: "badge-status red", icon: "fa-xmark" },
-  completed: { label: "Terminée", cls: "badge-status grey", icon: "fa-flag-checkered" },
-};
 
 function libelleToKey(libelle?: string): BadgeKey {
   if (!libelle) return "pending";
@@ -37,8 +31,8 @@ function libelleToKey(libelle?: string): BadgeKey {
   return "pending";
 }
 
-const fmt = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+const fmt = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 
 const BookingCard = ({
   r,
@@ -53,6 +47,14 @@ const BookingCard = ({
   onRated: (reservationId: number) => void;
   onCancelled: (reservationId: number) => void;
 }) => {
+  const t = useI18n().dict.reservationsPage;
+  const STATUS: Record<BadgeKey, { label: string; cls: string; icon: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "badge-status green", icon: "fa-check" },
+    pending:   { label: t.statusPending,   cls: "badge-status orange", icon: "fa-clock" },
+    cancelled: { label: t.statusCancelled, cls: "badge-status red",    icon: "fa-xmark" },
+    completed: { label: t.statusCompleted, cls: "badge-status grey",   icon: "fa-flag-checkered" },
+  };
+
   const key = libelleToKey(r.statutReservation);
   const st = STATUS[key];
   const boatId = r.bateau?.id;
@@ -92,7 +94,7 @@ const BookingCard = ({
       await reservationsApi.cancel(r.id);
       onCancelled(r.id);
     } catch {
-      setCancelError("Impossible d'annuler cette réservation.");
+      setCancelError(t.cancelErr);
       setCancelling(false);
       setShowCancelConfirm(false);
     }
@@ -114,41 +116,33 @@ const BookingCard = ({
               <p><i className="fa-solid fa-location-dot" /> {r.bateau.port.ville}</p>
             )}
           </div>
-          <strong className="booking-price">{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
+          <strong className="booking-price">{Number(r.montantTotal).toLocaleString(t.intlLocale)} €</strong>
         </div>
         <div className="booking-card-dates">
           <i className="fa-regular fa-calendar" />
-          {fmt(r.dateDebut)} → {fmt(r.dateFin)}
+          {fmt(r.dateDebut, t.intlLocale)} → {fmt(r.dateFin, t.intlLocale)}
         </div>
         <div className="booking-card-actions">
           <Link href={`/profil/reservations/${r.id}`} className="btn btn-primary btn-sm">
-            <i className="fa-solid fa-receipt" /> Voir en détail
+            <i className="fa-solid fa-receipt" /> {t.viewDetail}
           </Link>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
-            <i className="fa-solid fa-file-pdf" /> Facture PDF
+            <i className="fa-solid fa-file-pdf" /> {t.invoicePdf}
           </button>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
-            <i className="fa-solid fa-file-contract" /> Contrat PDF
+            <i className="fa-solid fa-file-contract" /> {t.contractPdf}
           </button>
-          {/* <Link href={`/bateaux/${boatId}`} className="btn btn-ghost btn-sm">
-            <i className="fa-solid fa-eye" /> Voir le bateau
-          </Link> */}
           {key === "completed" && (
             alreadyRated ? (
               <span className="btn btn-ghost btn-sm" style={{ color: "var(--text-3)", cursor: "default" }}>
-                <i className="fa-solid fa-check" /> Déjà noté
+                <i className="fa-solid fa-check" /> {t.alreadyRated}
               </span>
             ) : (
               <button className="btn btn-outline btn-sm" onClick={() => setShowRating(true)}>
-                <i className="fa-solid fa-star" /> Laisser un avis
+                <i className="fa-solid fa-star" /> {t.leaveReview}
               </button>
             )
           )}
-          {/* {(key === "confirmed" || key === "pending") && (
-            <button className="btn btn-ghost btn-sm">
-              <i className="fa-solid fa-envelope" /> Contacter
-            </button>
-          )} */}
           {key === "confirmed" && (
             cancellable ? (
               <button
@@ -157,22 +151,22 @@ const BookingCard = ({
                 onClick={() => setShowCancelConfirm(true)}
                 disabled={cancelling}
               >
-                {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler
+                {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} {t.cancel}
               </button>
             ) : (
               <span
                 className="btn btn-ghost btn-sm"
                 style={{ color: "var(--text-3)", cursor: "default" }}
-                title={`Annulation impossible à moins de ${CANCELLATION_MIN_HOURS}h du départ`}
+                title={t.cancelTooLate.replace("{n}", String(CANCELLATION_MIN_HOURS))}
               >
-                <i className="fa-solid fa-lock" /> Annulation indisponible
+                <i className="fa-solid fa-lock" /> {t.cancelUnavailable}
               </span>
             )
           )}
         </div>
         {key === "confirmed" && !cancellable && (
           <p style={{ color: "var(--text-3)", fontSize: ".8125rem", marginTop: 6 }}>
-            Le départ est dans moins de {CANCELLATION_MIN_HOURS}h, l&apos;annulation n&apos;est plus possible.
+            {t.cancelSoonNote.replace("{n}", String(CANCELLATION_MIN_HOURS))}
           </p>
         )}
         {cancelError && (
@@ -198,11 +192,15 @@ const BookingCard = ({
             <div className="cancel-modal-icon">
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
-            <h2>Annuler cette réservation ?</h2>
-            <p>
-              Cette action est définitive et impossible à annuler. La réservation de{" "}
-              <strong>{boatName}</strong> du {fmt(r.dateDebut)} au {fmt(r.dateFin)} sera supprimée.
-            </p>
+            <h2>{t.cancelModalTitle}</h2>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: t.cancelModalText
+                  .replace("{name}", `<strong>${boatName}</strong>`)
+                  .replace("{from}", fmt(r.dateDebut, t.intlLocale))
+                  .replace("{to}", fmt(r.dateFin, t.intlLocale)),
+              }}
+            />
             <div className="cancel-modal-actions">
               <button
                 type="button"
@@ -210,7 +208,7 @@ const BookingCard = ({
                 onClick={() => setShowCancelConfirm(false)}
                 disabled={cancelling}
               >
-                Retour
+                {t.cancelModalBack}
               </button>
               <button
                 type="button"
@@ -224,7 +222,7 @@ const BookingCard = ({
                 ) : (
                   <i className="fa-solid fa-xmark" />
                 )}{" "}
-                Oui, annuler
+                {t.cancelModalConfirm}
               </button>
             </div>
           </div>
@@ -267,6 +265,7 @@ const AccordionSection = ({
 
 export default function UserReservationsPage() {
   const { user } = useAuth();
+  const t = useI18n().dict.reservationsPage;
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
   const [boatsById, setBoatsById] = useState<Map<number, BoatAPI>>(new Map());
   const [paiementsByReservation, setPaiementsByReservation] = useState<Record<number, PaiementAPI[]>>({});
@@ -294,8 +293,9 @@ export default function UserReservationsPage() {
         setBoatsById(new Map(boats.map((b) => [b.id, b])));
         setPaiementsByReservation(Object.fromEntries(paiementsEntries));
       })
-      .catch(() => setError("Impossible de charger les réservations."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRated = (reservationId: number) => {
@@ -319,7 +319,7 @@ export default function UserReservationsPage() {
   if (loading)
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   if (error)
@@ -332,15 +332,17 @@ export default function UserReservationsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = reservations.filter((r) => r.dateFin >= today);
   const past = reservations.filter((r) => r.dateFin < today);
+  const n = reservations.length;
+  const countLabel = n === 1
+    ? t.countSingular.replace("{n}", String(n))
+    : t.countPlural.replace("{n}", String(n));
 
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
-          <h1 className="dash-title">Mes réservations</h1>
-          <p className="dash-sub">
-            {reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total
-          </p>
+          <h1 className="dash-title">{t.title}</h1>
+          <p className="dash-sub">{countLabel}</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button
@@ -349,16 +351,16 @@ export default function UserReservationsPage() {
             onClick={handleExportAllInvoices}
             disabled={reservations.length === 0}
           >
-            <i className="fa-solid fa-download" /> Export PDF
+            <i className="fa-solid fa-download" /> {t.exportPdf}
           </button>
           <Link href="/bateaux" className="btn btn-primary">
-            <i className="fa-solid fa-magnifying-glass" /> Trouver un bateau
+            <i className="fa-solid fa-magnifying-glass" /> {t.findBoat}
           </Link>
         </div>
       </div>
 
       {upcoming.length > 0 && (
-        <AccordionSection title="À venir" count={upcoming.length} defaultOpen>
+        <AccordionSection title={t.upcoming} count={upcoming.length} defaultOpen>
           <div className="bookings-list">
             {upcoming.map((r) => (
               <BookingCard
@@ -374,7 +376,7 @@ export default function UserReservationsPage() {
         </AccordionSection>
       )}
       {past.length > 0 && (
-        <AccordionSection title="Historique" count={past.length} defaultOpen={false}>
+        <AccordionSection title={t.history} count={past.length} defaultOpen={false}>
           <div className="bookings-list">
             {past.map((r) => (
               <BookingCard
