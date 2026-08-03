@@ -139,13 +139,16 @@
 .hiw-page .hiw-page-step-bullets li { color: var(--text-2); }
 .hiw-page .hiw-page-step-bullets i { color: var(--accent); }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .hiw-page .hiw-page-steps { grid-template-columns: 1fr; }
   /* .hiw-page-step définit ici grid-template-columns:auto 1fr sans media
      query (ligne 99) : cette règle scopée (spécificité .hiw-page + classe)
      l'emporte toujours sur le fallback mobile de globals.css, qui ne
      s'applique donc jamais. On le rétablit ici : icône+numéro passent
-     au-dessus du contenu, en pleine largeur. */
+     au-dessus du contenu, en pleine largeur.
+     Seuil aligné sur 768px (et non 760px) pour couvrir aussi les
+     tablettes portrait standards (iPad 768px, etc.), qui reproduisaient
+     sinon exactement le même bug que sur mobile. */
   .hiw-page .hiw-page-step { grid-template-columns: 1fr; padding: 22px; }
   .hiw-page .hiw-page-step-left { flex-direction: row; justify-content: center; gap: 14px; margin-bottom: 18px; }
 }
