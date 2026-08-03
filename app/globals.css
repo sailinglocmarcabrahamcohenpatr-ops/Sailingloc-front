@@ -1481,9 +1481,22 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
   .gallery-main { height: 260px; }
   .gallery-thumb { display: none; }
+  .gallery-actions { flex-direction: column; gap: 10px; }
+  .gallery-act-btn { width: 100%; justify-content: center; padding: 13px 18px; font-size: .9375rem; white-space: nowrap; }
   .specs-grid { grid-template-columns: repeat(2, 1fr); }
   .equip-grid, .rules-grid { grid-template-columns: 1fr; }
   .reviews-overview { grid-template-columns: 1fr; }
+
+  /* Le popover calendrier était ancré via right:45px + width:max-content —
+     pensé pour le calendrier 2 mois du desktop. En dessous de 768px
+     (numberOfMonths passe à 1, cf. AvailabilityCalendar/breakpoints.md),
+     cet ancrage poussait le popover hors de l'écran à gauche. */
+  .avail-cal-dropdown {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+  }
 }
 
 /* ─────────────────────────────────────────────────
