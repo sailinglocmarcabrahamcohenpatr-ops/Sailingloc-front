@@ -451,9 +451,9 @@ export const fr = {
     loginCardSub: "Entrez vos identifiants pour accéder à votre espace",
 
     finalCtaTitle: "Prêt à rentabiliser votre bateau ?",
-    finalCtaSub: "Rejoignez 3 200+ propriétaires et commencez à recevoir des réservations dès cette saison. Inscription gratuite, sans engagement.",
-    finalCtaBtn1: "Déposer mon bateau gratuitement",
-    finalCtaBtn2: "Contacter l'équipe propriétaires",
+    finalCtaSub: "Rejoignez 3 200+ propriétaires : créez votre compte, puis faites votre demande d'accès propriétaire en quelques clics. Gratuit, sans engagement.",
+    finalCtaBtn1: "Créer un compte propriétaire",
+    finalCtaBtn2: "Faire ma demande d'accès",
   },
 
   contactPage: {

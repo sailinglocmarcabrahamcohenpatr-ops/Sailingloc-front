@@ -208,12 +208,12 @@ export default async function ProprietairePage() {
             <h2>{t.finalCtaTitle}</h2>
             <p>{t.finalCtaSub}</p>
             <div className="prop-hero-actions" style={{ justifyContent: "center" }}>
-              <Link href="/inscrire-bateau" className="btn btn-primary btn-xl">
-                <i className="fa-solid fa-plus" /> {t.finalCtaBtn1}
+              <Link href="/inscription" className="btn btn-primary btn-xl">
+                <i className="fa-solid fa-user-plus" /> {t.finalCtaBtn1}
               </Link>
-              <a href="mailto:proprietaires@sailingloc.com" className="btn btn-outline btn-lg">
-                <i className="fa-solid fa-envelope" /> {t.finalCtaBtn2}
-              </a>
+              <Link href="/profil/devenir-proprietaire" className="btn btn-outline btn-lg">
+                <i className="fa-solid fa-paper-plane" /> {t.finalCtaBtn2}
+              </Link>
             </div>
           </div>
         </div>

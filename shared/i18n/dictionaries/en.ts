@@ -452,9 +452,9 @@ export const en: Dictionary = {
     loginCardSub: "Enter your credentials to access your area",
 
     finalCtaTitle: "Ready to make your boat profitable?",
-    finalCtaSub: "Join 3,200+ owners and start receiving bookings this season. Free sign-up, no commitment.",
-    finalCtaBtn1: "List my boat for free",
-    finalCtaBtn2: "Contact the owner team",
+    finalCtaSub: "Join 3,200+ owners: create your account, then submit your owner access request in a few clicks. Free, no commitment.",
+    finalCtaBtn1: "Create an owner account",
+    finalCtaBtn2: "Submit my access request",
   },
 
   contactPage: {
