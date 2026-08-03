@@ -6,8 +6,10 @@ import { favorisApi } from "@/shared/lib";
 import { adaptBoatFromApi, BoatCard } from "@/entities/boat";
 import type { Boat } from "@/entities/boat";
 import { HeartButton } from "@/features/toggle-favorite";
+import { useI18n } from "@/shared/i18n";
 
 export default function FavorisContent() {
+  const t = useI18n().dict.favorisPage;
   const [boats, setBoats] = useState<Boat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,8 +18,9 @@ export default function FavorisContent() {
     favorisApi
       .getAll()
       .then((data) => setBoats(data.map(adaptBoatFromApi)))
-      .catch(() => setError("Impossible de charger vos favoris."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleToggled = (boatId: string, active: boolean) => {
@@ -26,7 +29,7 @@ export default function FavorisContent() {
 
   if (loading)
     return (
-      <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+      <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
     );
   if (error)
     return <p style={{ color: "var(--red)", padding: "24px" }}>{error}</p>;
@@ -35,9 +38,9 @@ export default function FavorisContent() {
     return (
       <div className="messages-empty" style={{ minHeight: 320 }}>
         <i className="fa-solid fa-heart" aria-hidden="true" />
-        <p>Vous n&apos;avez pas encore de favoris.</p>
+        <p>{t.empty}</p>
         <Link href="/bateaux" className="btn btn-outline btn-sm">
-          <i className="fa-solid fa-magnifying-glass" style={{ fontSize: ".75em" }} /> Trouver un bateau
+          <i className="fa-solid fa-magnifying-glass" style={{ fontSize: ".75em" }} /> {t.findBoat}
         </Link>
       </div>
     );
