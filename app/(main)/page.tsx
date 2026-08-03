@@ -179,28 +179,24 @@ export default async function HomePage() {
         <div className="container">
           <div className="app-teaser-grid">
             <div className="app-teaser-text fade-in">
-              <p className="home-eyebrow">Application mobile</p>
-              <h2 id="app-title">SailingLoc dans votre poche</h2>
-              <p className="app-teaser-lead">
-                Réservez, gérez vos locations et recevez vos notifications où que vous
-                soyez. L&rsquo;application native iOS et Android arrive bientôt. Installez déjà
-                le site sur votre écran d&rsquo;accueil.
-              </p>
+              <p className="home-eyebrow">{t.appEyebrow}</p>
+              <h2 id="app-title">{t.appTitle}</h2>
+              <p className="app-teaser-lead">{t.appLead}</p>
               <ul className="app-teaser-features">
-                <li><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> Recherche instantanée</li>
-                <li><i className="fa-solid fa-calendar-check" aria-hidden="true" /> Réservations & calendrier</li>
-                <li><i className="fa-solid fa-bell" aria-hidden="true" /> Notifications en direct</li>
+                <li><i className="fa-solid fa-magnifying-glass" aria-hidden="true" /> {t.appFeature1}</li>
+                <li><i className="fa-solid fa-calendar-check" aria-hidden="true" /> {t.appFeature2}</li>
+                <li><i className="fa-solid fa-bell" aria-hidden="true" /> {t.appFeature3}</li>
               </ul>
               <div className="app-teaser-stores">
                 <div className="app-store-btn app-store-btn--dark">
-                  <span className="app-store-btn-badge">Prochainement</span>
+                  <span className="app-store-btn-badge">{t.appComingSoon}</span>
                   <i className="fa-brands fa-apple" aria-hidden="true" />
-                  <span className="app-store-btn-text"><small>Télécharger sur l&rsquo;</small>App Store</span>
+                  <span className="app-store-btn-text"><small>{t.appStoreIosLabel}</small>{t.appStoreIos}</span>
                 </div>
                 <div className="app-store-btn app-store-btn--outline">
-                  <span className="app-store-btn-badge">Prochainement</span>
+                  <span className="app-store-btn-badge">{t.appComingSoon}</span>
                   <i className="fa-brands fa-google-play" aria-hidden="true" />
-                  <span className="app-store-btn-text"><small>Disponible sur</small>Google Play</span>
+                  <span className="app-store-btn-text"><small>{t.appStoreGoogleLabel}</small>{t.appStoreGoogle}</span>
                 </div>
               </div>
               <div className="app-teaser-note">
@@ -208,10 +204,10 @@ export default async function HomePage() {
                   <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" />
                 </div>
                 <div>
-                  <strong>Disponible dès maintenant sur mobile</strong>
-                  <p>Ajoutez SailingLoc à votre écran d&rsquo;accueil (Safari, Chrome) pour une expérience proche d&rsquo;une application.</p>
+                  <strong>{t.appNoteTitle}</strong>
+                  <p>{t.appNoteText}</p>
                   <Link href="/bateaux" className="app-teaser-note-link">
-                    Explorer les bateaux <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+                    {t.appNoteLink} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
@@ -228,7 +224,7 @@ export default async function HomePage() {
                   priority={false}
                 />
               </div>
-              <span className="app-teaser-badge">Prochainement</span>
+              <span className="app-teaser-badge">{t.appComingSoon}</span>
             </div>
           </div>
         </div>
