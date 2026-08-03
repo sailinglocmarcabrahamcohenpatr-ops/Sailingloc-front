@@ -147,7 +147,7 @@
      s'applique donc jamais. On le rétablit ici : icône+numéro passent
      au-dessus du contenu, en pleine largeur. */
   .hiw-page .hiw-page-step { grid-template-columns: 1fr; padding: 22px; }
-  .hiw-page .hiw-page-step-left { flex-direction: row; gap: 14px; }
+  .hiw-page .hiw-page-step-left { flex-direction: row; justify-content: center; gap: 14px; margin-bottom: 18px; }
 }
 
 /* ── GARANTIES : cartes raffinées, icône océan ─────────────────── */

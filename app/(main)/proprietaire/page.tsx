@@ -101,10 +101,12 @@ export default async function ProprietairePage() {
           <div className="prop-steps">
             {t.steps.map((step, i) => (
               <div key={i} className="prop-step fade-in">
-                <div className="prop-step-num">{i + 1}</div>
-                {i < t.steps.length - 1 && <div className="prop-step-line" aria-hidden="true" />}
-                <div className="prop-step-icon">
-                  <i className={`fa-solid ${STEP_ICONS[i]}`} aria-hidden="true" />
+                <div className="prop-step-badge">
+                  <div className="prop-step-num">{i + 1}</div>
+                  {i < t.steps.length - 1 && <div className="prop-step-line" aria-hidden="true" />}
+                  <div className="prop-step-icon">
+                    <i className={`fa-solid ${STEP_ICONS[i]}`} aria-hidden="true" />
+                  </div>
                 </div>
                 <h3>{step.title}</h3>
                 <p>{step.desc}</p>
