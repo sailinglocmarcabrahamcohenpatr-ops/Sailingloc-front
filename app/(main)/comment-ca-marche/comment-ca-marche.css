@@ -141,6 +141,13 @@
 
 @media (max-width: 760px) {
   .hiw-page .hiw-page-steps { grid-template-columns: 1fr; }
+  /* .hiw-page-step définit ici grid-template-columns:auto 1fr sans media
+     query (ligne 99) : cette règle scopée (spécificité .hiw-page + classe)
+     l'emporte toujours sur le fallback mobile de globals.css, qui ne
+     s'applique donc jamais. On le rétablit ici : icône+numéro passent
+     au-dessus du contenu, en pleine largeur. */
+  .hiw-page .hiw-page-step { grid-template-columns: 1fr; padding: 22px; }
+  .hiw-page .hiw-page-step-left { flex-direction: row; gap: 14px; }
 }
 
 /* ── GARANTIES : cartes raffinées, icône océan ─────────────────── */
