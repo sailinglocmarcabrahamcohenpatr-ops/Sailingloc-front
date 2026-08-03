@@ -453,7 +453,6 @@ export const fr = {
     finalCtaTitle: "Prêt à rentabiliser votre bateau ?",
     finalCtaSub: "Rejoignez 3 200+ propriétaires : créez votre compte, puis faites votre demande d'accès propriétaire en quelques clics. Gratuit, sans engagement.",
     finalCtaBtn1: "Créer un compte propriétaire",
-    finalCtaBtn2: "Faire ma demande d'accès",
   },
 
   contactPage: {

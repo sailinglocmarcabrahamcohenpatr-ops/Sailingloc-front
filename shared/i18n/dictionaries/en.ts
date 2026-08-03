@@ -454,7 +454,6 @@ export const en: Dictionary = {
     finalCtaTitle: "Ready to make your boat profitable?",
     finalCtaSub: "Join 3,200+ owners: create your account, then submit your owner access request in a few clicks. Free, no commitment.",
     finalCtaBtn1: "Create an owner account",
-    finalCtaBtn2: "Submit my access request",
   },
 
   contactPage: {

@@ -211,9 +211,6 @@ export default async function ProprietairePage() {
               <Link href="/inscription" className="btn btn-primary btn-xl">
                 <i className="fa-solid fa-user-plus" /> {t.finalCtaBtn1}
               </Link>
-              <Link href="/profil/devenir-proprietaire" className="btn btn-outline btn-lg">
-                <i className="fa-solid fa-paper-plane" /> {t.finalCtaBtn2}
-              </Link>
             </div>
           </div>
         </div>
