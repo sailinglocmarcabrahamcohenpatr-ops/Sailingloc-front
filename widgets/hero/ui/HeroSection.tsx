@@ -27,6 +27,8 @@ export default async function HeroSection() {
             <span className="hero-title-accent">{t.titleAccent}</span>
           </h1>
 
+          <p className="hero-sub">{t.subtitle}</p>
+
           {/* Barre de recherche pleine largeur, horizontale (voir hero.css /
               search-bar.css). C'est la barre custom de la branche (DateField). */}
           <SearchBar />
