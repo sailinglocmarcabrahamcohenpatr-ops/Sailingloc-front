@@ -762,6 +762,8 @@ export const en: Dictionary = {
 
     /* Booking card */
     perDay: "/ day",
+    startingFrom: "From",
+    viewAvailabilityCta: "View availability",
     rentalDates: "Rental dates",
     checkingAvailability: "Checking availability…",
     bookingHint: "Click the calendar to choose your rental dates.",

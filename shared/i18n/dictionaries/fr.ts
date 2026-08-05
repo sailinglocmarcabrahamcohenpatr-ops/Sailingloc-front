@@ -761,6 +761,8 @@ export const fr = {
 
     /* Carte de réservation */
     perDay: "/ jour",
+    startingFrom: "À partir de",
+    viewAvailabilityCta: "Voir disponibilité",
     rentalDates: "Dates de location",
     checkingAvailability: "Vérification des disponibilités…",
     bookingHint: "Cliquez sur le calendrier pour choisir vos dates de location.",
