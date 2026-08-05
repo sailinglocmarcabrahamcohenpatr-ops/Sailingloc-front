@@ -1371,7 +1371,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .avail-cal-dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  right: 45px;
+  right: 0;
   z-index: 200;
   background: var(--card-bg);
   border: 1.5px solid var(--border);
