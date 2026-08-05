@@ -16,24 +16,11 @@ import {
 } from "@/shared/lib";
 import type { ReservationAPI, BoatAPI, PaiementAPI } from "@/shared/lib";
 import { RatingForm } from "@/features/rate-boat";
+import { useI18n } from "@/shared/i18n";
 import "../reservations.css";
 import "./reservation-detail.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
-
-const STATUS: Record<BadgeKey, { label: string; cls: string; icon: string }> = {
-  confirmed: { label: "Confirmée", cls: "badge-status green", icon: "fa-check" },
-  pending: { label: "En attente", cls: "badge-status orange", icon: "fa-clock" },
-  cancelled: { label: "Annulée", cls: "badge-status red", icon: "fa-xmark" },
-  completed: { label: "Terminée", cls: "badge-status grey", icon: "fa-flag-checkered" },
-};
-
-const PAIEMENT_LABEL: Record<string, { label: string; cls: string }> = {
-  en_attente: { label: "En attente", cls: "badge-status orange" },
-  paye: { label: "Payé", cls: "badge-status green" },
-  echoue: { label: "Échoué", cls: "badge-status red" },
-  rembourse: { label: "Remboursé", cls: "badge-status grey" },
-};
 
 function libelleToKey(libelle?: string): BadgeKey {
   if (!libelle) return "pending";
@@ -45,8 +32,8 @@ function libelleToKey(libelle?: string): BadgeKey {
   return "pending";
 }
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+const fmtDate = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 
 const nights = (start: string, end: string) =>
   Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)));
@@ -55,6 +42,21 @@ export default function ReservationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { user } = useAuth();
+  const t = useI18n().dict.reservationDetailPage;
+
+  const STATUS: Record<BadgeKey, { label: string; cls: string; icon: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "badge-status green", icon: "fa-check" },
+    pending:   { label: t.statusPending,   cls: "badge-status orange", icon: "fa-clock" },
+    cancelled: { label: t.statusCancelled, cls: "badge-status red",    icon: "fa-xmark" },
+    completed: { label: t.statusCompleted, cls: "badge-status grey",   icon: "fa-flag-checkered" },
+  };
+
+  const PAIEMENT_LABEL: Record<string, { label: string; cls: string }> = {
+    en_attente: { label: t.paymentPending,  cls: "badge-status orange" },
+    paye:       { label: t.paymentPaid,     cls: "badge-status green" },
+    echoue:     { label: t.paymentFailed,   cls: "badge-status red" },
+    rembourse:  { label: t.paymentRefunded, cls: "badge-status grey" },
+  };
 
   const [reservation, setReservation] = useState<ReservationAPI | null>(null);
   const [boat, setBoat] = useState<BoatAPI | null>(null);
@@ -91,7 +93,7 @@ export default function ReservationDetailPage() {
         if (p.status === "fulfilled") setPaiements(p.value);
       })
       .catch(() => {
-        if (active) setError("Réservation introuvable.");
+        if (active) setError(t.notFound);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -105,7 +107,7 @@ export default function ReservationDetailPage() {
   if (loading) {
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   }
@@ -113,9 +115,9 @@ export default function ReservationDetailPage() {
   if (error || !reservation) {
     return (
       <div className="dash-page">
-        <p style={{ color: "var(--red)", padding: "24px" }}>{error || "Réservation introuvable."}</p>
+        <p style={{ color: "var(--red)", padding: "24px" }}>{error || t.notFound}</p>
         <Link href="/profil/reservations" className="btn btn-outline btn-sm" style={{ alignSelf: "flex-start" }}>
-          <i className="fa-solid fa-arrow-left" /> Retour à mes réservations
+          <i className="fa-solid fa-arrow-left" /> {t.backToList}
         </Link>
       </div>
     );
@@ -144,7 +146,7 @@ export default function ReservationDetailPage() {
       await reservationsApi.cancel(reservation.id);
       setCancelled(true);
     } catch {
-      setCancelError("Impossible d'annuler cette réservation.");
+      setCancelError(t.cancelErr);
     } finally {
       setCancelling(false);
     }
@@ -170,7 +172,7 @@ export default function ReservationDetailPage() {
       <div className="dash-page-hd">
         <div>
           <Link href="/profil/reservations" className="res-detail-back">
-            <i className="fa-solid fa-arrow-left" /> Mes réservations
+            <i className="fa-solid fa-arrow-left" /> {t.backLink}
           </Link>
           <h1 className="dash-title" style={{ marginTop: 8 }}>{boatName}</h1>
           <p className="dash-sub">
@@ -182,14 +184,14 @@ export default function ReservationDetailPage() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
-            <i className="fa-solid fa-download" /> Télécharger la facture
+            <i className="fa-solid fa-download" /> {t.downloadInvoice}
           </button>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
-            <i className="fa-solid fa-file-contract" /> Télécharger le contrat
+            <i className="fa-solid fa-file-contract" /> {t.downloadContract}
           </button>
           {boatId != null && (
             <Link href={`/bateaux/${boatId}`} className="btn btn-outline btn-sm">
-              <i className="fa-solid fa-eye" /> Voir la fiche bateau
+              <i className="fa-solid fa-eye" /> {t.viewBoat}
             </Link>
           )}
         </div>
@@ -208,7 +210,7 @@ export default function ReservationDetailPage() {
                   type="button"
                   className={`res-detail-gallery-thumb${i === activePhoto ? " active" : ""}`}
                   onClick={() => setActivePhoto(i)}
-                  aria-label={`Photo ${i + 1}`}
+                  aria-label={t.photoAlt.replace("{n}", String(i + 1))}
                 >
                   <Image src={src} alt="" fill unoptimized style={{ objectFit: "cover" }} />
                 </button>
@@ -220,53 +222,53 @@ export default function ReservationDetailPage() {
 
       <div className="dash-grid-2">
         <div className="dash-card">
-          <div className="dash-card-hd"><h3><i className="fa-regular fa-calendar" /> Séjour</h3></div>
+          <div className="dash-card-hd"><h3><i className="fa-regular fa-calendar" /> {t.stayTitle}</h3></div>
           <div className="res-detail-rows">
             <div className="res-detail-row">
-              <span>Arrivée</span>
-              <strong>{fmtDate(reservation.dateDebut)}</strong>
+              <span>{t.arrival}</span>
+              <strong>{fmtDate(reservation.dateDebut, t.intlLocale)}</strong>
             </div>
             <div className="res-detail-row">
-              <span>Départ</span>
-              <strong>{fmtDate(reservation.dateFin)}</strong>
+              <span>{t.departure}</span>
+              <strong>{fmtDate(reservation.dateFin, t.intlLocale)}</strong>
             </div>
             <div className="res-detail-row">
-              <span>Durée</span>
-              <strong>{nights(reservation.dateDebut, reservation.dateFin)} nuit(s)</strong>
+              <span>{t.duration}</span>
+              <strong>{nights(reservation.dateDebut, reservation.dateFin)} {t.nights}</strong>
             </div>
             {reservation.dateReservation && (
               <div className="res-detail-row">
-                <span>Réservé le</span>
-                <strong>{fmtDate(reservation.dateReservation)}</strong>
+                <span>{t.bookedOn}</span>
+                <strong>{fmtDate(reservation.dateReservation, t.intlLocale)}</strong>
               </div>
             )}
           </div>
         </div>
 
         <div className="dash-card">
-          <div className="dash-card-hd"><h3><i className="fa-solid fa-sailboat" /> Bateau</h3></div>
+          <div className="dash-card-hd"><h3><i className="fa-solid fa-sailboat" /> {t.boatTitle}</h3></div>
           <div className="res-detail-rows">
             {typeBateau && (
               <div className="res-detail-row">
-                <span>Type</span>
+                <span>{t.type}</span>
                 <strong style={{ textTransform: "capitalize" }}>{typeBateau}</strong>
               </div>
             )}
             {boat?.capacite != null && (
               <div className="res-detail-row">
-                <span>Capacité</span>
-                <strong>{boat.capacite} personnes</strong>
+                <span>{t.capacity}</span>
+                <strong>{boat.capacite} {t.persons}</strong>
               </div>
             )}
             {boat?.nombreCabines != null && (
               <div className="res-detail-row">
-                <span>Cabines</span>
+                <span>{t.cabins}</span>
                 <strong>{boat.nombreCabines}</strong>
               </div>
             )}
             {ville && (
               <div className="res-detail-row">
-                <span>Port</span>
+                <span>{t.port}</span>
                 <strong>{ville}</strong>
               </div>
             )}
@@ -274,28 +276,28 @@ export default function ReservationDetailPage() {
         </div>
 
         <div className="dash-card">
-          <div className="dash-card-hd"><h3><i className="fa-solid fa-user" /> Propriétaire</h3></div>
+          <div className="dash-card-hd"><h3><i className="fa-solid fa-user" /> {t.ownerTitle}</h3></div>
           {owner ? (
             <div className="res-detail-rows">
               <div className="res-detail-row">
-                <span>Nom</span>
+                <span>{t.name}</span>
                 <strong>{owner.prenom} {owner.nom}</strong>
               </div>
               {owner.email && (
                 <div className="res-detail-row">
-                  <span>Email</span>
+                  <span>{t.email}</span>
                   <strong>{owner.email}</strong>
                 </div>
               )}
               {owner.telephone && (
                 <div className="res-detail-row">
-                  <span>Téléphone</span>
+                  <span>{t.phone}</span>
                   <strong>{owner.telephone}</strong>
                 </div>
               )}
             </div>
           ) : (
-            <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>Informations indisponibles.</p>
+            <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>{t.infoUnavailable}</p>
           )}
           <Link
             href={
@@ -306,30 +308,30 @@ export default function ReservationDetailPage() {
             className="btn btn-ghost btn-sm"
             style={{ marginTop: 14 }}
           >
-            <i className="fa-solid fa-envelope" /> Contacter
+            <i className="fa-solid fa-envelope" /> {t.contact}
           </Link>
         </div>
 
         <div className="dash-card">
-          <div className="dash-card-hd"><h3><i className="fa-solid fa-credit-card" /> Paiement</h3></div>
+          <div className="dash-card-hd"><h3><i className="fa-solid fa-credit-card" /> {t.paymentTitle}</h3></div>
           <div className="res-detail-rows">
             <div className="res-detail-row">
-              <span>Montant total</span>
-              <strong className="res-detail-amount">{Number(reservation.montantTotal).toLocaleString("fr-FR")} €</strong>
+              <span>{t.totalAmount}</span>
+              <strong className="res-detail-amount">{Number(reservation.montantTotal).toLocaleString(t.intlLocale)} €</strong>
             </div>
             {paiements.map((p) => {
               const pst = PAIEMENT_LABEL[p.statutPaiement] ?? { label: p.statutPaiement, cls: "badge-status grey" };
               return (
                 <div className="res-detail-row" key={p.id}>
-                  <span>Paiement du {fmtDate(p.datePaiement)}</span>
+                  <span>{t.paymentOn.replace("{date}", fmtDate(p.datePaiement, t.intlLocale))}</span>
                   <span className={pst.cls}>{pst.label}</span>
                 </div>
               );
             })}
             {paiements.length === 0 && (
               <div className="res-detail-row">
-                <span>Statut</span>
-                <span className="badge-status orange">En attente d&apos;encaissement</span>
+                <span>{t.status}</span>
+                <span className="badge-status orange">{t.pendingPayment}</span>
               </div>
             )}
           </div>
@@ -340,11 +342,11 @@ export default function ReservationDetailPage() {
         {key === "completed" && (
           alreadyRated ? (
             <span className="btn btn-ghost" style={{ color: "var(--text-3)", cursor: "default" }}>
-              <i className="fa-solid fa-check" /> Déjà noté
+              <i className="fa-solid fa-check" /> {t.alreadyRated}
             </span>
           ) : (
             <button className="btn btn-outline" onClick={() => setShowRating(true)}>
-              <i className="fa-solid fa-star" /> Laisser un avis
+              <i className="fa-solid fa-star" /> {t.leaveReview}
             </button>
           )
         )}
@@ -356,22 +358,22 @@ export default function ReservationDetailPage() {
               onClick={handleCancel}
               disabled={cancelling}
             >
-              {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Annuler la réservation
+              {cancelling ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} {t.cancelBooking}
             </button>
           ) : (
             <span
               className="btn btn-ghost"
               style={{ color: "var(--text-3)", cursor: "default" }}
-              title={`Annulation impossible à moins de ${CANCELLATION_MIN_HOURS}h du départ`}
+              title={t.cancelTooLate.replace("{n}", String(CANCELLATION_MIN_HOURS))}
             >
-              <i className="fa-solid fa-lock" /> Annulation indisponible
+              <i className="fa-solid fa-lock" /> {t.cancelUnavailable}
             </span>
           )
         )}
       </div>
       {(key === "confirmed" || key === "pending") && !cancellable && (
         <p style={{ color: "var(--text-3)", fontSize: ".8125rem" }}>
-          Le départ est dans moins de {CANCELLATION_MIN_HOURS}h, l&apos;annulation n&apos;est plus possible.
+          {t.cancelSoonNote.replace("{n}", String(CANCELLATION_MIN_HOURS))}
         </p>
       )}
       {cancelError && <p style={{ color: "var(--red)", fontSize: ".8125rem" }}>{cancelError}</p>}

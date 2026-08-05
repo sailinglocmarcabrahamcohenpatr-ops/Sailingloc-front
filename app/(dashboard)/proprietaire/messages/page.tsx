@@ -3,20 +3,21 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { messagesApi, utilisateursApi, useAuth, useMessages } from "@/shared/lib";
 import type { MessageAPI, UtilisateurAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./messages.css";
 
 const PALETTE = ["#114B6B", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
 const avatarColor = (id: number) => PALETTE[id % PALETTE.length];
 
-function fmtRelative(iso: string) {
+function fmtRelative(iso: string, locale: string, yesterday: string) {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
-  if (diff < 86_400_000) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  if (diff < 172_800_000) return "Hier";
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  if (diff < 86_400_000) return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  if (diff < 172_800_000) return yesterday;
+  return d.toLocaleDateString(locale, { day: "numeric", month: "short" });
 }
-const fmtTime    = (iso: string) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-const fmtFullDay = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const fmtTime    = (iso: string, locale: string) => new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+const fmtFullDay = (iso: string, locale: string) => new Date(iso).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
 
 interface Partner { id: number; prenom: string; nom: string; email: string }
 interface Conversation {
@@ -54,6 +55,7 @@ function Spinner({ size = 18 }: { size?: number }) {
 }
 
 function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p: Partner) => void; onClose: () => void }) {
+  const t = useI18n().dict.ownerMessagesPage;
   const [users, setUsers]     = useState<UtilisateurAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ]             = useState("");
@@ -80,8 +82,8 @@ function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p:
       <div style={{ background: "var(--card-bg)", borderRadius: "var(--radius-xl)", boxShadow: "0 24px 64px rgba(0,0,0,.25)", width: "100%", maxWidth: 480, overflow: "hidden", animation: "pub-slide-in .2s ease" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
           <div>
-            <strong style={{ fontSize: ".9375rem" }}>Nouvelle discussion</strong>
-            <p style={{ fontSize: ".8125rem", color: "var(--text-2)", marginTop: 2 }}>Choisissez un destinataire</p>
+            <strong style={{ fontSize: ".9375rem" }}>{t.newConvTitle}</strong>
+            <p style={{ fontSize: ".8125rem", color: "var(--text-2)", marginTop: 2 }}>{t.newConvSub}</p>
           </div>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "1.5px solid var(--border)", background: "var(--card-bg)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-2)", fontSize: ".8125rem" }}>
             <i className="fa-solid fa-xmark" />
@@ -90,17 +92,17 @@ function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p:
         <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ position: "relative" }}>
             <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: ".8rem", pointerEvents: "none" }} />
-            <input ref={searchRef} type="text" placeholder="Nom, email…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", padding: "9px 10px 9px 32px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".875rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }} />
+            <input ref={searchRef} type="text" placeholder={t.searchOwnerPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} style={{ width: "100%", padding: "9px 10px 9px 32px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".875rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }} />
           </div>
         </div>
         <div style={{ maxHeight: 320, overflowY: "auto", padding: "8px 0" }}>
           {loading ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> Chargement…</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> {t.loading}</div>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--text-3)", fontSize: ".875rem" }}>{q ? "Aucun résultat" : "Aucun utilisateur disponible"}</div>
+            <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--text-3)", fontSize: ".875rem" }}>{q ? t.noResult : t.noUserAvailable}</div>
           ) : filtered.map((u) => {
             const initials = `${u.prenom[0] ?? ""}${u.nom[0] ?? ""}`.toUpperCase();
-            const role = u.roles?.includes("ROLE_ADMIN") ? "Admin" : u.roles?.includes("ROLE_PROPRIETAIRE") ? "Propriétaire" : "Locataire";
+            const role = u.roles?.includes("ROLE_ADMIN") ? t.roleAdmin : u.roles?.includes("ROLE_PROPRIETAIRE") ? t.roleOwner : t.roleTenant;
             return (
               <button key={u.id} onClick={() => onSelect({ id: u.id, prenom: u.prenom, nom: u.nom, email: u.email })}
                 style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
@@ -124,6 +126,7 @@ function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p:
 
 export default function OwnerMessagesPage() {
   const { user } = useAuth();
+  const t = useI18n().dict.ownerMessagesPage;
   const myId    = user?.id ?? 0;
   const myEmail = user?.email ?? "";
 
@@ -221,14 +224,16 @@ export default function OwnerMessagesPage() {
           <div className="messages-list">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 10px", borderBottom: "1px solid var(--border)", gap: 8 }}>
               <div>
-                <strong style={{ fontSize: ".9375rem" }}>Messages</strong>
+                <strong style={{ fontSize: ".9375rem" }}>{t.sectionMessages}</strong>
                 {!loading && (
                   <span style={{ marginLeft: 8, fontSize: ".75rem", fontWeight: 700, background: totalUnread > 0 ? "var(--primary)" : "var(--bg)", color: totalUnread > 0 ? "#fff" : "var(--text-3)", padding: "2px 7px", borderRadius: 20 }}>
-                    {totalUnread > 0 ? `${totalUnread} non-lu${totalUnread > 1 ? "s" : ""}` : `${conversations.length} conv.`}
+                    {totalUnread > 0
+                      ? (totalUnread === 1 ? t.unreadSingular : t.unreadPlural).replace("{n}", String(totalUnread))
+                      : t.convCountShort.replace("{n}", String(conversations.length))}
                   </span>
                 )}
               </div>
-              <button onClick={() => setNewConvOpen(true)} title="Nouvelle discussion"
+              <button onClick={() => setNewConvOpen(true)} title={t.newConv}
                 style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "var(--primary)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".875rem", flexShrink: 0 }}>
                 <i className="fa-solid fa-pen-to-square" />
               </button>
@@ -236,20 +241,20 @@ export default function OwnerMessagesPage() {
             <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--border)" }}>
               <div style={{ position: "relative" }}>
                 <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", fontSize: ".75rem", pointerEvents: "none" }} />
-                <input type="text" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)}
+                <input type="text" placeholder={t.searchPlaceholder} value={search} onChange={(e) => setSearch(e.target.value)}
                   style={{ width: "100%", padding: "7px 10px 7px 28px", border: "1.5px solid var(--border)", borderRadius: "var(--radius-lg)", fontSize: ".8125rem", outline: "none", background: "var(--bg)", boxSizing: "border-box" }}
                   onFocus={(e) => (e.target.style.borderColor = "var(--primary)")} onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
               </div>
             </div>
             {loading ? (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> Chargement…</div>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 32, color: "var(--text-3)", fontSize: ".875rem" }}><Spinner /> {t.loading}</div>
             ) : error ? (
               <div style={{ flex: 1, padding: "20px 16px", color: "var(--red)", fontSize: ".875rem" }}><i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 8 }} />{error}</div>
             ) : filteredConvs.length === 0 ? (
               <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "28px 20px", color: "var(--text-3)", gap: 10, textAlign: "center" }}>
                 <i className="fa-solid fa-comments" style={{ fontSize: "2rem", opacity: .3 }} />
-                <p style={{ fontSize: ".875rem" }}>{search ? "Aucun résultat" : "Aucune conversation"}</p>
-                {!search && <button onClick={() => setNewConvOpen(true)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: "var(--radius-lg)", border: "1.5px solid var(--border)", background: "var(--card-bg)", color: "var(--text)", fontSize: ".8125rem", fontWeight: 600, cursor: "pointer" }}><i className="fa-solid fa-plus" /> Démarrer une discussion</button>}
+                <p style={{ fontSize: ".875rem" }}>{search ? t.noResult : t.noConversation}</p>
+                {!search && <button onClick={() => setNewConvOpen(true)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: "var(--radius-lg)", border: "1.5px solid var(--border)", background: "var(--card-bg)", color: "var(--text)", fontSize: ".8125rem", fontWeight: 600, cursor: "pointer" }}><i className="fa-solid fa-plus" /> {t.startConversation}</button>}
               </div>
             ) : (
               <div className="messages-list-scroll">
@@ -266,9 +271,9 @@ export default function OwnerMessagesPage() {
                       <div className="message-content">
                         <div className="message-hd">
                           <strong>{conv.partner.prenom} {conv.partner.nom}</strong>
-                          <span className="message-date">{fmtRelative(last.dateEnvoi)}</span>
+                          <span className="message-date">{fmtRelative(last.dateEnvoi, t.intlLocale, t.yesterday)}</span>
                         </div>
-                        <p className="message-preview">{isLastMine ? `Vous : ${last.contenu}` : last.contenu}</p>
+                        <p className="message-preview">{isLastMine ? t.youPrefix.replace("{text}", last.contenu) : last.contenu}</p>
                       </div>
                       {conv.unreadCount > 0 && <div className="message-unread-badge">{conv.unreadCount}</div>}
                     </div>
@@ -282,7 +287,7 @@ export default function OwnerMessagesPage() {
           {activePartner ? (
             <div className="messages-thread">
               <div className="messages-thread-hd">
-                <button type="button" className="messages-thread-back" onClick={closeConversation} title="Retour aux conversations">
+                <button type="button" className="messages-thread-back" onClick={closeConversation} title={t.backToConversations}>
                   <i className="fa-solid fa-arrow-left" />
                 </button>
                 <div className="message-avatar" style={{ background: avatarColor(activePartner.id), width: 40, height: 40, fontSize: ".875rem", flexShrink: 0 }}>
@@ -293,8 +298,8 @@ export default function OwnerMessagesPage() {
                   <p className="messages-thread-status" style={{ color: "var(--text-3)", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>{activePartner.email}</p>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
-                  {selected && <span style={{ fontSize: ".75rem", color: "var(--text-3)", background: "var(--bg)", borderRadius: 20, padding: "3px 10px", fontWeight: 600 }}>{selected.messages.length} message{selected.messages.length !== 1 ? "s" : ""}</span>}
-                  <a href={`mailto:${activePartner.email}`} className="messages-thread-icon-btn" title="Email externe"><i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: ".75rem" }} /></a>
+                  {selected && <span style={{ fontSize: ".75rem", color: "var(--text-3)", background: "var(--bg)", borderRadius: 20, padding: "3px 10px", fontWeight: 600 }}>{(selected.messages.length === 1 ? t.messageCountSingular : t.messageCountPlural).replace("{n}", String(selected.messages.length))}</span>}
+                  <a href={`mailto:${activePartner.email}`} className="messages-thread-icon-btn" title={t.externalEmail}><i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: ".75rem" }} /></a>
                 </div>
               </div>
               <div className="messages-thread-body">
@@ -305,7 +310,7 @@ export default function OwnerMessagesPage() {
                     </div>
                     <div>
                       <strong style={{ display: "block", fontSize: ".9375rem", color: "var(--text)", marginBottom: 4 }}>{activePartner.prenom} {activePartner.nom}</strong>
-                      <span style={{ fontSize: ".8125rem" }}>Démarrez la conversation en envoyant votre premier message.</span>
+                      <span style={{ fontSize: ".8125rem" }}>{t.startFirst}</span>
                     </div>
                   </div>
                 ) : selected.messages.map((msg, i) => {
@@ -315,12 +320,12 @@ export default function OwnerMessagesPage() {
                   const newDay = i === 0 || new Date(msg.dateEnvoi).toDateString() !== new Date(prev.dateEnvoi).toDateString();
                   return (
                     <div key={msg.id}>
-                      {newDay && <div style={{ textAlign: "center", margin: "6px 0" }}><span style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 12px", fontSize: ".72rem", color: "var(--text-3)" }}>{fmtFullDay(msg.dateEnvoi)}</span></div>}
+                      {newDay && <div style={{ textAlign: "center", margin: "6px 0" }}><span style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "3px 12px", fontSize: ".72rem", color: "var(--text-3)" }}>{fmtFullDay(msg.dateEnvoi, t.intlLocale)}</span></div>}
                       <div className={`thread-msg${isMe ? " thread-msg--me" : ""}`}>
                         {!isMe && <div style={{ fontSize: ".75rem", color: "var(--text-3)", marginBottom: 3, fontWeight: 600 }}>{msg.expediteur.prenom}</div>}
                         <div className="thread-msg-bubble">{msg.contenu}</div>
                         <span className="thread-msg-time" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          {fmtTime(msg.dateEnvoi)}
+                          {fmtTime(msg.dateEnvoi, t.intlLocale)}
                           {isMe && <i className={`fa-solid fa-check${msg.lu ? "-double" : ""}`} style={{ fontSize: ".6rem", color: msg.lu ? "var(--primary)" : "var(--text-3)" }} />}
                         </span>
                       </div>
@@ -331,12 +336,12 @@ export default function OwnerMessagesPage() {
               </div>
               <form className="messages-reply-form" onSubmit={handleSend}>
                 <div className="messages-reply-input-wrap">
-                  <input ref={inputRef} type="text" className="messages-reply-input" placeholder={`Message à ${activePartner.prenom}…`}
+                  <input ref={inputRef} type="text" className="messages-reply-input" placeholder={t.messagePlaceholder.replace("{name}", activePartner.prenom)}
                     value={reply} onChange={(e) => setReply(e.target.value)}
                     onKeyDown={handleReplyKeyDown}
                     autoComplete="off" disabled={sending} />
                 </div>
-                <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title="Envoyer (Entrée)"
+                <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title={t.sendTitle}
                   style={{ border: "none", background: reply.trim() ? "var(--primary)" : "var(--border)", color: reply.trim() ? "#fff" : "var(--text-3)", cursor: !reply.trim() || sending ? "not-allowed" : "pointer", transition: "background .18s, color .18s" }}>
                   {sending ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-paper-plane" />}
                 </button>
@@ -348,11 +353,11 @@ export default function OwnerMessagesPage() {
                 <i className="fa-solid fa-comments" />
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Vos messages</p>
-                <p style={{ fontSize: ".875rem", color: "var(--text-2)", maxWidth: 260 }}>Sélectionnez une conversation ou démarrez-en une nouvelle.</p>
+                <p style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>{t.emptyTitle}</p>
+                <p style={{ fontSize: ".875rem", color: "var(--text-2)", maxWidth: 260 }}>{t.emptySub}</p>
               </div>
               <button onClick={() => setNewConvOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: "var(--radius-lg)", border: "none", background: "var(--primary)", color: "#fff", fontWeight: 600, fontSize: ".875rem", cursor: "pointer" }}>
-                <i className="fa-solid fa-pen-to-square" /> Nouvelle discussion
+                <i className="fa-solid fa-pen-to-square" /> {t.newConv}
               </button>
             </div>
           )}

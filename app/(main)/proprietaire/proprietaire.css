@@ -54,3 +54,15 @@
   .prop-revenue-row > span:nth-child(2) { grid-area: weeks; color: var(--text-2); font-size: .8125rem; }
   .prop-revenue-row > span:nth-child(3) { grid-area: amount; text-align: right; align-self: center; }
 }
+
+/* ── Étapes "Comment ça marche" (section #comment-ca-marche) ──
+   .prop-step-badge regroupe numéro + trait de liaison + icône, qui
+   étaient jusqu'ici des enfants flex directs de .prop-step (empilement
+   vertical hérité de globals.css). Le wrapper reproduit cet espacement
+   par défaut (desktop) et permet de passer num+icône côte à côte sur
+   mobile sans toucher globals.css (cf. en-tête de fichier). */
+.prop-step-badge { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+@media (max-width: 768px) {
+  .prop-step-badge { flex-direction: row; gap: 12px; }
+}

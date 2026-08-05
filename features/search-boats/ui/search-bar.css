@@ -305,3 +305,35 @@
   .sb-select-list { min-width: 0; width: 100%; }
   .sb-calendar { width: 100%; box-sizing: border-box; }
 }
+
+/* ── Hero de la home, mobile uniquement (≤640px) : popover plein écran ──
+   Desktop ET tablette (>640px, y compris la version carte pleine largeur
+   ci-dessus qui s'applique jusqu'à 768px) gardent leur comportement
+   d'origine intact. Seul le vrai mobile passe en plein écran
+   (position:fixed + inset:0, même pattern que .gallery-lightbox-overlay
+   / .map-modal-overlay). Scopé à .hero pour ne pas affecter la barre
+   de recherche du catalogue (/bateaux). */
+@media (max-width: 640px) {
+  .hero .sb-popover {
+    position: fixed;
+    inset: 0;
+    transform: none;
+    width: auto;
+    max-width: none;
+    border-radius: 0;
+    overflow-y: auto;
+    /* .navbar (header) est en z-index:1000 (position:sticky) : un
+       z-index plus bas laissait le header — et sa croix "menu" — se
+       dessiner par-dessus le popover, masquant sa propre croix de
+       fermeture. 1300 : au-dessus de tout, y compris .gallery-lightbox
+       (1200), le z-index le plus élevé du site. */
+    z-index: 1300;
+    animation: sb-pop-in-fullpage .18s ease;
+  }
+  .hero .sb-select-list { min-width: 0; width: 100%; }
+  .hero .sb-calendar { width: 100%; box-sizing: border-box; }
+}
+@keyframes sb-pop-in-fullpage {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

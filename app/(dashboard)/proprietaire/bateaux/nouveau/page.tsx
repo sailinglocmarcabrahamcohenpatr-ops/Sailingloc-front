@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { ListBoatForm } from "@/features/list-boat";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 
 export const metadata: Metadata = { title: "Ajouter un bateau · SailingLoc" };
 
-export default function NouveauBateauPage() {
+export default async function NouveauBateauPage() {
+  const t = getDictionary(await getRequestLocale()).nouveauBateauPage;
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
-          <h1 className="dash-title">Ajouter un bateau</h1>
-          <p className="dash-sub">Complétez les 5 étapes pour publier votre annonce.</p>
+          <h1 className="dash-title">{t.title}</h1>
+          <p className="dash-sub">{t.sub}</p>
         </div>
       </div>
       <ListBoatForm />

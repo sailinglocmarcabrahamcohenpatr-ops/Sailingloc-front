@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useI18n } from "@/shared/i18n";
 
 export interface SelectOption {
   value: string;
@@ -26,6 +27,7 @@ export default function SearchSelect({
   renderIcon,
   align = "left",
 }: SearchSelectProps) {
+  const { dict } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = options.find((o) => o.value === value) ?? options[0];
@@ -70,7 +72,7 @@ export default function SearchSelect({
               type="button"
               className="sb-popover-close"
               onClick={() => setOpen(false)}
-              aria-label="Fermer"
+              aria-label={dict.common.close}
             >
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
