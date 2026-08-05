@@ -31,7 +31,7 @@
     radial-gradient(ellipse at 50% 45%, rgba(4,12,26,.06) 0%, rgba(4,12,26,.3) 100%);
 }
 .hero-content {
-  position: relative; z-index: 1;
+  position: relative;
   padding: 80px 0;
   width: 100%;
   text-align: center;
@@ -102,6 +102,7 @@
 @media (max-width: 768px) {
   .hero { min-height: 100svh; }
   .hero-content { padding: 48px 16px; }
+  .hero-sub { display: none; }
   .hero-trust { flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
   .hero-trust-sep { display: none; }
   .hero-trust-item { padding: 6px 12px; }

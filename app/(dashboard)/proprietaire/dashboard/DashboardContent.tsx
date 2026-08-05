@@ -4,18 +4,12 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { boatsApi, reservationsApi, messagesApi, useAuth } from "@/shared/lib";
 import type { BoatAPI, ReservationAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./dashboard-home.css";
 
 const COMMISSION_RATE = 0.15;
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
-
-const STATUS_LABEL: Record<BadgeKey, { label: string; cls: string }> = {
-  confirmed: { label: "Confirmée", cls: "green" },
-  pending: { label: "En attente", cls: "orange" },
-  cancelled: { label: "Annulée", cls: "red" },
-  completed: { label: "Terminée", cls: "grey" },
-};
 
 function libelleToKey(libelle?: string): BadgeKey {
   if (!libelle) return "pending";
@@ -27,23 +21,31 @@ function libelleToKey(libelle?: string): BadgeKey {
   return "pending";
 }
 
-function renterName(r: ReservationAPI): string {
-  const u = r.utilisateur;
-  if (!u) return `Réservation #${r.id}`;
-  return `${u.prenom} ${u.nom}`.trim();
-}
-
-function initials(r: ReservationAPI): string {
-  const u = r.utilisateur;
-  if (!u) return "?";
-  return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
-}
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const fmtDate = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
 export default function DashboardContent() {
   const { user } = useAuth();
+  const t = useI18n().dict.ownerDashboardPage;
+
+  const STATUS_LABEL: Record<BadgeKey, { label: string; cls: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "green" },
+    pending:   { label: t.statusPending,   cls: "orange" },
+    cancelled: { label: t.statusCancelled, cls: "red" },
+    completed: { label: t.statusCompleted, cls: "grey" },
+  };
+
+  function renterName(r: ReservationAPI): string {
+    const u = r.utilisateur;
+    if (!u) return t.reservationFallback.replace("{id}", String(r.id));
+    return `${u.prenom} ${u.nom}`.trim();
+  }
+
+  function initials(r: ReservationAPI): string {
+    const u = r.utilisateur;
+    if (!u) return "?";
+    return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
+  }
   const [boats, setBoats] = useState<BoatAPI[]>([]);
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -57,8 +59,9 @@ export default function DashboardContent() {
         setReservations(r);
         setUnreadMessages(msgs.filter((m) => !m.lu && m.destinataire.email === user?.email).length);
       })
-      .catch(() => setError("Impossible de charger votre tableau de bord."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email]);
 
   const ownedBoatIds = useMemo(
@@ -125,7 +128,7 @@ export default function DashboardContent() {
   if (loading)
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   if (error)
@@ -135,11 +138,24 @@ export default function DashboardContent() {
       </div>
     );
 
+  const boatLabel = publishedBoatsCount === 1
+    ? t.statBoatSingular
+    : t.statBoatPlural;
+  const reservationsCount = pending.length + confirmed.length;
+  const reservationsLabel = reservationsCount === 1
+    ? t.statReservationSingular
+    : t.statReservationPlural;
+  const messagesLabel = unreadMessages === 1
+    ? t.statMessageSingular
+    : t.statMessagePlural;
+  const onBookingsLabel = (revenueReservations.length === 1 ? t.onBookingsSingular : t.onBookingsPlural)
+    .replace("{n}", String(revenueReservations.length));
+
   return (
     <div className="dh-page">
       <div className="dh-header">
-        <h1>Tableau de bord</h1>
-        <p>Bienvenue sur votre espace propriétaire.</p>
+        <h1>{t.title}</h1>
+        <p>{t.welcome}</p>
       </div>
 
       <div className="dh-stats-grid">
@@ -149,8 +165,8 @@ export default function DashboardContent() {
             <div className="dh-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
           <div>
-            <div className="dh-stat-value">{monthNet.toLocaleString("fr-FR")} €</div>
-            <div className="dh-stat-label">Revenus ce mois (net)</div>
+            <div className="dh-stat-value">{monthNet.toLocaleString(t.intlLocale)} €</div>
+            <div className="dh-stat-label">{t.statRevenueMonth}</div>
           </div>
         </Link>
 
@@ -160,7 +176,7 @@ export default function DashboardContent() {
           </div>
           <div>
             <div className="dh-stat-value">{publishedBoatsCount}</div>
-            <div className="dh-stat-label">Bateau{publishedBoatsCount !== 1 ? "x" : ""} publié{publishedBoatsCount !== 1 ? "s" : ""}</div>
+            <div className="dh-stat-label">{boatLabel}</div>
           </div>
         </Link>
 
@@ -169,8 +185,8 @@ export default function DashboardContent() {
             <div className="dh-stat-icon dh-icon-reservations"><i className="fa-solid fa-calendar-check" /></div>
           </div>
           <div>
-            <div className="dh-stat-value">{pending.length + confirmed.length}</div>
-            <div className="dh-stat-label">Réservation{pending.length + confirmed.length !== 1 ? "s" : ""} en cours</div>
+            <div className="dh-stat-value">{reservationsCount}</div>
+            <div className="dh-stat-label">{reservationsLabel}</div>
           </div>
         </Link>
 
@@ -180,32 +196,32 @@ export default function DashboardContent() {
           </div>
           <div>
             <div className="dh-stat-value">{unreadMessages}</div>
-            <div className="dh-stat-label">Message{unreadMessages !== 1 ? "s" : ""} non lu{unreadMessages !== 1 ? "s" : ""}</div>
+            <div className="dh-stat-label">{messagesLabel}</div>
           </div>
         </Link>
       </div>
 
       <div className="dh-row">
         <div className="dash-card">
-          <div className="dash-card-hd"><h3>Prochaines réservations</h3></div>
+          <div className="dash-card-hd"><h3>{t.upcomingTitle}</h3></div>
           {upcoming.length === 0 ? (
-            <p className="dh-empty">Aucune réservation en attente ou confirmée pour l&apos;instant.</p>
+            <p className="dh-empty">{t.upcomingEmpty}</p>
           ) : (
             <div className="dh-list">
               {upcoming.map((r) => {
                 const key = libelleToKey(r.statutReservation);
                 const st = STATUS_LABEL[key];
-                const boatName = r.bateau?.nomBateau ?? `Bateau #${r.bateau?.id ?? r.id}`;
+                const boatName = r.bateau?.nomBateau ?? t.boatFallback.replace("{id}", String(r.bateau?.id ?? r.id));
                 return (
                   <div key={r.id} className="dh-list-row">
                     <div className="dh-avatar">{initials(r)}</div>
                     <div className="dh-list-info">
                       <strong>{renterName(r)}</strong>
-                      <span>{boatName} · {fmtDate(r.dateDebut)} – {fmtDate(r.dateFin)}</span>
+                      <span>{boatName} · {fmtDate(r.dateDebut, t.intlLocale)} – {fmtDate(r.dateFin, t.intlLocale)}</span>
                     </div>
                     <span className={`badge-status ${st.cls}`}>{st.label}</span>
                     <div className="dh-list-amount">
-                      <strong>{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
+                      <strong>{Number(r.montantTotal).toLocaleString(t.intlLocale)} €</strong>
                     </div>
                   </div>
                 );
@@ -213,17 +229,17 @@ export default function DashboardContent() {
             </div>
           )}
           <Link href="/proprietaire/reservations" className="dh-card-link">
-            Voir toutes les réservations <i className="fa-solid fa-arrow-right" />
+            {t.seeAllReservations} <i className="fa-solid fa-arrow-right" />
           </Link>
         </div>
 
         <div className="dh-dark-card">
           <div className="dh-dark-icon"><i className="fa-solid fa-wallet" /></div>
-          <h4>Revenu net cumulé</h4>
-          <div className="dh-dark-amount">{totalNet.toLocaleString("fr-FR")} €</div>
-          <p>Sur {revenueReservations.length} location{revenueReservations.length !== 1 ? "s" : ""} au total</p>
+          <h4>{t.netRevenueCumulated}</h4>
+          <div className="dh-dark-amount">{totalNet.toLocaleString(t.intlLocale)} €</div>
+          <p>{onBookingsLabel}</p>
           <Link href="/proprietaire/revenus" className="dh-dark-btn">
-            <i className="fa-solid fa-arrow-right" /> Voir les revenus
+            <i className="fa-solid fa-arrow-right" /> {t.seeRevenue}
           </Link>
         </div>
       </div>

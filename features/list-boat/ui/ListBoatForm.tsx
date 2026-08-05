@@ -11,19 +11,27 @@ import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { uploadPhoto } from "../api/photos";
 import { uploadDocument } from "../api/documents";
 import { compressImage } from "../lib/compressImage";
-import { STEPS, MIN_PHOTOS, MAX_PHOTOS, MOTORISATION_OPTIONS } from "../model/constants";
+import { MIN_PHOTOS, MAX_PHOTOS } from "../model/constants";
 import type { PhotoEntry, DocumentEntry, Motorisation, SubmitStep } from "../model/types";
 import { loadDraft, clearDraft, useFormDraft } from "../lib/useFormDraft";
 import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/filesDraft";
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
 import PortCreateForm from "./PortCreateForm";
+import { useI18n } from "@/shared/i18n";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
 
 export default function ListBoatForm() {
   const router = useRouter();
   const { user } = useAuth();
+  const t = useI18n().dict.listBoatForm;
+  const STEPS = t.steps;
+  const MOTORISATION_OPTIONS: { value: Motorisation; label: string }[] = [
+    { value: "voile",   label: t.motorSail },
+    { value: "moteur",  label: t.motorEngine },
+    { value: "hybride", label: t.motorHybrid },
+  ];
   const [step, setStep] = useState(0);
   const [submitStep, setSubmitStep] = useState<SubmitStep>("idle");
   const [uploadedPhotos, setUploadedPhotos] = useState(0);
@@ -156,22 +164,22 @@ export default function ListBoatForm() {
     setStepError("");
 
     if (step === 0) {
-      if (!typeId)        { setStepError("Veuillez sélectionner un type de bateau."); return; }
-      if (!name.trim())   { setStepError("Veuillez saisir le nom du bateau."); return; }
-      if (!portId)        { setStepError("Veuillez sélectionner un port d'attache."); return; }
-      if (!length.trim()) { setStepError("Veuillez saisir la taille du bateau."); return; }
-      if (!pricePerDay)   { setStepError("Veuillez saisir le prix par jour."); return; }
+      if (!typeId)        { setStepError(t.errType); return; }
+      if (!name.trim())   { setStepError(t.errName); return; }
+      if (!portId)        { setStepError(t.errPort); return; }
+      if (!length.trim()) { setStepError(t.errLength); return; }
+      if (!pricePerDay)   { setStepError(t.errPrice); return; }
     }
 
     if (step === 1 && photos.length < MIN_PHOTOS) {
-      setPhotoError(`Ajoutez au moins ${MIN_PHOTOS} photos pour continuer.`);
+      setPhotoError(t.errPhotosMin.replace("{n}", String(MIN_PHOTOS)));
       return;
     }
 
     if (step === 2) {
-      if (!docCarteGrise) { setStepError("Veuillez joindre la carte grise."); return; }
-      if (!docAssurance)  { setStepError("Veuillez joindre l'attestation d'assurance."); return; }
-      if (!docCertificat) { setStepError("Veuillez joindre le certificat."); return; }
+      if (!docCarteGrise) { setStepError(t.errDocCarteGrise); return; }
+      if (!docAssurance)  { setStepError(t.errDocAssurance); return; }
+      if (!docCertificat) { setStepError(t.errDocCertificat); return; }
     }
 
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -290,12 +298,12 @@ export default function ListBoatForm() {
 
     try {
       if (!cgvAccepted) {
-        setSubmitError("Veuillez accepter les conditions pour les propriétaires avant de publier.");
+        setSubmitError(t.errCgv);
         return;
       }
 
       if (!typeId || !portId || !name || !pricePerDay || !length) {
-        setSubmitError("Veuillez remplir tous les champs obligatoires.");
+        setSubmitError(t.errRequiredFields);
         return;
       }
 
@@ -351,7 +359,7 @@ export default function ListBoatForm() {
       setSubmitted(true);
       setTimeout(() => router.push("/proprietaire/bateaux"), 3000);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Erreur lors de la soumission.");
+      setSubmitError(err instanceof Error ? err.message : t.errSubmit);
       setSubmitStep("idle");
     } finally {
       submittingRef.current = false;
@@ -366,10 +374,10 @@ export default function ListBoatForm() {
 
   function submitLabel() {
     switch (submitStep) {
-      case "boat":      return <><i className="fa-solid fa-circle-notch fa-spin" /> Création du bateau…</>;
-      case "photos":    return <><i className="fa-solid fa-circle-notch fa-spin" /> Photos ({uploadedPhotos}/{photos.length})…</>;
-      case "documents": return <><i className="fa-solid fa-circle-notch fa-spin" /> Documents ({uploadedDocs}/{[docCarteGrise, docAssurance, docCertificat].filter(Boolean).length})…</>;
-      default:          return <><i className="fa-solid fa-paper-plane" /> Publier mon annonce</>;
+      case "boat":      return <><i className="fa-solid fa-circle-notch fa-spin" /> {t.submitBoat}</>;
+      case "photos":    return <><i className="fa-solid fa-circle-notch fa-spin" /> {t.submitPhotos.replace("{a}", String(uploadedPhotos)).replace("{b}", String(photos.length))}</>;
+      case "documents": return <><i className="fa-solid fa-circle-notch fa-spin" /> {t.submitDocs.replace("{a}", String(uploadedDocs)).replace("{b}", String([docCarteGrise, docAssurance, docCertificat].filter(Boolean).length))}</>;
+      default:          return <><i className="fa-solid fa-paper-plane" /> {t.submitPublish}</>;
     }
   }
 
@@ -377,12 +385,9 @@ export default function ListBoatForm() {
     return (
       <div className="save-confirm">
         <i className="fa-solid fa-hourglass-half" />
-        <h3>Votre annonce a bien été soumise !</h3>
-        <p>
-          Nos équipes vérifient actuellement vos documents légaux. Votre bateau sera mis en ligne
-          et ouvert à la location dès que la validation sera terminée.
-        </p>
-        <small>Redirection vers votre espace…</small>
+        <h3>{t.submittedTitle}</h3>
+        <p>{t.submittedText}</p>
+        <small>{t.redirecting}</small>
       </div>
     );
   }
@@ -391,9 +396,9 @@ export default function ListBoatForm() {
     return (
       <div className="save-confirm">
         <i className="fa-solid fa-circle-check" />
-        <h3>Brouillon sauvegardé !</h3>
-        <p>Vos informations ont été enregistrées. Vous pouvez reprendre à tout moment.</p>
-        <small>Redirection vers votre espace…</small>
+        <h3>{t.draftSavedTitle}</h3>
+        <p>{t.draftSavedText}</p>
+        <small>{t.redirecting}</small>
       </div>
     );
   }
@@ -403,7 +408,7 @@ export default function ListBoatForm() {
       {draftRestored && (
         <div className="draft-banner">
           <i className="fa-solid fa-rotate-left" />
-          <span>Brouillon restauré — vos données ont été récupérées automatiquement.</span>
+          <span>{t.draftRestored}</span>
           <button
             type="button"
             className="draft-banner-clear"
@@ -417,9 +422,9 @@ export default function ListBoatForm() {
               setPricePerDay(""); setPrixHeure(""); setCaution(""); setStep(0);
               setPhotos([]); setDocCarteGrise(null); setDocAssurance(null); setDocCertificat(null);
             }}
-            title="Effacer le brouillon"
+            title={t.draftClearTitle}
           >
-            <i className="fa-solid fa-xmark" /> Effacer
+            <i className="fa-solid fa-xmark" /> {t.draftClear}
           </button>
         </div>
       )}
@@ -444,10 +449,10 @@ export default function ListBoatForm() {
         {/* ── ÉTAPE 0 — INFORMATIONS ── */}
         {step === 0 && (
           <div className="form-section">
-            <h3>Type de bateau *</h3>
+            <h3>{t.step0Type}</h3>
             {boatTypes.length === 0 ? (
               <p style={{ color: "var(--text-2)", fontSize: ".875rem" }}>
-                <i className="fa-solid fa-circle-notch fa-spin" /> Chargement des types…
+                <i className="fa-solid fa-circle-notch fa-spin" /> {t.step0TypeLoading}
               </p>
             ) : (
               <SearchableSelect
@@ -455,13 +460,13 @@ export default function ListBoatForm() {
                 options={boatTypes.map((bt) => ({ value: bt.id, label: bt.labelTypeBateau }))}
                 value={typeId}
                 onChange={(v) => { setTypeId(Number(v)); setStepError(""); }}
-                placeholder="Sélectionner un type de bateau…"
-                searchPlaceholder="Rechercher un type…"
+                placeholder={t.step0TypePlaceholder}
+                searchPlaceholder={t.step0TypeSearchPlaceholder}
                 required
               />
             )}
 
-            <h3 style={{ marginTop: "24px" }}>Motorisation *</h3>
+            <h3 style={{ marginTop: "24px" }}>{t.step0Motorisation}</h3>
             <div className="radio-group">
               {MOTORISATION_OPTIONS.map((opt) => (
                 <label key={opt.value} className="radio-label">
@@ -477,13 +482,13 @@ export default function ListBoatForm() {
               ))}
             </div>
 
-            <h3 style={{ marginTop: "24px" }}>Informations générales</h3>
+            <h3 style={{ marginTop: "24px" }}>{t.step0GeneralInfo}</h3>
             <div className="form-group">
-              <label htmlFor="lb-name">Nom du bateau *</label>
+              <label htmlFor="lb-name">{t.step0Name}</label>
               <input
                 id="lb-name"
                 type="text"
-                placeholder="Ex: Sun Odyssey 440"
+                placeholder={t.step0NamePlaceholder}
                 value={name}
                 onChange={(e) => { setName(e.target.value); setStepError(""); }}
                 className={stepError && !name.trim() ? "input-error" : ""}
@@ -493,7 +498,7 @@ export default function ListBoatForm() {
 
             <div className="form-row-2">
               <div className="form-group">
-                <label htmlFor="lb-port">Port d'attache *</label>
+                <label htmlFor="lb-port">{t.step0Port}</label>
                 <div className={stepError && !portId ? "field-error" : ""}>
                   <SearchableSelect
                     id="lb-port"
@@ -509,11 +514,11 @@ export default function ListBoatForm() {
                       setStepError("");
                       if (id) handleLocatePort(id);
                     }}
-                    placeholder="Sélectionner un port…"
-                    searchPlaceholder="Rechercher par nom ou ville…"
+                    placeholder={t.step0PortPlaceholder}
+                    searchPlaceholder={t.step0PortSearchPlaceholder}
                     required
                     onCreate={(q) => setPortDraftName(q)}
-                    createLabel="Ajouter un port"
+                    createLabel={t.step0PortCreateLabel}
                   />
                 </div>
                 {portDraftName !== null && (
@@ -526,11 +531,11 @@ export default function ListBoatForm() {
                 )}
               </div>
               <div className="form-group">
-                <label htmlFor="lb-length">Taille *</label>
+                <label htmlFor="lb-length">{t.step0Length}</label>
                 <input
                   id="lb-length"
                   type="text"
-                  placeholder="Ex: 12m"
+                  placeholder={t.step0LengthPlaceholder}
                   value={length}
                   onChange={(e) => { setLength(e.target.value); setStepError(""); }}
                   className={stepError && !length.trim() ? "input-error" : ""}
@@ -547,35 +552,35 @@ export default function ListBoatForm() {
 
             <div className="form-row-3">
               <div className="form-group">
-                <label htmlFor="lb-capacity">Capacité (pers.)</label>
+                <label htmlFor="lb-capacity">{t.step0Capacity}</label>
                 <input id="lb-capacity" type="number" placeholder="8" min="1" max="30" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
               </div>
               <div className="form-group">
-                <label htmlFor="lb-cabins">Cabines</label>
+                <label htmlFor="lb-cabins">{t.step0Cabins}</label>
                 <input id="lb-cabins" type="number" placeholder="3" min="0" max="10" value={cabins} onChange={(e) => setCabins(e.target.value)} />
               </div>
             </div>
 
-            <h3 style={{ marginTop: "24px" }}>Options</h3>
+            <h3 style={{ marginTop: "24px" }}>{t.step0Options}</h3>
             <div className="checkbox-group">
               <label className="checkbox-label">
                 <input type="checkbox" checked={skipper} onChange={(e) => setSkipper(e.target.checked)} />
-                Avec skipper disponible
+                {t.optSkipper}
               </label>
               <label className="checkbox-label">
                 <input type="checkbox" checked={permisRequis} onChange={(e) => setPermisRequis(e.target.checked)} />
-                Permis requis
+                {t.optPermis}
               </label>
               <label className="checkbox-label">
                 <input type="checkbox" checked={carburantInclus} onChange={(e) => setCarburantInclus(e.target.checked)} />
-                Carburant inclus
+                {t.optCarburant}
               </label>
             </div>
 
-            <h3 style={{ marginTop: "24px" }}>Tarification</h3>
+            <h3 style={{ marginTop: "24px" }}>{t.step0Pricing}</h3>
             <div className="form-row-2">
               <div className="form-group">
-                <label htmlFor="lb-price">Prix par jour (€) *</label>
+                <label htmlFor="lb-price">{t.pricePerDay}</label>
                 <div className="input-prefix-wrap">
                   <span className="input-prefix">€</span>
                   <input
@@ -592,7 +597,7 @@ export default function ListBoatForm() {
                 </div>
               </div>
               <div className="form-group">
-                <label htmlFor="lb-prix-heure">Prix par heure (€)</label>
+                <label htmlFor="lb-prix-heure">{t.pricePerHour}</label>
                 <div className="input-prefix-wrap">
                   <span className="input-prefix">€</span>
                   <input
@@ -608,7 +613,7 @@ export default function ListBoatForm() {
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="lb-caution">Caution (€)</label>
+              <label htmlFor="lb-caution">{t.caution}</label>
               <div className="input-prefix-wrap">
                 <span className="input-prefix">€</span>
                 <input id="lb-caution" type="number" placeholder="500" min="0" step="0.01" value={caution} onChange={(e) => setCaution(e.target.value)} />
@@ -616,15 +621,15 @@ export default function ListBoatForm() {
             </div>
 
             <div className="form-group" style={{ marginTop: "8px" }}>
-              <label htmlFor="lb-desc">Description</label>
+              <label htmlFor="lb-desc">{t.step0Description}</label>
               <textarea
                 id="lb-desc"
                 rows={5}
-                placeholder="Décrivez votre bateau : ses atouts, son histoire, les zones de navigation idéales, le matériel inclus…"
+                placeholder={t.descPlaceholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-              <small className="form-hint">{description.length}/2000 caractères</small>
+              <small className="form-hint">{t.descHint.replace("{n}", String(description.length))}</small>
             </div>
           </div>
         )}
@@ -632,7 +637,7 @@ export default function ListBoatForm() {
         {/* ── ÉTAPE 1 — PHOTOS ── */}
         {step === 1 && (
           <div className="form-section">
-            <h3>Photos de votre bateau</h3>
+            <h3>{t.step1Title}</h3>
             <input
               ref={fileInputRef}
               type="file"
@@ -654,16 +659,16 @@ export default function ListBoatForm() {
               tabIndex={0}
             >
               <i className="fa-solid fa-cloud-arrow-up" />
-              <p><strong>Glissez vos photos ici</strong> ou cliquez pour sélectionner</p>
-              <small>JPG, PNG, WEBP — Minimum {MIN_PHOTOS} photos, {MAX_PHOTOS} maximum</small>
+              <p><strong>{t.dropzoneLead}</strong>{t.dropzoneOr}</p>
+              <small>{t.dropzoneHint.replace("{min}", String(MIN_PHOTOS)).replace("{max}", String(MAX_PHOTOS))}</small>
               <button type="button" className="btn btn-outline btn-sm" onClick={(e) => e.stopPropagation()}>
-                <i className="fa-solid fa-image" /> Choisir des photos
+                <i className="fa-solid fa-image" /> {t.choosePhotos}
               </button>
             </div>
 
             <div className="photo-count-hint" data-ok={photos.length >= MIN_PHOTOS}>
               <i className={`fa-solid ${photos.length >= MIN_PHOTOS ? "fa-circle-check" : "fa-circle-info"}`} aria-hidden="true" />
-              {photos.length} / {MIN_PHOTOS} photos minimum
+              {t.photoCountHint.replace("{n}", String(photos.length)).replace("{min}", String(MIN_PHOTOS))}
             </div>
             {photoError && (
               <small className="form-hint" style={{ color: "var(--red)" }}>{photoError}</small>
@@ -673,21 +678,21 @@ export default function ListBoatForm() {
               <div className="photo-preview-grid">
                 {photos.map((entry, i) => (
                   <div key={entry.file.name + i} className="photo-preview-item">
-                    <img src={entry.preview} alt={`Photo ${i + 1} du bateau`} />
+                    <img src={entry.preview} alt={t.photoAlt.replace("{n}", String(i + 1))} />
                     {i === 0 ? (
                       <span className="photo-preview-main-badge">
-                        <i className="fa-solid fa-star" aria-hidden="true" /> Principale
+                        <i className="fa-solid fa-star" aria-hidden="true" /> {t.photoMain}
                       </span>
                     ) : (
                       <button type="button" className="photo-set-main-btn" onClick={() => setMainPhoto(i)}>
-                        Définir comme principale
+                        {t.photoSetMain}
                       </button>
                     )}
                     <button
                       type="button"
                       className="photo-preview-remove"
                       onClick={() => removePhoto(i)}
-                      aria-label="Retirer cette photo"
+                      aria-label={t.photoRemoveAria}
                     >
                       <i className="fa-solid fa-xmark" aria-hidden="true" />
                     </button>
@@ -697,12 +702,12 @@ export default function ListBoatForm() {
             )}
 
             <div className="photo-tips">
-              <h4>Conseils pour de bonnes photos</h4>
+              <h4>{t.photoTipsTitle}</h4>
               <ul>
-                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> Photo depuis l'arrière du bateau en mer</li>
-                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> Cockpit et poste de barre</li>
-                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> Cabine principale bien éclairée</li>
-                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> Cuisine et salle de bain</li>
+                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> {t.photoTip1}</li>
+                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> {t.photoTip2}</li>
+                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> {t.photoTip3}</li>
+                <li><i className="fa-solid fa-check" style={{ color: "var(--green)" }} /> {t.photoTip4}</li>
               </ul>
             </div>
           </div>
@@ -711,13 +716,10 @@ export default function ListBoatForm() {
         {/* ── ÉTAPE 2 — DOCUMENTS ── */}
         {step === 2 && (
           <div className="form-section">
-            <h3>Documents justificatifs</h3>
+            <h3>{t.step2Title}</h3>
             <div className="form-section-desc-box">
               <i className="fa-solid fa-circle-exclamation" />
-              <p>
-                Les 3 documents sont <strong>obligatoires</strong> pour soumettre votre annonce.
-                Ils permettent à l&apos;admin de vérifier votre identité de propriétaire avant publication.
-              </p>
+              <p>{t.step2Desc}</p>
             </div>
 
             {/* Carte grise */}
@@ -725,21 +727,21 @@ export default function ListBoatForm() {
               <div className="doc-slot-header">
                 <i className="fa-solid fa-file-lines" />
                 <div>
-                  <span className="doc-slot-label">Carte grise <span className="doc-slot-required">*</span></span>
-                  <span className="doc-slot-hint">Certificat d&apos;immatriculation du bateau</span>
+                  <span className="doc-slot-label">{t.docCarteGriseLabel} <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">{t.docCarteGriseHint}</span>
                 </div>
               </div>
               {docCarteGrise ? (
                 <div className="doc-slot-file">
                   <i className={`fa-solid ${docCarteGrise.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
                   <span>{docCarteGrise.name}</span>
-                  <button type="button" className="doc-slot-remove" onClick={() => setDocCarteGrise(null)} aria-label="Retirer">
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocCarteGrise(null)} aria-label={t.docRemoveAria}>
                     <i className="fa-solid fa-xmark" />
                   </button>
                 </div>
               ) : (
                 <button type="button" className="doc-slot-btn" onClick={() => refCarteGrise.current?.click()}>
-                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                  <i className="fa-solid fa-upload" /> {t.docChoose}
                 </button>
               )}
               <input ref={refCarteGrise} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocCarteGrise); e.target.value = ""; }} />
@@ -750,21 +752,21 @@ export default function ListBoatForm() {
               <div className="doc-slot-header">
                 <i className="fa-solid fa-shield-halved" />
                 <div>
-                  <span className="doc-slot-label">Assurance <span className="doc-slot-required">*</span></span>
-                  <span className="doc-slot-hint">Attestation d&apos;assurance en cours de validité</span>
+                  <span className="doc-slot-label">{t.docAssuranceLabel} <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">{t.docAssuranceHint}</span>
                 </div>
               </div>
               {docAssurance ? (
                 <div className="doc-slot-file">
                   <i className={`fa-solid ${docAssurance.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
                   <span>{docAssurance.name}</span>
-                  <button type="button" className="doc-slot-remove" onClick={() => setDocAssurance(null)} aria-label="Retirer">
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocAssurance(null)} aria-label={t.docRemoveAria}>
                     <i className="fa-solid fa-xmark" />
                   </button>
                 </div>
               ) : (
                 <button type="button" className="doc-slot-btn" onClick={() => refAssurance.current?.click()}>
-                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                  <i className="fa-solid fa-upload" /> {t.docChoose}
                 </button>
               )}
               <input ref={refAssurance} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocAssurance); e.target.value = ""; }} />
@@ -775,21 +777,21 @@ export default function ListBoatForm() {
               <div className="doc-slot-header">
                 <i className="fa-solid fa-certificate" />
                 <div>
-                  <span className="doc-slot-label">Certificat <span className="doc-slot-required">*</span></span>
-                  <span className="doc-slot-hint">Titre de propriété ou certificat de jauge</span>
+                  <span className="doc-slot-label">{t.docCertificatLabel} <span className="doc-slot-required">*</span></span>
+                  <span className="doc-slot-hint">{t.docCertificatHint}</span>
                 </div>
               </div>
               {docCertificat ? (
                 <div className="doc-slot-file">
                   <i className={`fa-solid ${docCertificat.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image"}`} />
                   <span>{docCertificat.name}</span>
-                  <button type="button" className="doc-slot-remove" onClick={() => setDocCertificat(null)} aria-label="Retirer">
+                  <button type="button" className="doc-slot-remove" onClick={() => setDocCertificat(null)} aria-label={t.docRemoveAria}>
                     <i className="fa-solid fa-xmark" />
                   </button>
                 </div>
               ) : (
                 <button type="button" className="doc-slot-btn" onClick={() => refCertificat.current?.click()}>
-                  <i className="fa-solid fa-upload" /> Choisir un fichier
+                  <i className="fa-solid fa-upload" /> {t.docChoose}
                 </button>
               )}
               <input ref={refCertificat} type="file" accept=".pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocSelect(f, setDocCertificat); e.target.value = ""; }} />
@@ -802,64 +804,64 @@ export default function ListBoatForm() {
         {/* ── ÉTAPE 3 — RÉCAPITULATIF ── */}
         {step === 3 && (
           <div className="form-section">
-            <h3>Récapitulatif de votre annonce</h3>
+            <h3>{t.step3Title}</h3>
             <div className="list-boat-recap">
               <div className="recap-row">
-                <span><i className="fa-solid fa-sailboat" /> Type</span>
+                <span><i className="fa-solid fa-sailboat" /> {t.recapType}</span>
                 <strong>{selectedType?.labelTypeBateau ?? "—"}</strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-water" /> Motorisation</span>
+                <span><i className="fa-solid fa-water" /> {t.recapMotorisation}</span>
                 <strong>{MOTORISATION_OPTIONS.find((o) => o.value === motorisation)?.label ?? motorisation}</strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-tag" /> Nom</span>
+                <span><i className="fa-solid fa-tag" /> {t.recapName}</span>
                 <strong>{name || "—"}</strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-location-dot" /> Port d'attache</span>
+                <span><i className="fa-solid fa-location-dot" /> {t.recapPort}</span>
                 <strong>{selectedPort ? `${selectedPort.nom} – ${selectedPort.ville}` : "—"}</strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-ruler-horizontal" /> Taille</span>
+                <span><i className="fa-solid fa-ruler-horizontal" /> {t.recapLength}</span>
                 <strong>{length || "—"}</strong>
               </div>
               {capacity && (
                 <div className="recap-row">
-                  <span><i className="fa-solid fa-users" /> Capacité</span>
-                  <strong>{capacity} pers.</strong>
+                  <span><i className="fa-solid fa-users" /> {t.recapCapacity}</span>
+                  <strong>{capacity} {t.persons}</strong>
                 </div>
               )}
               {cabins && (
                 <div className="recap-row">
-                  <span><i className="fa-solid fa-bed" /> Cabines</span>
+                  <span><i className="fa-solid fa-bed" /> {t.recapCabins}</span>
                   <strong>{cabins}</strong>
                 </div>
               )}
               <div className="recap-row">
-                <span><i className="fa-solid fa-image" /> Photos</span>
-                <strong>{photos.length} photo{photos.length !== 1 ? "s" : ""}</strong>
+                <span><i className="fa-solid fa-image" /> {t.recapPhotos}</span>
+                <strong>{photos.length} {photos.length !== 1 ? t.photoPlural : t.photoSingular}</strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-file" /> Documents</span>
+                <span><i className="fa-solid fa-file" /> {t.recapDocuments}</span>
                 <strong>
-                  {[docCarteGrise && "Carte grise", docAssurance && "Assurance", docCertificat && "Certificat"]
-                    .filter(Boolean).join(", ") || <span style={{ color: "var(--orange, #f59e0b)" }}>Aucun — validation admin retardée</span>}
+                  {[docCarteGrise && t.docCarteGriseLabel, docAssurance && t.docAssuranceLabel, docCertificat && t.docCertificatLabel]
+                    .filter(Boolean).join(", ") || <span style={{ color: "var(--orange, #f59e0b)" }}>{t.recapNoDocs}</span>}
                 </strong>
               </div>
               <div className="recap-row">
-                <span><i className="fa-solid fa-euro-sign" /> Prix / jour</span>
+                <span><i className="fa-solid fa-euro-sign" /> {t.recapPricePerDay}</span>
                 <strong>{pricePerDay ? `${pricePerDay} €` : "—"}</strong>
               </div>
               {prixHeure && (
                 <div className="recap-row">
-                  <span><i className="fa-solid fa-euro-sign" /> Prix / heure</span>
+                  <span><i className="fa-solid fa-euro-sign" /> {t.recapPricePerHour}</span>
                   <strong>{prixHeure} €</strong>
                 </div>
               )}
               {caution && (
                 <div className="recap-row">
-                  <span><i className="fa-solid fa-shield-halved" /> Caution</span>
+                  <span><i className="fa-solid fa-shield-halved" /> {t.recapCaution}</span>
                   <strong>{caution} €</strong>
                 </div>
               )}
@@ -867,10 +869,7 @@ export default function ListBoatForm() {
 
             <div className="recap-status-info">
               <i className="fa-solid fa-hourglass-half" />
-              <p>
-                Votre bateau sera créé avec le statut <strong>« en attente de validation »</strong>.
-                Un admin le validera avant publication — assurez-vous d&apos;avoir joint les documents justificatifs.
-              </p>
+              <p>{t.statusInfo}</p>
             </div>
 
             <div className="list-boat-cgv">
@@ -882,7 +881,7 @@ export default function ListBoatForm() {
                   required
                 />
                 <span>
-                  J&apos;accepte les <a href="#" className="auth-link">conditions pour les propriétaires</a> et je certifie être le propriétaire ou le représentant légal de ce bateau.
+                  {t.cgvBefore}<a href="#" className="auth-link">{t.cgvLink}</a>{t.cgvAfter}
                 </span>
               </label>
             </div>
@@ -894,7 +893,7 @@ export default function ListBoatForm() {
       <div className="form-wizard-nav">
         {step > 0 && (
           <button type="button" className="btn btn-outline" onClick={prev} disabled={isSubmitting}>
-            <i className="fa-solid fa-arrow-left" /> Retour
+            <i className="fa-solid fa-arrow-left" /> {t.navBack}
           </button>
         )}
         {(stepError || submitError) && (
@@ -908,20 +907,20 @@ export default function ListBoatForm() {
             className="btn-ghost"
             onClick={handleSaveAndExit}
             disabled={isSubmitting}
-            title="Sauvegarder le brouillon et revenir plus tard"
+            title={t.saveExitTitle}
           >
-            <i className="fa-regular fa-floppy-disk" /> Sauvegarder
+            <i className="fa-regular fa-floppy-disk" /> {t.save}
           </button>
           {step < STEPS.length - 1 ? (
             <button type="button" className="btn btn-primary" onClick={next} disabled={isSubmitting}>
-              Continuer <i className="fa-solid fa-arrow-right" />
+              {t.continue} <i className="fa-solid fa-arrow-right" />
             </button>
           ) : (
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isSubmitting || !cgvAccepted}
-              title={!cgvAccepted ? "Veuillez accepter les conditions pour continuer" : undefined}
+              title={!cgvAccepted ? t.cgvRequiredTitle : undefined}
             >
               {submitLabel()}
             </button>

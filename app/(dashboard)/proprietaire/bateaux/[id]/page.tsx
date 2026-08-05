@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Gallery } from "@/features/view-gallery";
 import { boatsApi, avisApi, resolvePhotoUrl, type BoatAPI, type AvisAPI } from "@/shared/lib";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import "./voir.css";
 
 interface RatingSummary {
@@ -29,8 +30,8 @@ function summarizeAvis(avis: AvisAPI[]): RatingSummary {
   };
 }
 
-const fmtReviewDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+const fmtReviewDate = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { month: "long", year: "numeric" });
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -56,28 +57,29 @@ interface BoatPageData {
   galleryImages: { src: string; alt: string }[];
 }
 
-function adaptBoat(b: BoatAPI): BoatPageData {
+function adaptBoat(b: BoatAPI, t: { mainViewAlt: string; cockpitAlt: string; mainCabinAlt: string; photoAlt: string; fallbackCountry: string; fallbackType: string }): BoatPageData {
   const sortedPhotos = (b.photos ?? [])
     .slice()
     .sort((a, c) => (a.ordreAffichage ?? 99) - (c.ordreAffichage ?? 99));
 
+  const mainViewAlt = t.mainViewAlt.replace("{name}", b.nomBateau);
   const galleryImages =
     sortedPhotos.length > 0
       ? sortedPhotos.slice(0, 3).map((p, i) => ({
           src: resolvePhotoUrl(p.url),
-          alt: p.description ?? (i === 0 ? `${b.nomBateau} vue principale` : `Photo ${i + 1}`),
+          alt: p.description ?? (i === 0 ? mainViewAlt : t.photoAlt.replace("{n}", String(i + 1))),
         }))
       : [
-          { src: `https://picsum.photos/seed/${b.id}-main/1200/800`, alt: `${b.nomBateau} vue principale` },
-          { src: `https://picsum.photos/seed/${b.id}-cockpit/600/400`, alt: "Cockpit" },
-          { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: "Cabine principale" },
+          { src: `https://picsum.photos/seed/${b.id}-main/1200/800`, alt: mainViewAlt },
+          { src: `https://picsum.photos/seed/${b.id}-cockpit/600/400`, alt: t.cockpitAlt },
+          { src: `https://picsum.photos/seed/${b.id}-cabin/600/400`, alt: t.mainCabinAlt },
         ];
 
   return {
     id: String(b.id),
     name: b.nomBateau,
-    location: b.port ? b.port.ville : "France",
-    type: b.typeBateau?.labelTypeBateau ?? "Voilier",
+    location: b.port ? b.port.ville : t.fallbackCountry,
+    type: b.typeBateau?.labelTypeBateau ?? t.fallbackType,
     rating: 0,
     reviewCount: 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
@@ -104,25 +106,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-const SPECS = (boat: BoatPageData) =>
+const SPECS = (boat: BoatPageData, t: ReturnType<typeof getDictionary>["ownerBoatViewPage"]) =>
   [
-    { icon: "fa-ruler-horizontal", val: boat.taille, label: "Taille" },
-    { icon: "fa-users", val: boat.capacity ? `${boat.capacity} pers.` : "—", label: "Capacité" },
-    { icon: "fa-bed", val: boat.cabins ? `${boat.cabins} cab.` : "—", label: "Couchettes" },
-    { icon: "fa-id-card", val: boat.permisRequis ? "Requis" : "Non requis", label: "Permis" },
-    { icon: "fa-gas-pump", val: boat.motorisation, label: "Motorisation" },
-    { icon: "fa-shield-halved", val: boat.caution ? `${boat.caution.toLocaleString("fr-FR")} €` : "—", label: "Caution" },
-    { icon: "fa-user-tie", val: boat.avecSkipper ? "Inclus" : "Non inclus", label: "Skipper" },
-    { icon: "fa-droplet", val: boat.carburantInclus ? "Inclus" : "Non inclus", label: "Carburant" },
+    { icon: "fa-ruler-horizontal", val: boat.taille, label: t.specSize },
+    { icon: "fa-users", val: boat.capacity ? `${boat.capacity} ${t.personsShort}` : "—", label: t.specCapacity },
+    { icon: "fa-bed", val: boat.cabins ? `${boat.cabins} ${t.cabinsShort}` : "—", label: t.specBerths },
+    { icon: "fa-id-card", val: boat.permisRequis ? t.valueRequired : t.valueNotRequired, label: t.specLicense },
+    { icon: "fa-gas-pump", val: boat.motorisation, label: t.specEngine },
+    { icon: "fa-shield-halved", val: boat.caution ? `${boat.caution.toLocaleString(t.intlLocale)} €` : "—", label: t.specDeposit },
+    { icon: "fa-user-tie", val: boat.avecSkipper ? t.valueIncluded : t.valueNotIncluded, label: t.specSkipper },
+    { icon: "fa-droplet", val: boat.carburantInclus ? t.valueIncluded : t.valueNotIncluded, label: t.specFuel },
   ];
 
 export default async function OwnerBoatViewPage({ params }: PageProps) {
   const { id } = await params;
+  const t = getDictionary(await getRequestLocale()).ownerBoatViewPage;
 
   let boat: BoatPageData;
   try {
     const data = await boatsApi.getOne(id);
-    boat = adaptBoat(data);
+    boat = adaptBoat(data, t);
   } catch {
     notFound();
   }
@@ -135,7 +138,7 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
   return (
     <div className="dash-page">
       <Link href="/proprietaire/bateaux" className="cal-back-link">
-        <i className="fa-solid fa-arrow-left" /> Mes bateaux
+        <i className="fa-solid fa-arrow-left" /> {t.backLink}
       </Link>
 
       <Gallery images={boat.galleryImages} title={boat.name} />
@@ -149,8 +152,8 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
           <div className="product-meta">
             <div className="product-rating">
               <i className="fa-solid fa-star" aria-hidden="true" />
-              {boat.rating > 0 ? boat.rating : "Nouveau"} &nbsp;·&nbsp;
-              <a href="#avis">{boat.reviewCount} avis</a>
+              {boat.rating > 0 ? boat.rating : t.newBadge} &nbsp;·&nbsp;
+              <a href="#avis">{boat.reviewCount} {boat.reviewCount === 1 ? t.reviewsSingular : t.reviewsPlural}</a>
             </div>
             <div className="product-loc">
               <i className="fa-solid fa-location-dot" aria-hidden="true" />
@@ -160,9 +163,9 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
         </div>
 
         <div className="owner-view-card">
-          <h3 className="owner-view-card-title">Caractéristiques</h3>
-          <div className="specs-grid" role="list" aria-label="Caractéristiques du bateau">
-            {SPECS(boat).map((spec) => (
+          <h3 className="owner-view-card-title">{t.featuresTitle}</h3>
+          <div className="specs-grid" role="list" aria-label={t.featuresAria}>
+            {SPECS(boat, t).map((spec) => (
               <div key={spec.label} className="spec-card" role="listitem">
                 <div className="spec-icon">
                   <i className={`fa-solid ${spec.icon}`} aria-hidden="true" />
@@ -175,18 +178,20 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
         </div>
 
         <div className="owner-view-card">
-          <h3 className="owner-view-card-title">Description</h3>
+          <h3 className="owner-view-card-title">{t.descriptionTitle}</h3>
           {boat.description ? (
             <p>{boat.description}</p>
           ) : (
-            <p style={{ color: "var(--text-2)" }}>Aucune description renseignée pour ce bateau.</p>
+            <p style={{ color: "var(--text-2)" }}>{t.noDescription}</p>
           )}
         </div>
 
         <div className="owner-view-card" id="avis">
           <h3 className="owner-view-card-title">
             <i className="fa-solid fa-star" style={{ color: "var(--star)" }} aria-hidden="true" />{" "}
-            {boat.reviewCount > 0 ? `${boat.rating} · ${boat.reviewCount} avis` : "Aucun avis pour l'instant"}
+            {boat.reviewCount > 0
+              ? `${boat.rating} · ${boat.reviewCount} ${boat.reviewCount === 1 ? t.reviewsSingular : t.reviewsPlural}`
+              : t.noReviewsYet}
           </h3>
 
           {boat.reviewCount > 0 && (
@@ -211,9 +216,9 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
               </div>
               <div className="reviews-bars">
                 {[
-                  { label: "Propriétaire", pct: (summary.proprietaire / 5) * 100 },
-                  { label: "Bateau", pct: (summary.bateau / 5) * 100 },
-                  { label: "Lieu visité", pct: (summary.lieu / 5) * 100 },
+                  { label: t.ownerRow, pct: (summary.proprietaire / 5) * 100 },
+                  { label: t.boatRow, pct: (summary.bateau / 5) * 100 },
+                  { label: t.placeVisitedRow, pct: (summary.lieu / 5) * 100 },
                 ].map((bar) => (
                   <div key={bar.label} className="review-bar-row">
                     <span className="review-bar-label">{bar.label}</span>
@@ -235,11 +240,11 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
           )}
 
           {avis.length === 0 ? (
-            <p style={{ color: "var(--text-2)" }}>Ce bateau n&apos;a pas encore reçu d&apos;avis.</p>
+            <p style={{ color: "var(--text-2)" }}>{t.noReviewsBody}</p>
           ) : (
             avis.map((a) => {
               const reviewer = a.utilisateur;
-              const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : "Locataire SailingLoc";
+              const authorName = reviewer ? `${reviewer.prenom} ${reviewer.nom}` : t.tenantFallback;
               const initial = reviewer?.prenom?.[0]?.toUpperCase() ?? "?";
 
               return (
@@ -248,10 +253,10 @@ export default async function OwnerBoatViewPage({ params }: PageProps) {
                     <div className="review-author-avatar" aria-hidden="true">{initial}</div>
                     <div className="review-author-info">
                       <strong>{authorName}</strong>
-                      <span>{fmtReviewDate(a.dateAvis)}</span>
+                      <span>{fmtReviewDate(a.dateAvis, t.intlLocale)}</span>
                     </div>
                   </div>
-                  <div className="review-rating" aria-label={`Note : ${a.note} sur 5`}>
+                  <div className="review-rating" aria-label={t.ratingAria.replace("{n}", String(a.note))}>
                     {[...Array(5)].map((_, i) => (
                       <i
                         key={i}

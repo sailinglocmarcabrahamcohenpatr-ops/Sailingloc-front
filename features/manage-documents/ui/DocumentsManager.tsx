@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { documentsApi, referentielsApi, resolvePhotoUrl } from "@/shared/lib";
 import type { DocumentAPI, TypeDocumentAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 
 /** Devine une icône FontAwesome à partir du libellé du type de document (aucune liste de types n'est fixée côté backend). */
 function iconForLabel(label: string): string {
@@ -16,6 +17,7 @@ function iconForLabel(label: string): string {
 }
 
 export default function DocumentsManager() {
+  const t = useI18n().dict.documentsPage;
   const [types, setTypes] = useState<TypeDocumentAPI[]>([]);
   const [documents, setDocuments] = useState<DocumentAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function DocumentsManager() {
         setTypes(t);
         setDocuments(d);
       })
-      .catch(() => setLoadError("Impossible de charger vos documents."))
+      .catch(() => setLoadError(t.errLoad))
       .finally(() => setLoading(false));
   }, []);
 
@@ -50,7 +52,7 @@ export default function DocumentsManager() {
         documentsApi.delete(previous.id).catch(() => {});
       }
     } catch {
-      setUploadError((prev) => ({ ...prev, [type.id]: "Échec de l'envoi. Réessayez." }));
+      setUploadError((prev) => ({ ...prev, [type.id]: t.errUpload }));
     } finally {
       setUploadingTypeId(null);
     }
@@ -62,7 +64,7 @@ export default function DocumentsManager() {
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
     } catch {
       if (doc.typeDocument) {
-        setUploadError((prev) => ({ ...prev, [doc.typeDocument!.id]: "Impossible de supprimer ce document." }));
+        setUploadError((prev) => ({ ...prev, [doc.typeDocument!.id]: t.errDelete }));
       }
     }
   };
@@ -70,7 +72,7 @@ export default function DocumentsManager() {
   if (loading) {
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   }
@@ -87,23 +89,23 @@ export default function DocumentsManager() {
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
-          <h1 className="dash-title">Mes documents</h1>
-          <p className="dash-sub">Gérez vos justificatifs pour accéder à toutes les fonctionnalités</p>
+          <h1 className="dash-title">{t.title}</h1>
+          <p className="dash-sub">{t.sub}</p>
         </div>
       </div>
 
       <div className="docs-info-banner">
         <i className="fa-solid fa-circle-info" />
         <div>
-          <strong>Pourquoi fournir vos documents ?</strong>
-          <p>Les propriétaires accordent leur confiance aux profils avec un dossier complet, ce qui augmente vos chances d&apos;acceptation.</p>
+          <strong>{t.bannerTitle}</strong>
+          <p>{t.bannerText}</p>
         </div>
       </div>
 
       <div className="docs-list">
         {types.map((type) => {
           const doc = documents.find((d) => d.typeDocument?.id === type.id);
-          const label = type.labelTypeDocument ?? type.libelle ?? "Document";
+          const label = type.labelTypeDocument ?? type.libelle ?? t.docFallback;
           const icon = iconForLabel(label);
           const busy = uploadingTypeId === type.id;
 
@@ -115,7 +117,7 @@ export default function DocumentsManager() {
 
               <div className="doc-info">
                 <strong>{label}</strong>
-                <span>{doc ? "Envoyé" : "Non fourni"}</span>
+                <span>{doc ? t.statusSent : t.statusNotProvided}</span>
                 {uploadError[type.id] && (
                   <span style={{ color: "var(--red)" }}>{uploadError[type.id]}</span>
                 )}
@@ -123,7 +125,7 @@ export default function DocumentsManager() {
 
               <span className={doc ? "badge-status green" : "badge-status grey"}>
                 <i className={`fa-solid ${doc ? "fa-circle-check" : "fa-circle-xmark"}`} aria-hidden="true" />
-                {doc ? "Envoyé" : "Manquant"}
+                {doc ? t.statusSent : t.statusMissing}
               </span>
 
               <div className="doc-actions">
@@ -146,7 +148,7 @@ export default function DocumentsManager() {
                     rel="noopener noreferrer"
                     className="btn btn-ghost btn-sm"
                   >
-                    <i className="fa-solid fa-eye" /> Voir
+                    <i className="fa-solid fa-eye" /> {t.actionView}
                   </a>
                 )}
                 {doc && (
@@ -155,7 +157,7 @@ export default function DocumentsManager() {
                     onClick={() => handleDelete(doc)}
                     disabled={busy}
                   >
-                    <i className="fa-solid fa-trash" /> Supprimer
+                    <i className="fa-solid fa-trash" /> {t.actionDelete}
                   </button>
                 )}
                 <button
@@ -164,7 +166,7 @@ export default function DocumentsManager() {
                   disabled={busy}
                 >
                   {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-upload" />}
-                  {doc ? "Remplacer" : "Ajouter"}
+                  {doc ? t.actionReplace : t.actionAdd}
                 </button>
               </div>
             </div>

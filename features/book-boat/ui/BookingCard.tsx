@@ -53,7 +53,18 @@ export default function BookingCard({
   const router = useRouter();
   const { locale, dict } = useI18n();
   const t = dict.boatDetail;
+  const tc = dict.common;
   const ownerLabel = ownerName ?? t.defaultOwnerName;
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setSheetOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [sheetOpen]);
   // Vers la messagerie interne si on connaît le propriétaire ; sinon repli
   // sur le formulaire de contact support (annonce sans propriétaire identifié).
   const contactHref = ownerId
@@ -120,131 +131,163 @@ export default function BookingCard({
   };
 
   return (
-    <aside>
-      <div className="booking-card">
-        <div className="booking-header">
-          <div className="booking-price">
+    <>
+      {/* Barre fixe en bas d'écran — mobile uniquement (voir CSS @media ≤768px) */}
+      <div className="booking-mobile-bar">
+        <div className="booking-mobile-bar-price">
+          <span className="booking-mobile-bar-label">{t.startingFrom}</span>
+          <strong>
             {formatPrice(pricePerDay)} <span>{t.perDay}</span>
-          </div>
-          <div className="booking-rating">
-            <i className="fa-solid fa-star" aria-hidden="true" />
-            <span>
-              {rating} · {reviewCount} {t.reviews}
-            </span>
-          </div>
+          </strong>
         </div>
-        <div className="booking-body">
-          <div className="booking-dates booking-dates-cal">
-            <label>{t.rentalDates}</label>
-            <AvailabilityCalendar
-              value={range}
-              onChange={setRange}
-              blockedRanges={blockedRanges}
-              bookedRanges={bookedRanges}
-              loading={calLoading}
-            />
-          </div>
+        <button
+          type="button"
+          className="btn btn-primary booking-mobile-bar-cta"
+          onClick={() => setSheetOpen(true)}
+        >
+          {t.viewAvailabilityCta}
+        </button>
+      </div>
 
-          <GuestCounter
-            max={capacity}
-            initial={Math.min(4, capacity)}
-            onChange={setGuests}
-          />
-
-          <div className="booking-info">
-            <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
-            <span>
-              {calLoading
-                ? t.checkingAvailability
-                : hasAvailability
-                ? t.bookingHint
-                : t.noDatesAvailable}
-            </span>
-          </div>
-
-          <div className="booking-total">
-            <div className="booking-total-row">
-              <span>
-                {formatPrice(pricePerDay)} × {days} {days > 1 ? t.daysLabel : t.dayLabel}
-              </span>
-              <strong>{formatPrice(subtotal)}</strong>
-            </div>
-            <div className="booking-total-row">
-              <span>{t.serviceFee}</span>
-              <strong>{formatPrice(serviceFee)}</strong>
-            </div>
-            <div className="booking-total-row">
-              <span>{t.insuranceIncluded}</span>
-              <strong className="text-green">{t.free}</strong>
-            </div>
-            <div className="booking-total-divider" />
-            <div className="booking-total-final">
-              <span>{t.total}</span>
-              <span>{formatPrice(total)}</span>
-            </div>
-          </div>
-
+      <div
+        className={`booking-sheet-overlay${sheetOpen ? " open" : ""}`}
+        onClick={(e) => { if (e.target === e.currentTarget) setSheetOpen(false); }}
+      >
+        <aside className="booking-sheet-panel">
           <button
-            className="btn btn-primary booking-cta"
             type="button"
-            onClick={handleBook}
-            disabled={!canBook || isOwnerAccount}
-            title={
-              isOwnerAccount
-                ? t.titleOwnerOnly
-                : !canBook
-                ? t.titleChooseDates
-                : undefined
-            }
+            className="booking-sheet-close"
+            onClick={() => setSheetOpen(false)}
+            aria-label={tc.close}
           >
-            <i className="fa-solid fa-calendar-check" aria-hidden="true" />
-            {isOwnerAccount
-              ? t.ctaOwnerOnly
-              : !canBook
-              ? t.ctaChooseDates
-              : user
-              ? t.ctaBookNow
-              : t.ctaLoginToBook}
+            <i className="fa-solid fa-xmark" aria-hidden="true" />
           </button>
-          <p className="booking-note">
-            {isOwnerAccount ? (
-              <>
-                {t.noteOwner}{" "}
-                <Link href="/inscription">{t.noteOwnerCta}</Link>
-              </>
-            ) : (
-              t.noteDefault
-            )}
-          </p>
-          <div className="booking-contact">
-            <Link href={contactHref}>
-              <i className="fa-regular fa-comment" aria-hidden="true" /> {t.contact}{" "}
-              {ownerLabel}
-            </Link>
-            <a href="tel:+33612345678">
-              <i className="fa-solid fa-phone" aria-hidden="true" /> {t.call}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="booking-guarantees">
-        {BOOKING_GUARANTEES.map((g, i) => {
-          const label = t.guarantees[i];
-          return (
-            <div key={g.icon} className="booking-guarantee-item">
-              <i
-                className={`fa-solid ${g.icon} booking-guarantee-icon`}
-                style={{ color: g.color }}
-                aria-hidden="true"
-              />
-              <span>
-                <strong>{label.title}</strong> — {label.desc}
-              </span>
+          <div className="booking-card">
+            <div className="booking-header">
+              <div className="booking-price">
+                {formatPrice(pricePerDay)} <span>{t.perDay}</span>
+              </div>
+              <div className="booking-rating">
+                <i className="fa-solid fa-star" aria-hidden="true" />
+                <span>
+                  {rating} · {reviewCount} {t.reviews}
+                </span>
+              </div>
             </div>
-          );
-        })}
+            <div className="booking-body">
+              <div className="booking-dates-cal">
+                <label>{t.rentalDates}</label>
+                <AvailabilityCalendar
+                  value={range}
+                  onChange={setRange}
+                  blockedRanges={blockedRanges}
+                  bookedRanges={bookedRanges}
+                  loading={calLoading}
+                />
+              </div>
+
+              <GuestCounter
+                max={capacity}
+                initial={Math.min(4, capacity)}
+                onChange={setGuests}
+              />
+
+              <div className="booking-info">
+                <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
+                <span>
+                  {calLoading
+                    ? t.checkingAvailability
+                    : hasAvailability
+                    ? t.bookingHint
+                    : t.noDatesAvailable}
+                </span>
+              </div>
+
+              <div className="booking-total">
+                <div className="booking-total-row">
+                  <span>
+                    {formatPrice(pricePerDay)} × {days} {days > 1 ? t.daysLabel : t.dayLabel}
+                  </span>
+                  <strong>{formatPrice(subtotal)}</strong>
+                </div>
+                <div className="booking-total-row">
+                  <span>{t.serviceFee}</span>
+                  <strong>{formatPrice(serviceFee)}</strong>
+                </div>
+                <div className="booking-total-row">
+                  <span>{t.insuranceIncluded}</span>
+                  <strong className="text-green">{t.free}</strong>
+                </div>
+                <div className="booking-total-divider" />
+                <div className="booking-total-final">
+                  <span>{t.total}</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary booking-cta"
+                type="button"
+                onClick={handleBook}
+                disabled={!canBook || isOwnerAccount}
+                title={
+                  isOwnerAccount
+                    ? t.titleOwnerOnly
+                    : !canBook
+                    ? t.titleChooseDates
+                    : undefined
+                }
+              >
+                <i className="fa-solid fa-calendar-check" aria-hidden="true" />
+                {isOwnerAccount
+                  ? t.ctaOwnerOnly
+                  : !canBook
+                  ? t.ctaChooseDates
+                  : user
+                  ? t.ctaBookNow
+                  : t.ctaLoginToBook}
+              </button>
+              <p className="booking-note">
+                {isOwnerAccount ? (
+                  <>
+                    {t.noteOwner}{" "}
+                    <Link href="/inscription">{t.noteOwnerCta}</Link>
+                  </>
+                ) : (
+                  t.noteDefault
+                )}
+              </p>
+              <div className="booking-contact">
+                <Link href={contactHref}>
+                  <i className="fa-regular fa-comment" aria-hidden="true" /> {t.contact}{" "}
+                  {ownerLabel}
+                </Link>
+                <a href="tel:+33612345678">
+                  <i className="fa-solid fa-phone" aria-hidden="true" /> {t.call}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="booking-guarantees">
+            {BOOKING_GUARANTEES.map((g, i) => {
+              const label = t.guarantees[i];
+              return (
+                <div key={g.icon} className="booking-guarantee-item">
+                  <i
+                    className={`fa-solid ${g.icon} booking-guarantee-icon`}
+                    style={{ color: g.color }}
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <strong>{label.title}</strong> — {label.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </aside>
       </div>
-    </aside>
+    </>
   );
 }

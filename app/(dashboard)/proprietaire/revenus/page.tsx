@@ -4,19 +4,13 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { boatsApi, reservationsApi, useAuth, generateOwnerRevenueReportPdf } from "@/shared/lib";
 import type { BoatAPI, ReservationAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./revenue.css";
 
 const COMMISSION_RATE = 0.15;
 const MONTHS_BACK = 6;
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
-
-const STATUS_LABEL: Record<BadgeKey, { label: string; cls: string }> = {
-  confirmed: { label: "Confirmée", cls: "green" },
-  pending: { label: "En attente", cls: "orange" },
-  cancelled: { label: "Annulée", cls: "red" },
-  completed: { label: "Terminée", cls: "grey" },
-};
 
 function libelleToKey(libelle?: string): BadgeKey {
   if (!libelle) return "pending";
@@ -28,26 +22,34 @@ function libelleToKey(libelle?: string): BadgeKey {
   return "pending";
 }
 
-function renterName(r: ReservationAPI): string {
-  const u = r.utilisateur;
-  if (!u) return `Réservation #${r.id}`;
-  return `${u.prenom} ${u.nom}`.trim();
-}
-
 function initials(r: ReservationAPI): string {
   const u = r.utilisateur;
   if (!u) return "?";
   return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
 }
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const fmtDate = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
-const fmtDateLong = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+const fmtDateLong = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 
 export default function OwnerRevenuePage() {
   const { user } = useAuth();
+  const t = useI18n().dict.ownerRevenuePage;
+
+  const STATUS_LABEL: Record<BadgeKey, { label: string; cls: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "green" },
+    pending:   { label: t.statusPending,   cls: "orange" },
+    cancelled: { label: t.statusCancelled, cls: "red" },
+    completed: { label: t.statusCompleted, cls: "grey" },
+  };
+
+  function renterName(r: ReservationAPI): string {
+    const u = r.utilisateur;
+    if (!u) return t.reservationFallback.replace("{id}", String(r.id));
+    return `${u.prenom} ${u.nom}`.trim();
+  }
   const [boats, setBoats] = useState<BoatAPI[]>([]);
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +61,9 @@ export default function OwnerRevenuePage() {
         setBoats(b);
         setReservations(r);
       })
-      .catch(() => setError("Impossible de charger vos revenus."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ownedBoatIds = useMemo(
@@ -102,7 +105,7 @@ export default function OwnerRevenuePage() {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       buckets.push({
         key: `${d.getFullYear()}-${d.getMonth()}`,
-        label: d.toLocaleDateString("fr-FR", { month: "short" }),
+        label: d.toLocaleDateString(t.intlLocale, { month: "short" }),
         amount: 0,
       });
     }
@@ -147,14 +150,14 @@ export default function OwnerRevenuePage() {
       const boatName =
         r.bateau?.nomBateau ??
         (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ??
-        `Bateau #${r.bateau?.id ?? r.id}`;
+        t.boatFallback.replace("{id}", String(r.bateau?.id ?? r.id));
       const gross = Number(r.montantTotal);
       const commission = Math.round(gross * COMMISSION_RATE);
       const net = gross - commission;
       return {
         renterName: renterName(r),
         boatName,
-        period: `${fmtDateLong(r.dateDebut)} - ${fmtDateLong(r.dateFin)}`,
+        period: `${fmtDateLong(r.dateDebut, t.intlLocale)} - ${fmtDateLong(r.dateFin, t.intlLocale)}`,
         statusLabel: STATUS_LABEL[key].label,
         gross,
         commission,
@@ -180,7 +183,7 @@ export default function OwnerRevenuePage() {
   if (loading)
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   if (error)
@@ -190,15 +193,18 @@ export default function OwnerRevenuePage() {
       </div>
     );
 
+  const boatCountLabel = ownedBoatIds.size === 1 ? t.boatSingular : t.boatPlural;
+  const bookingsLabel = (count === 1 ? t.onBookingsSingular : t.onBookingsPlural).replace("{n}", String(count));
+
   return (
     <div className="rv-page">
       <div className="rv-header">
         <div>
-          <h1>Revenus</h1>
-          <p>Suivi de vos gains sur SailingLoc</p>
+          <h1>{t.title}</h1>
+          <p>{t.sub}</p>
         </div>
         <button className="btn-rv-outline" onClick={handleExportPdf} disabled={count === 0}>
-          <i className="fa-solid fa-download" /> Exporter PDF
+          <i className="fa-solid fa-download" /> {t.exportPdf}
         </button>
       </div>
 
@@ -208,9 +214,9 @@ export default function OwnerRevenuePage() {
             <div className="rv-stat-icon"><i className="fa-solid fa-sack-dollar" /></div>
             <div className="rv-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
-          <div className="rv-stat-value">{totalNet.toLocaleString("fr-FR")} €</div>
-          <div className="rv-stat-label">Revenus nets cumulés</div>
-          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> {ownedBoatIds.size} bateau{ownedBoatIds.size !== 1 ? "x" : ""}</div>
+          <div className="rv-stat-value">{totalNet.toLocaleString(t.intlLocale)} €</div>
+          <div className="rv-stat-label">{t.statNetRevenue}</div>
+          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> {ownedBoatIds.size} {boatCountLabel}</div>
         </div>
 
         <div className="rv-stat-card">
@@ -219,8 +225,8 @@ export default function OwnerRevenuePage() {
             <div className="rv-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
           <div className="rv-stat-value">{count}</div>
-          <div className="rv-stat-label">Locations réalisées</div>
-          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> Hors annulées</div>
+          <div className="rv-stat-label">{t.statBookingsDone}</div>
+          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> {t.excludingCancelled}</div>
         </div>
 
         <div className="rv-stat-card">
@@ -228,9 +234,9 @@ export default function OwnerRevenuePage() {
             <div className="rv-stat-icon" style={{ background: "#FEF3C7", color: "#D97706" }}><i className="fa-solid fa-chart-line" /></div>
             <div className="rv-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
-          <div className="rv-stat-value">{avgNet.toLocaleString("fr-FR")} €</div>
-          <div className="rv-stat-label">Revenu moyen / location</div>
-          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> Net de commission</div>
+          <div className="rv-stat-value">{avgNet.toLocaleString(t.intlLocale)} €</div>
+          <div className="rv-stat-label">{t.statAvgRevenue}</div>
+          <div className="rv-stat-trend"><i className="fa-solid fa-arrow-trend-up" /> {t.netOfCommission}</div>
         </div>
 
         <div className="rv-stat-card">
@@ -239,16 +245,16 @@ export default function OwnerRevenuePage() {
             <div className="rv-stat-nav"><i className="fa-solid fa-arrow-right" /></div>
           </div>
           <div className="rv-stat-value">{Math.round(COMMISSION_RATE * 100)}%</div>
-          <div className="rv-stat-label">Commission SailingLoc</div>
-          <div className="rv-stat-trend"><i className="fa-solid fa-check" /> Taux fixe</div>
+          <div className="rv-stat-label">{t.statCommission}</div>
+          <div className="rv-stat-trend"><i className="fa-solid fa-check" /> {t.fixedRate}</div>
         </div>
       </div>
 
       <div className="rv-row rv-row-a">
         <div className="dash-card">
-          <div className="dash-card-hd"><h3>Évolution des {MONTHS_BACK} derniers mois</h3></div>
+          <div className="dash-card-hd"><h3>{t.evolutionTitle.replace("{n}", String(MONTHS_BACK))}</h3></div>
           {count === 0 ? (
-            <p style={{ color: "var(--text-2)", padding: "20px 0" }}>Aucune location enregistrée sur vos bateaux pour l&apos;instant.</p>
+            <p style={{ color: "var(--text-2)", padding: "20px 0" }}>{t.noBookingsYet}</p>
           ) : (
             <div className="rv-chart">
               {monthly.map((m, i) => (
@@ -259,7 +265,7 @@ export default function OwnerRevenuePage() {
                   <div
                     className={`rv-chart-bar ${m.amount > 0 ? "filled" : ""}`}
                     style={{ height: `${m.amount > 0 ? Math.max((m.amount / max) * 160, 6) : 6}px` }}
-                    title={`${m.label} : ${m.amount.toLocaleString("fr-FR")} €`}
+                    title={`${m.label} : ${m.amount.toLocaleString(t.intlLocale)} €`}
                   />
                   <span className="rv-chart-month">{m.label}</span>
                 </div>
@@ -270,38 +276,38 @@ export default function OwnerRevenuePage() {
 
         <div className="rv-dark-card">
           <div className="rv-dark-icon"><i className="fa-solid fa-wallet" /></div>
-          <h4>Revenu net cumulé</h4>
-          <div className="rv-dark-amount">{totalNet.toLocaleString("fr-FR")} €</div>
-          <p>Sur {count} location{count !== 1 ? "s" : ""} au total</p>
+          <h4>{t.netRevenueCumulated}</h4>
+          <div className="rv-dark-amount">{totalNet.toLocaleString(t.intlLocale)} €</div>
+          <p>{bookingsLabel}</p>
           <Link href="/proprietaire/reservations" className="rv-dark-btn">
-            <i className="fa-solid fa-arrow-right" /> Voir le détail
+            <i className="fa-solid fa-arrow-right" /> {t.seeDetail}
           </Link>
         </div>
       </div>
 
       <div className="rv-row rv-row-b">
         <div className="dash-card">
-          <div className="dash-card-hd"><h3>Transactions récentes</h3></div>
+          <div className="dash-card-hd"><h3>{t.recentTransactions}</h3></div>
           {recentTransactions.length === 0 ? (
-            <p style={{ color: "var(--text-2)" }}>Aucune transaction pour l&apos;instant.</p>
+            <p style={{ color: "var(--text-2)" }}>{t.noTransactionsYet}</p>
           ) : (
             <div>
               {recentTransactions.map((r) => {
                 const key = libelleToKey(r.statutReservation);
                 const st = STATUS_LABEL[key];
                 const net = Math.round(Number(r.montantTotal) * (1 - COMMISSION_RATE));
-                const boatName = r.bateau?.nomBateau ?? (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ?? `Bateau #${r.bateau?.id ?? r.id}`;
+                const boatName = r.bateau?.nomBateau ?? (r.bateau?.id != null ? boatNameById.get(r.bateau.id) : undefined) ?? t.boatFallback.replace("{id}", String(r.bateau?.id ?? r.id));
                 return (
                   <div key={r.id} className="rv-tx-row">
                     <div className="rv-tx-avatar">{initials(r)}</div>
                     <div className="rv-tx-info">
                       <strong>{renterName(r)}</strong>
-                      <span>{boatName} · {fmtDate(r.dateDebut)} – {fmtDate(r.dateFin)}</span>
+                      <span>{boatName} · {fmtDate(r.dateDebut, t.intlLocale)} – {fmtDate(r.dateFin, t.intlLocale)}</span>
                     </div>
                     <span className={`badge-status ${st.cls}`}>{st.label}</span>
                     <div className="rv-tx-amount">
-                      <strong>{net.toLocaleString("fr-FR")} €</strong>
-                      <span>net</span>
+                      <strong>{net.toLocaleString(t.intlLocale)} €</strong>
+                      <span>{t.net}</span>
                     </div>
                   </div>
                 );
@@ -311,7 +317,7 @@ export default function OwnerRevenuePage() {
         </div>
 
         <div className="dash-card">
-          <div className="dash-card-hd"><h3>Répartition</h3></div>
+          <div className="dash-card-hd"><h3>{t.breakdown}</h3></div>
           <div className="rv-ring-wrap">
             <div
               className="rv-ring"
@@ -322,11 +328,11 @@ export default function OwnerRevenuePage() {
             <div className="rv-ring-legend">
               <div className="rv-ring-legend-item">
                 <span className="rv-ring-dot" style={{ background: "var(--rv-500)" }} />
-                Revenu net <strong>{totalNet.toLocaleString("fr-FR")} €</strong>
+                {t.netRevenue} <strong>{totalNet.toLocaleString(t.intlLocale)} €</strong>
               </div>
               <div className="rv-ring-legend-item">
                 <span className="rv-ring-dot" style={{ background: "#EDEFEE" }} />
-                Commission <strong>{totalCommission.toLocaleString("fr-FR")} €</strong>
+                {t.commission} <strong>{totalCommission.toLocaleString(t.intlLocale)} €</strong>
               </div>
             </div>
           </div>
@@ -334,10 +340,10 @@ export default function OwnerRevenuePage() {
 
         <div className="rv-dark-card">
           <div className="rv-dark-icon"><i className="fa-solid fa-piggy-bank" /></div>
-          <h4>Chiffre d&apos;affaires brut</h4>
-          <div className="rv-dark-amount">{totalGross.toLocaleString("fr-FR")} €</div>
-          <p>Avant commission SailingLoc</p>
-          <button className="rv-dark-btn"><i className="fa-solid fa-money-bill-transfer" /> Demander un virement</button>
+          <h4>{t.grossRevenue}</h4>
+          <div className="rv-dark-amount">{totalGross.toLocaleString(t.intlLocale)} €</div>
+          <p>{t.beforeCommission}</p>
+          <button className="rv-dark-btn"><i className="fa-solid fa-money-bill-transfer" /> {t.requestTransfer}</button>
         </div>
       </div>
     </div>

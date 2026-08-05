@@ -5,6 +5,7 @@ import Link from "next/link";
 import { reservationsApi, boatsApi, useAuth } from "@/shared/lib";
 import { adaptBoatFromApi } from "@/entities/boat";
 import type { BoatAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./radar.css";
 
 const MAP_ZOOM_OPTIONS = [4, 6, 8, 10, 12, 14];
@@ -58,6 +59,7 @@ function cardinalFor(deg: number) {
 
 export default function RadarContent() {
   const { user } = useAuth();
+  const t = useI18n().dict.radarPage;
 
   const [geoStatus, setGeoStatus] = useState<GeoStatus>(() =>
     typeof navigator !== "undefined" && "geolocation" in navigator ? "locating" : "unsupported"
@@ -101,8 +103,8 @@ export default function RadarContent() {
         setGeoStatus("denied");
         setGeoError(
           err.code === err.PERMISSION_DENIED
-            ? "Accès à la position refusé. Autorisez la géolocalisation dans votre navigateur."
-            : "Position indisponible pour le moment."
+            ? t.geoDeniedPermission
+            : t.geoDeniedGeneric
         );
       },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
@@ -167,7 +169,7 @@ export default function RadarContent() {
     return (
       <div className="messages-empty" style={{ minHeight: 260 }}>
         <i className="fa-solid fa-lock" aria-hidden="true" />
-        <p>Le radar est réservé aux locataires.</p>
+        <p>{t.ownerOnlyBlocked}</p>
       </div>
     );
   }
@@ -181,8 +183,8 @@ export default function RadarContent() {
               <i className="fa-solid fa-globe" aria-hidden="true" />
             </span>
             <div>
-              <h3>Trafic maritime en direct</h3>
-              <span className="radar-panel-subtitle">Tous les navires AIS autour de vous</span>
+              <h3>{t.liveTrafficTitle}</h3>
+              <span className="radar-panel-subtitle">{t.liveTrafficSub}</span>
             </div>
           </div>
           <div className="radar-live-map-controls">
@@ -192,28 +194,26 @@ export default function RadarContent() {
                 className="radar-range-select"
                 value={mapZoom}
                 onChange={(e) => setMapZoom(Number(e.target.value))}
-                aria-label="Zoom de la carte"
+                aria-label={t.mapZoomAria}
               >
                 {MAP_ZOOM_OPTIONS.map((z) => (
                   <option key={z} value={z}>
-                    Zoom {z}
+                    {t.zoomOption.replace("{n}", String(z))}
                   </option>
                 ))}
               </select>
             </div>
             <button type="button" className="radar-btn-recenter" onClick={recenterLiveMap} disabled={!position}>
-              <i className="fa-solid fa-location-crosshairs" /> Recentrer sur ma position
+              <i className="fa-solid fa-location-crosshairs" /> {t.recenter}
             </button>
           </div>
         </div>
 
         <p className="radar-live-map-hint">
-          <i className="fa-solid fa-circle-info" aria-hidden="true" /> Position de tous les navires environnants
-          détectés par AIS (trafic public mondial, pas seulement les bateaux SailingLoc) — nécessite une connexion
-          internet à bord.
-          {geoStatus === "locating" && " Localisation en cours…"}
+          <i className="fa-solid fa-circle-info" aria-hidden="true" /> {t.hintBefore}
+          {geoStatus === "locating" && t.locating}
           {geoStatus === "denied" && ` ${geoError}`}
-          {geoStatus === "unsupported" && " Géolocalisation non disponible sur cet appareil."}
+          {geoStatus === "unsupported" && t.unsupported}
         </p>
 
         <div className="radar-map-frame">
@@ -222,17 +222,17 @@ export default function RadarContent() {
             src={`/marine-radar-widget.html?lat=${mapCenter.lat}&lng=${mapCenter.lng}&zoom=${mapZoom}&height=${MAP_HEIGHT_PX}`}
             className="radar-live-map-iframe"
             style={{ height: MAP_HEIGHT_PX }}
-            title="Trafic maritime en direct"
+            title={t.liveMapTitle}
             loading="lazy"
           />
         </div>
 
         <p className="radar-live-map-credit">
-          Données AIS fournies par{" "}
+          {t.creditBefore}
           <a href="https://www.vesselfinder.com/" target="_blank" rel="noreferrer">
             VesselFinder
           </a>
-          .
+          {t.creditAfter}
         </p>
       </div>
 
@@ -243,9 +243,11 @@ export default function RadarContent() {
               <i className="fa-solid fa-sailboat" aria-hidden="true" />
             </span>
             <div>
-              <h3>Mes bateaux réservés</h3>
+              <h3>{t.myBoatsTitle}</h3>
               <span className="radar-panel-subtitle">
-                {targets.length > 0 ? `${targets.length} bateau${targets.length > 1 ? "x" : ""} suivi${targets.length > 1 ? "s" : ""}` : "Distance & cap en direct"}
+                {targets.length > 0
+                  ? (targets.length === 1 ? t.trackedSingular : t.trackedPlural).replace("{n}", String(targets.length))
+                  : t.distanceBearing}
               </span>
             </div>
           </div>
@@ -253,18 +255,18 @@ export default function RadarContent() {
 
         {loadingTargets ? (
           <p className="radar-panel-note">
-            <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Chargement…
+            <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> {t.loading}
           </p>
         ) : geoStatus !== "active" ? (
           <p className="radar-panel-note">
-            Activez la géolocalisation pour calculer la distance et le cap vers vos bateaux réservés.
+            {t.enableGeoloc}
           </p>
         ) : targets.length === 0 ? (
           <div className="messages-empty" style={{ minHeight: 200 }}>
             <i className="fa-solid fa-sailboat" aria-hidden="true" />
-            <p>Aucune réservation en cours à afficher.</p>
+            <p>{t.noReservation}</p>
             <Link href="/bateaux" className="btn btn-outline btn-sm">
-              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: ".75em" }} /> Trouver un bateau
+              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: ".75em" }} /> {t.findBoat}
             </Link>
           </div>
         ) : (

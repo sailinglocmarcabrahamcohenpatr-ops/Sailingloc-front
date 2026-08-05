@@ -149,6 +149,7 @@ body  {
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text); line-height: 1.6; background: var(--card-bg);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 img   { max-width: 100%; height: auto; display: block; }
 a     { color: inherit; text-decoration: none; }
@@ -1316,11 +1317,6 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .booking-rating i { color: var(--star); font-size: .875rem; }
 .booking-rating span { font-size: .875rem; color: rgba(255,255,255,.75); }
 .booking-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-.booking-dates { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--border); border-radius: var(--radius-lg); position: relative; }
-.booking-date-field { padding: 12px; }
-.booking-date-field:first-child { border-right: 1px solid var(--border); }
-.booking-date-field label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); display: block; margin-bottom: 4px; }
-.booking-date-field input { border: none; outline: none; width: 100%; font-size: .9375rem; font-weight: 600; color: var(--text); }
 .booking-guests { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-lg); }
 .booking-guests label { font-size: .875rem; font-weight: 500; display: flex; align-items: center; gap: 7px; }
 .booking-guests label i { color: var(--primary); }
@@ -1345,6 +1341,15 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .booking-contact a { font-size: .8125rem; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
 .booking-contact a:hover { color: var(--primary); }
 .booking-cta:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Barre de réservation fixe + fiche en feuille du bas — mobile uniquement,
+   voir @media (max-width: 768px) dans la section "Responsive produit". Ces
+   règles de base gardent tout inerte au-delà de ce seuil : le wrapper reste
+   `display: contents` (transparent pour le layout desktop, la carte de
+   réservation garde son emplacement/sticky habituel dans `.product-layout`). */
+.booking-mobile-bar { display: none; }
+.booking-sheet-overlay { display: contents; }
+.booking-sheet-close { display: none; }
 
 /* Calendrier de disponibilité (locataire) */
 .booking-dates-cal { display: flex; flex-direction: column; gap: 6px; }
@@ -1481,9 +1486,106 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .gallery { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; }
   .gallery-main { height: 260px; }
   .gallery-thumb { display: none; }
+  .gallery-actions { flex-direction: column; gap: 10px; }
+  .gallery-act-btn { width: 100%; justify-content: center; padding: 13px 18px; font-size: .9375rem; white-space: nowrap; }
   .specs-grid { grid-template-columns: repeat(2, 1fr); }
   .equip-grid, .rules-grid { grid-template-columns: 1fr; }
   .reviews-overview { grid-template-columns: 1fr; }
+
+  /* Texte trop grand / débordant sur mobile : réduction des tailles
+     principales de la page produit. */
+  .product-title { font-size: 1.3125rem; }
+  .product-type-tag { font-size: .6875rem; padding: 4px 10px; }
+  .product-meta { gap: 10px; font-size: .875rem; }
+  .reviews-score-num { font-size: 2.75rem; }
+  .booking-price { font-size: 1.5rem; }
+
+  /* Espace pour ne pas laisser la barre fixe du bas recouvrir le contenu. */
+  .product-layout { padding-bottom: 88px; }
+
+  /* Le bouton et les liens de contact ne doivent plus forcer une seule
+     ligne : sur petit écran ils débordaient de la carte (`.booking-card`
+     est en `overflow: visible`, rien n'arrêtait le débordement horizontal). */
+  .booking-cta { white-space: normal; text-align: center; }
+  .booking-contact { flex-wrap: wrap; row-gap: 8px; }
+  .booking-contact a { white-space: normal; }
+
+  /* Le popover calendrier était ancré via right:45px + width:max-content —
+     pensé pour le calendrier 2 mois du desktop. En dessous de 768px
+     (numberOfMonths passe à 1, cf. AvailabilityCalendar/breakpoints.md),
+     cet ancrage poussait le popover hors de l'écran à gauche. */
+  .avail-cal-dropdown {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  /* ── Barre de réservation fixe + fiche du bas ── */
+  .booking-mobile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 300;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .booking-mobile-bar-price { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .booking-mobile-bar-label { font-size: .6875rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+  .booking-mobile-bar-price strong { font-size: 1.125rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+  .booking-mobile-bar-price strong span { font-size: .8125rem; font-weight: 400; color: var(--text-2); }
+  .booking-mobile-bar-cta { flex-shrink: 0; padding: 12px 20px; font-size: .875rem; white-space: nowrap; }
+
+  .booking-sheet-overlay {
+    display: none;
+  }
+  .booking-sheet-overlay.open {
+    display: flex;
+    align-items: flex-end;
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(11, 18, 28, .58);
+    backdrop-filter: blur(6px);
+    animation: doc-modal-fade-in .18s ease;
+  }
+  .booking-sheet-panel {
+    display: none;
+  }
+  .booking-sheet-overlay.open .booking-sheet-panel {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: doc-modal-slide-in .2s ease;
+  }
+  .booking-sheet-overlay.open .booking-card { border-radius: 20px 20px 0 0; box-shadow: none; }
+  .booking-sheet-overlay.open .booking-guarantees { border-radius: 0; box-shadow: none; margin-top: 0; }
+  .booking-sheet-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 12px; right: 14px;
+    z-index: 2;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-2);
+    box-shadow: 0 0 0 1.5px var(--border) inset;
+    cursor: pointer;
+  }
 }
 
 /* ─────────────────────────────────────────────────
