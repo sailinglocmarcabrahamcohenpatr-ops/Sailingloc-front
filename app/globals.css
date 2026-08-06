@@ -1653,7 +1653,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .cta-final { background: linear-gradient(135deg, var(--primary) 0%, var(--navy-3) 100%); padding: 80px 0; text-align: center; }
 .cta-final-tag { display: inline-block; background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); padding: 6px 16px; border-radius: var(--radius-pill); font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 20px; }
 .cta-final h2 { color: var(--white); margin-bottom: 16px; }
-.cta-final h2 em { color: #FFD700; font-style: normal; }
+.cta-final h2 em { font-style: normal; }
 .cta-final p { color: rgba(255,255,255,.75); font-size: 1rem; max-width: 480px; margin: 0 auto 36px; line-height: 1.7; }
 .cta-final-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .btn-white-outline { background: transparent; color: var(--white); border: 2px solid rgba(255,255,255,.4); }
