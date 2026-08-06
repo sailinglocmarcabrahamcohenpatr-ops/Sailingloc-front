@@ -27,6 +27,7 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
     { href: "/proprietaire/revenus",         icon: "fa-chart-line",        label: t.navRevenue },
     { href: "/proprietaire/messages",        icon: "fa-envelope",          label: t.navMessages },
     { href: "/profil/affichage",             icon: "fa-moon",              label: t.navDisplay },
+    { href: "/proprietaire/profil",          icon: "fa-user",              label: t.navProfile },
   ];
 
   const adminLinks: NavLink[] = [
