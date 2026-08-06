@@ -1811,7 +1811,6 @@ export const en: Dictionary = {
     navAdminMessages: "Messages",
     navFindBoat: "Find a boat",
     navSupport: "Support",
-    sectionOwner: "Owner space",
     sectionAdmin: "Administration",
     sectionNav: "Navigation",
     roleOwner: "Owner",

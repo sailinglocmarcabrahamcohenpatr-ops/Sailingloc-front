@@ -1810,7 +1810,6 @@ export const fr = {
     navAdminMessages: "Messages",
     navFindBoat: "Trouver un bateau",
     navSupport: "Support",
-    sectionOwner: "Espace propriétaire",
     sectionAdmin: "Administration",
     sectionNav: "Navigation",
     roleOwner: "Propriétaire",

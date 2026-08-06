@@ -80,9 +80,11 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
       </div>
 
       <nav className="dash-sidebar-nav" aria-label={t.navAria}>
-        <span className="dash-nav-section">
-          {isAdmin ? t.sectionAdmin : t.sectionOwner}
-        </span>
+        {isAdmin && (
+          <span className="dash-nav-section">
+            {t.sectionAdmin}
+          </span>
+        )}
         {links.map((l) => {
           const badge = l.href.endsWith("/messages") ? unreadCount : l.badge;
           return (
