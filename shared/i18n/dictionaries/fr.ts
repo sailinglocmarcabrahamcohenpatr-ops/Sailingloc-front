@@ -523,7 +523,7 @@ export const fr = {
 
     sidebarTitle: "Nous contacter directement",
     contacts: [
-      { label: "Email", value: "contact@sailingloc.com", sub: "Réponse sous 24-48h ouvrées", badgeText: "Rapide" },
+      { label: "Email", value: "admin@sailingloc.fr", sub: "Réponse sous 24-48h ouvrées", badgeText: "Rapide" },
       { label: "Téléphone", value: "+33 1 23 45 67 89", sub: "Lun–Ven · 9h00 – 18h00", badgeText: "Lun–Ven" },
       { label: "WhatsApp", value: "+33 6 12 34 56 78", sub: "Réponse rapide en journée", badgeText: "" },
       { label: "Horaires d'ouverture", value: "Lun–Ven : 9h – 18h", sub: "Sam : 9h – 13h", badgeText: "" },

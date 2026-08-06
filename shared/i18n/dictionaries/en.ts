@@ -524,7 +524,7 @@ export const en: Dictionary = {
 
     sidebarTitle: "Contact us directly",
     contacts: [
-      { label: "Email", value: "contact@sailingloc.com", sub: "Response within 24-48 business hours", badgeText: "Quick" },
+      { label: "Email", value: "admin@sailingloc.fr", sub: "Response within 24-48 business hours", badgeText: "Quick" },
       { label: "Phone", value: "+33 1 23 45 67 89", sub: "Mon–Fri · 9:00 – 18:00", badgeText: "Mon–Fri" },
       { label: "WhatsApp", value: "+33 6 12 34 56 78", sub: "Quick response during the day", badgeText: "" },
       { label: "Opening hours", value: "Mon–Fri: 9:00 – 18:00", sub: "Sat: 9:00 – 13:00", badgeText: "" },
