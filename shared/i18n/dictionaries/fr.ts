@@ -916,6 +916,7 @@ export const fr = {
     submitLoading: "Connexion en cours…",
     errRequired: "Veuillez remplir tous les champs.",
     errEmailInvalid: "Veuillez saisir une adresse e-mail valide.",
+    errRecaptcha: "Veuillez valider le reCAPTCHA.",
     errCredentials: "Identifiants incorrects. Vérifiez votre e-mail et mot de passe.",
     errServer: "Impossible de joindre le serveur. Réessayez dans un instant.",
   },

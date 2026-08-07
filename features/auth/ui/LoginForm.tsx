@@ -6,6 +6,7 @@ import { useAuth } from "@/shared/lib";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiLogin, ApiError } from "@/shared/lib";
 import { isValidEmail } from "@/shared/lib/utils";
+import Recaptcha from "./Recaptcha";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -22,11 +23,13 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) { setError(t.errRequired); return; }
     if (!isValidEmail(email)) { setError(t.errEmailInvalid); return; }
+    if (!recaptchaToken) { setError(t.errRecaptcha); return; }
 
     setLoading(true);
     setError("");
@@ -114,7 +117,13 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
         </Link>
       </div>
 
-      <button type="submit" className="btn-auth-primary" disabled={loading}>
+      <Recaptcha onChange={setRecaptchaToken} />
+
+      <button
+        type="submit"
+        className="btn-auth-primary"
+        disabled={loading || !recaptchaToken}
+      >
         {loading ? (
           <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> {t.submitLoading}</>
         ) : (

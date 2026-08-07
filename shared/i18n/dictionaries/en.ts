@@ -917,6 +917,7 @@ export const en: Dictionary = {
     submitLoading: "Logging in…",
     errRequired: "Please fill in all fields.",
     errEmailInvalid: "Please enter a valid email address.",
+    errRecaptcha: "Please validate the reCAPTCHA.",
     errCredentials: "Incorrect credentials. Check your email and password.",
     errServer: "Could not reach the server. Please try again in a moment.",
   },
