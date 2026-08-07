@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { AccountType } from "@/shared/types";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiRegister, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 import PhoneInput from "./PhoneInput";
 
 const ACCOUNT_TYPE_ICONS: Record<AccountType, { icon: string; bg: string }> = {
@@ -12,15 +13,15 @@ const ACCOUNT_TYPE_ICONS: Record<AccountType, { icon: string; bg: string }> = {
   proprietaire: { icon: "fa-anchor",  bg: "#0B1929" },
 };
 
-function calcStrength(pwd: string): { score: number; color: string } {
-  if (pwd.length === 0) return { score: 0, color: "" };
-  let score = 0;
-  if (pwd.length >= 8) score++;
-  if (/[A-Z]/.test(pwd)) score++;
-  if (/[0-9]/.test(pwd)) score++;
-  if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const colors = ["", "#EF4444", "#F59E0B", "#10B981", "#059669"];
-  return { score, color: colors[score] ?? "" };
+/** Les 4 critères sont tous obligatoires (voir `next()`) — pas de "score" à
+ *  moitié acceptable, d'où une checklist plutôt qu'une jauge de force. */
+function getPasswordChecks(pwd: string) {
+  return {
+    length: pwd.length >= 8,
+    upper: /[A-Z]/.test(pwd),
+    digit: /[0-9]/.test(pwd),
+    special: /[^A-Za-z0-9]/.test(pwd),
+  };
 }
 
 export default function RegisterForm() {
@@ -39,11 +40,13 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const strength = calcStrength(password);
+  const pwdChecks = getPasswordChecks(password);
+  const pwdValid = pwdChecks.length && pwdChecks.upper && pwdChecks.digit && pwdChecks.special;
 
   const next = () => {
     if (step === 0 && (!email || !password)) { setError(t.errEmailPwd); return; }
-    if (step === 0 && password.length < 8) { setError(t.errPwdLen); return; }
+    if (step === 0 && !isValidEmail(email)) { setError(t.errEmailInvalid); return; }
+    if (step === 0 && !pwdValid) { setError(t.errPwdLen); return; }
     if (step === 1 && (!firstName || !lastName)) { setError(t.errNames); return; }
     if (step === 1 && !agreedCgu) { setError(t.errCgu); return; }
     setError("");
@@ -129,7 +132,7 @@ export default function RegisterForm() {
             <input
               id="reg-email" type="email" placeholder="vous@exemple.com"
               value={email} onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email" required
+              autoComplete="email" required maxLength={254}
             />
           </div>
 
@@ -143,7 +146,7 @@ export default function RegisterForm() {
                 id="reg-password" type={showPwd ? "text" : "password"}
                 placeholder={t.pwdMinPh}
                 value={password} onChange={(e) => setPassword(e.target.value)}
-                required style={{ width: "100%" }}
+                required autoComplete="new-password" style={{ width: "100%" }}
               />
               <button type="button" className="input-password-toggle"
                 onClick={() => setShowPwd((v) => !v)}
@@ -152,17 +155,20 @@ export default function RegisterForm() {
               </button>
             </div>
             {password && (
-              <div className="pwd-strength">
-                <div className="pwd-strength-bars">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="pwd-strength-bar"
-                      style={{ background: i <= strength.score ? strength.color : "var(--border)" }} />
-                  ))}
-                </div>
-                <span className="pwd-strength-label" style={{ color: strength.color }}>
-                  {t.pwdStrengthLabels[strength.score]}
-                </span>
-              </div>
+              <ul className="pwd-requirements">
+                <li className={pwdChecks.length ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.length ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqLength}
+                </li>
+                <li className={pwdChecks.upper ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.upper ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqUpper}
+                </li>
+                <li className={pwdChecks.digit ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.digit ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqDigit}
+                </li>
+                <li className={pwdChecks.special ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.special ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqSpecial}
+                </li>
+              </ul>
             )}
           </div>
 
@@ -179,12 +185,12 @@ export default function RegisterForm() {
             <div className="form-group">
               <label htmlFor="reg-fn">{t.labelFirstName}</label>
               <input id="reg-fn" type="text" placeholder="Marie"
-                value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                value={firstName} onChange={(e) => setFirstName(e.target.value)} required maxLength={60} />
             </div>
             <div className="form-group">
               <label htmlFor="reg-ln">{t.labelLastName}</label>
               <input id="reg-ln" type="text" placeholder="Dupont"
-                value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                value={lastName} onChange={(e) => setLastName(e.target.value)} required maxLength={60} />
             </div>
           </div>
 

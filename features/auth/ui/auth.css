@@ -691,11 +691,21 @@
 }
 .input-password-toggle:hover { color: var(--text); }
 
-/* Strength meter */
-.pwd-strength { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-.pwd-strength-bars { display: flex; gap: 4px; flex: 1; }
-.pwd-strength-bar { height: 4px; flex: 1; border-radius: 2px; transition: background .3s; }
-.pwd-strength-label { font-size: .75rem; font-weight: 600; min-width: 60px; text-align: right; transition: color .3s; }
+/* Checklist des exigences mot de passe — tous les critères sont obligatoires,
+   pas de jauge "faible/moyen/fort" qui laisserait croire qu'un état
+   intermédiaire suffit pour continuer. */
+.pwd-requirements {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px;
+  margin-top: 8px; padding: 0; list-style: none;
+}
+.pwd-requirements li {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .8125rem; color: var(--text-3);
+  transition: color .2s;
+}
+.pwd-requirements li i { font-size: .75rem; color: var(--text-3); transition: color .2s; }
+.pwd-requirements li.met { color: #059669; }
+.pwd-requirements li.met i { color: #059669; }
 
 /* Step progress v2 */
 .auth-steps-v2 {
