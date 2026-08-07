@@ -5,6 +5,7 @@ import { ownerRequestsApi } from "@/shared/lib";
 import type { OwnerRequestAPI } from "@/shared/lib";
 import { sendOwnerRequest } from "../api/request";
 import { useI18n } from "@/shared/i18n";
+import "@/shared/ui/form-card.css";
 
 const emptyForm = {
   phone: "",

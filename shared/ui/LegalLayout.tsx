@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "./legal-layout.css";
 
 export interface LegalTocItem {
   id: string;

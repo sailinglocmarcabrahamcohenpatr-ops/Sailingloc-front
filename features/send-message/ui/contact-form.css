@@ -1,0 +1,11 @@
+.contact-subject-label { font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 10px; display: block; }
+.contact-radios { display: flex; flex-wrap: wrap; gap: 8px; }
+.contact-radio { display: flex; align-items: center; }
+.contact-radio input { display: none; }
+.contact-radio label { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-pill); border: 1.5px solid var(--border); font-size: .8125rem; font-weight: 500; cursor: pointer; transition: var(--transition); color: var(--text-2); }
+.contact-radio input:checked + label, .contact-radio.active label { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+.contact-radio label:hover { border-color: var(--text-2); }
+.form-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.form-footer a { font-size: .8125rem; color: var(--text-2); text-decoration: underline; }
+.form-footer a:hover { color: var(--primary); }
+.form-secure { display: flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--green); font-weight: 500; }

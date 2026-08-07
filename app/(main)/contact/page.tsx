@@ -5,6 +5,7 @@ import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
 import { ContactForm } from "@/features/send-message";
 import { ContactSidebar } from "@/widgets/contact-sidebar";
 import { Accordion } from "@/shared/ui";
+import "./contact.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getRequestLocale()).contactPage;

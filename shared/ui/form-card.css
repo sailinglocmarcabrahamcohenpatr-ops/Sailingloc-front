@@ -1,0 +1,11 @@
+.contact-form-card { background: var(--card-bg); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
+.contact-form-header { background: linear-gradient(135deg, var(--primary) 0%, var(--navy-3) 100%); padding: 28px 32px; }
+.contact-form-header h3 { color: var(--white); margin-bottom: 6px; }
+.contact-form-header p { color: rgba(255,255,255,.7); font-size: .875rem; }
+.contact-form-body { padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+.form-submit-btn { width: 100%; justify-content: center; padding: 15px; font-size: 1rem; border-radius: var(--radius-lg); }
+
+@media (max-width: 768px) {
+  .contact-form-body { padding: 24px 20px; }
+  .contact-form-header { padding: 24px 20px; }
+}

@@ -1,3 +1,5 @@
+import "./contact.css";
+
 export default function ContactLoading() {
   return (
     <div className="skeleton-page" aria-busy="true" aria-label="Chargement…">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCookieConsent } from "@/shared/lib";
 import type { CookieCategories } from "@/shared/lib";
+import "./cookie-consent.css";
 
 const CATEGORIES: { key: keyof CookieCategories; icon: string; title: string; desc: string }[] = [
   {

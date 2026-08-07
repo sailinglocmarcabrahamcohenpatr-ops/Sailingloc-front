@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { isValidEmail } from "@/shared/lib/utils";
 import { sendContactMessage } from "../api/contact";
+import "@/shared/ui/form-card.css";
+import "./contact-form.css";
 
 type SubjectId = "resa" | "pay" | "doc" | "assur" | "prop" | "other";
 

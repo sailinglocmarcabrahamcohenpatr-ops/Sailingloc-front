@@ -1,0 +1,23 @@
+.contact-sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+.contact-info-card { background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 28px; border: 1px solid var(--border); }
+.contact-info-card h4 { font-size: 1rem; margin-bottom: 20px; color: var(--text); }
+.contact-info-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.contact-info-item:last-child { border-bottom: none; padding-bottom: 0; }
+.contact-info-icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: .9375rem; flex-shrink: 0; }
+.contact-info-text { flex: 1; }
+.contact-info-text small { font-size: .75rem; color: var(--text-3); display: block; margin-bottom: 2px; }
+.contact-info-text strong { display: block; font-size: .9375rem; color: var(--text); }
+.contact-info-text p { font-size: .8125rem; color: var(--text-2); margin: 2px 0 0; }
+.contact-info-badge { font-size: .75rem; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-pill); flex-shrink: 0; margin-top: 4px; }
+.badge-green { background: #D1FAE5; color: #059669; }
+.badge-orange { background: #FEF3C7; color: #D97706; }
+.urgence-card { background: linear-gradient(135deg, #FFF5F5, #FEE2E2); border-radius: var(--radius-xl); padding: 24px; border: 1px solid #FCA5A5; }
+.urgence-card-title { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; color: #B91C1C; margin-bottom: 16px; }
+.urgence-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(239,68,68,.2); }
+.urgence-row:last-child { border-bottom: none; padding-bottom: 0; }
+.urgence-row span { font-size: .875rem; color: #7F1D1D; }
+.urgence-row strong { font-size: .9375rem; color: #991B1B; font-weight: 700; }
+
+@media (max-width: 1024px) {
+  .contact-sidebar { position: static; }
+}

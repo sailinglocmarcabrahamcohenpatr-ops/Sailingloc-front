@@ -1,4 +1,5 @@
 import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
+import "./contact-sidebar.css";
 
 const CONTACT_ICONS = ["fa-envelope", "fa-phone", "fa-brands fa-whatsapp", "fa-clock"];
 const BADGE_CLASSES = ["badge-green", "badge-orange", "", ""];
