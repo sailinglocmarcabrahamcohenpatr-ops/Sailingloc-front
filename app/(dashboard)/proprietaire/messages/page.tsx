@@ -339,7 +339,7 @@ export default function OwnerMessagesPage() {
                   <input ref={inputRef} type="text" className="messages-reply-input" placeholder={t.messagePlaceholder.replace("{name}", activePartner.prenom)}
                     value={reply} onChange={(e) => setReply(e.target.value)}
                     onKeyDown={handleReplyKeyDown}
-                    autoComplete="off" disabled={sending} />
+                    autoComplete="off" disabled={sending} maxLength={2000} />
                 </div>
                 <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title={t.sendTitle}
                   style={{ border: "none", background: reply.trim() ? "var(--primary)" : "var(--border)", color: reply.trim() ? "#fff" : "var(--text-3)", cursor: !reply.trim() || sending ? "not-allowed" : "pointer", transition: "background .18s, color .18s" }}>

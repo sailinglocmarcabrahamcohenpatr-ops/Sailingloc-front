@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
+import { isValidEmail } from "@/shared/lib/utils";
 import { sendContactMessage } from "../api/contact";
 
 type SubjectId = "resa" | "pay" | "doc" | "assur" | "prop" | "other";
@@ -26,20 +27,35 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     const form = e.currentTarget;
     const data = new FormData(form);
 
+    const firstName = (data.get("firstName") as string).trim();
+    const lastName = (data.get("lastName") as string).trim();
+    const email = (data.get("email") as string).trim();
+    const message = (data.get("message") as string).trim();
+
+    if (!firstName || !lastName || !email || !message) {
+      setError(t.errRequiredFields);
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError(t.errEmailInvalid);
+      return;
+    }
+
+    setLoading(true);
+
     const result = await sendContactMessage({
       subject,
-      firstName: data.get("firstName") as string,
-      lastName: data.get("lastName") as string,
-      email: data.get("email") as string,
+      firstName,
+      lastName,
+      email,
       phone: (data.get("phone") as string) || undefined,
       booking: (data.get("booking") as string) || undefined,
-      message: data.get("message") as string,
+      message,
     });
 
     setLoading(false);
@@ -97,33 +113,33 @@ export default function ContactForm() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label req" htmlFor="firstName">{t.labelFirstName}</label>
-            <input type="text" id="firstName" name="firstName" className="form-input" placeholder={t.phFirstName} required />
+            <input type="text" id="firstName" name="firstName" className="form-input" placeholder={t.phFirstName} required maxLength={60} />
           </div>
           <div className="form-group">
             <label className="form-label req" htmlFor="lastName">{t.labelLastName}</label>
-            <input type="text" id="lastName" name="lastName" className="form-input" placeholder={t.phLastName} required />
+            <input type="text" id="lastName" name="lastName" className="form-input" placeholder={t.phLastName} required maxLength={60} />
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
             <label className="form-label req" htmlFor="email">{t.labelEmail}</label>
-            <input type="email" id="email" name="email" className="form-input" placeholder={t.phEmail} required />
+            <input type="email" id="email" name="email" className="form-input" placeholder={t.phEmail} required maxLength={254} />
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="phone">{t.labelPhone}</label>
-            <input type="tel" id="phone" name="phone" className="form-input" placeholder={t.phPhone} />
+            <input type="tel" id="phone" name="phone" className="form-input" placeholder={t.phPhone} maxLength={20} />
           </div>
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="booking">{t.labelBooking}</label>
-          <input type="text" id="booking" name="booking" className="form-input" placeholder={t.phBooking} />
+          <input type="text" id="booking" name="booking" className="form-input" placeholder={t.phBooking} maxLength={40} />
         </div>
 
         <div className="form-group">
           <label className="form-label req" htmlFor="message">{t.labelMessage}</label>
-          <textarea id="message" name="message" className="form-input" rows={5} placeholder={t.phMessage} required />
+          <textarea id="message" name="message" className="form-input" rows={5} placeholder={t.phMessage} required maxLength={2000} />
         </div>
 
         {error && (

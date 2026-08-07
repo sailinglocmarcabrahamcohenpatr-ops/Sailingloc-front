@@ -168,7 +168,7 @@ export default function EditBoatPage() {
           <h3 style={{ marginTop: "24px" }}>{tf.step0GeneralInfo}</h3>
           <div className="form-group">
             <label htmlFor="eb-name">{tf.step0Name}</label>
-            <input id="eb-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input id="eb-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
           </div>
 
           <div className="form-row-2">
@@ -190,7 +190,7 @@ export default function EditBoatPage() {
             </div>
             <div className="form-group">
               <label htmlFor="eb-length">{tf.step0Length}</label>
-              <input id="eb-length" type="text" placeholder={tf.step0LengthPlaceholder} value={length} onChange={(e) => setLength(e.target.value)} required />
+              <input id="eb-length" type="text" placeholder={tf.step0LengthPlaceholder} value={length} onChange={(e) => setLength(e.target.value)} required maxLength={20} />
             </div>
           </div>
 
@@ -248,7 +248,7 @@ export default function EditBoatPage() {
 
           <div className="form-group" style={{ marginTop: "8px" }}>
             <label htmlFor="eb-desc">{tf.step0Description}</label>
-            <textarea id="eb-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <textarea id="eb-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} />
           </div>
         </div>
 

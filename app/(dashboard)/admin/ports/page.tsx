@@ -373,6 +373,7 @@ export default function AdminPortsPage() {
                     placeholder="Ex : Port de Cannes"
                     value={form.nom}
                     onChange={(e) => setForm({ ...form, nom: e.target.value })}
+                    maxLength={100}
                   />
                 </div>
                 <div className="form-group">
@@ -384,6 +385,7 @@ export default function AdminPortsPage() {
                     placeholder="Ex : 06400"
                     value={form.codePostal}
                     onChange={(e) => setForm({ ...form, codePostal: e.target.value })}
+                    maxLength={10}
                   />
                 </div>
               </div>
@@ -398,6 +400,7 @@ export default function AdminPortsPage() {
                     placeholder="Ex : 43.5513"
                     value={form.latitude}
                     onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+                    maxLength={20}
                   />
                 </div>
                 <div className="form-group">
@@ -409,6 +412,7 @@ export default function AdminPortsPage() {
                     placeholder="Ex : 7.0128"
                     value={form.longitude}
                     onChange={(e) => setForm({ ...form, longitude: e.target.value })}
+                    maxLength={20}
                   />
                 </div>
                 <button

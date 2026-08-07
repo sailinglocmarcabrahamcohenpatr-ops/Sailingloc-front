@@ -211,8 +211,14 @@ export default function ListBoatForm() {
     if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
   };
 
+  const MAX_DOC_SIZE = 15 * 1024 * 1024;
+
   /** Sélection d'un document justificatif — compresse les photos de documents (souvent plusieurs Mo depuis un téléphone) avant de les stocker ; laisse les PDF tels quels. */
   const handleDocSelect = async (file: File, setter: (f: File) => void) => {
+    if (file.size > MAX_DOC_SIZE) {
+      setStepError(t.errDocTooLarge);
+      return;
+    }
     if (file.type.startsWith("image/")) {
       const { file: compressed } = await compressImage(file, 2000, 0.85);
       setter(compressed);
@@ -493,6 +499,7 @@ export default function ListBoatForm() {
                 onChange={(e) => { setName(e.target.value); setStepError(""); }}
                 className={stepError && !name.trim() ? "input-error" : ""}
                 required
+                maxLength={100}
               />
             </div>
 
@@ -540,6 +547,7 @@ export default function ListBoatForm() {
                   onChange={(e) => { setLength(e.target.value); setStepError(""); }}
                   className={stepError && !length.trim() ? "input-error" : ""}
                   required
+                  maxLength={20}
                 />
               </div>
             </div>
@@ -628,6 +636,7 @@ export default function ListBoatForm() {
                 placeholder={t.descPlaceholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                maxLength={2000}
               />
               <small className="form-hint">{t.descHint.replace("{n}", String(description.length))}</small>
             </div>

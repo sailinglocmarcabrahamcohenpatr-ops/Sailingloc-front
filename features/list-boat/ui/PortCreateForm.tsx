@@ -127,6 +127,7 @@ export default function PortCreateForm({
             placeholder={t.pcNamePlaceholder}
             value={nom}
             onChange={(e) => { setNom(e.target.value); setError(""); }}
+            maxLength={100}
           />
         </div>
         <div className="form-group">
@@ -154,6 +155,7 @@ export default function PortCreateForm({
             placeholder={t.pcPostalPlaceholder}
             value={codePostal}
             onChange={(e) => { setCodePostal(e.target.value); setError(""); }}
+            maxLength={10}
           />
         </div>
         <div className="form-group">
@@ -164,6 +166,7 @@ export default function PortCreateForm({
             placeholder="France"
             value={pays}
             onChange={(e) => { setPays(e.target.value); setError(""); }}
+            maxLength={60}
           />
         </div>
       </div>

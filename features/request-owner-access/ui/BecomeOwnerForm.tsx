@@ -48,13 +48,19 @@ export default function BecomeOwnerForm() {
     const form = e.currentTarget;
     const data = new FormData(form);
 
-    const result = await sendOwnerRequest({
-      phone: data.get("phone") as string,
-      address: data.get("address") as string,
-      city: data.get("city") as string,
-      postalCode: data.get("postalCode") as string,
-      country: (data.get("country") as string) || "France",
-    });
+    const phone = (data.get("phone") as string).trim();
+    const address = (data.get("address") as string).trim();
+    const city = (data.get("city") as string).trim();
+    const postalCode = (data.get("postalCode") as string).trim();
+    const country = ((data.get("country") as string) || "France").trim();
+
+    if (!phone || !address || !city || !postalCode) {
+      setLoading(false);
+      setError(t.errRequiredFields);
+      return;
+    }
+
+    const result = await sendOwnerRequest({ phone, address, city, postalCode, country });
 
     setLoading(false);
 
@@ -113,27 +119,29 @@ export default function BecomeOwnerForm() {
               defaultValue={emptyForm.phone}
               placeholder={t.placeholderPhone}
               required
+              maxLength={20}
+              autoComplete="tel"
             />
           </div>
           <div className="form-group">
             <label className="form-label req" htmlFor="city">{t.labelCity}</label>
-            <input type="text" id="city" name="city" className="form-input" placeholder={t.placeholderCity} required />
+            <input type="text" id="city" name="city" className="form-input" placeholder={t.placeholderCity} required maxLength={60} autoComplete="address-level2" />
           </div>
         </div>
 
         <div className="form-group">
           <label className="form-label req" htmlFor="address">{t.labelAddress}</label>
-          <input type="text" id="address" name="address" className="form-input" placeholder={t.placeholderAddress} required />
+          <input type="text" id="address" name="address" className="form-input" placeholder={t.placeholderAddress} required maxLength={120} autoComplete="street-address" />
         </div>
 
         <div className="form-row">
           <div className="form-group">
             <label className="form-label req" htmlFor="postalCode">{t.labelPostalCode}</label>
-            <input type="text" id="postalCode" name="postalCode" className="form-input" placeholder={t.placeholderPostal} required />
+            <input type="text" id="postalCode" name="postalCode" className="form-input" placeholder={t.placeholderPostal} required maxLength={12} autoComplete="postal-code" />
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="country">{t.labelCountry}</label>
-            <input type="text" id="country" name="country" className="form-input" defaultValue="France" />
+            <input type="text" id="country" name="country" className="form-input" defaultValue="France" maxLength={60} autoComplete="country-name" />
           </div>
         </div>
 

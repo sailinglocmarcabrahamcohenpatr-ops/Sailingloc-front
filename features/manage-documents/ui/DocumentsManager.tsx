@@ -40,10 +40,24 @@ export default function DocumentsManager() {
     inputRefs.current[typeId]?.click();
   };
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  const ACCEPTED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".webp"];
+
   const handleFileChange = async (type: TypeDocumentAPI, previous: DocumentAPI | undefined, file: File | null) => {
     if (!file) return;
-    setUploadingTypeId(type.id);
     setUploadError((prev) => ({ ...prev, [type.id]: "" }));
+
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!ACCEPTED_EXTENSIONS.includes(ext)) {
+      setUploadError((prev) => ({ ...prev, [type.id]: t.errFileType }));
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError((prev) => ({ ...prev, [type.id]: t.errFileTooLarge }));
+      return;
+    }
+
+    setUploadingTypeId(type.id);
     try {
       const uploaded = await documentsApi.create(file, type.id);
       setDocuments((prev) => [...prev.filter((d) => d.typeDocument?.id !== type.id), uploaded]);

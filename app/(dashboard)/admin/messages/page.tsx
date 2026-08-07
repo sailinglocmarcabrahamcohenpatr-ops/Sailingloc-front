@@ -334,7 +334,7 @@ export default function AdminMessagesPage() {
                   <input ref={inputRef} type="text" className="messages-reply-input" placeholder={`Message à ${activePartner.prenom}…`}
                     value={reply} onChange={(e) => setReply(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    autoComplete="off" disabled={sending} />
+                    autoComplete="off" disabled={sending} maxLength={2000} />
                 </div>
                 <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title="Envoyer (Entrée)"
                   style={{ border: "none", background: reply.trim() ? "var(--primary)" : "var(--border)", color: reply.trim() ? "#fff" : "var(--text-3)", cursor: !reply.trim() || sending ? "not-allowed" : "pointer", transition: "background .18s, color .18s" }}>

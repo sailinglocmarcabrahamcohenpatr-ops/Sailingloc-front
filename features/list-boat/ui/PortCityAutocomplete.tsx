@@ -94,6 +94,7 @@ function PortCityAutocompleteBody({
         placeholder={t.pcaPlaceholder}
         value={ville}
         autoComplete="off"
+        maxLength={60}
         onChange={(e) => onVilleChange(e.target.value)}
         onFocus={() => { if (cities.length > 0) setOpen(true); }}
       />

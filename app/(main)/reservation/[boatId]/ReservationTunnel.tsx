@@ -57,13 +57,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const [phone, setPhone] = useState("");
   const [requests, setRequests] = useState("");
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardName, setCardName] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const [payError, setPayError] = useState("");
 
   // Stripe
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -91,10 +85,6 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
   const days = daysBetween(initialStartDate, initialEndDate);
   const { subtotal, serviceFee, total } = calculateBookingTotal(boat.pricePerDay, days);
   const imgSrc = getBoatImageUrl(boat, 800, 500, "main");
-
-  const handlePay = async () => {
-    // Kept for compatibility — payment is now handled by StripePaymentForm
-  };
 
   /** Appelé quand l'utilisateur clique "Continuer vers le paiement" à l'étape 2.
    *  Crée la réservation en DB, puis récupère le client_secret Stripe. */
@@ -152,16 +142,6 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
     !lastName.trim() && "Nom",
     !phone.trim() && "Téléphone",
   ].filter(Boolean) as string[];
-  const canPay = agreed && cardNumber.trim() !== "" && expiry.trim() !== "" && cvv.trim() !== "" && cardName.trim() !== "";
-
-  const payBlockers = [
-    !cardName.trim() && "Titulaire de la carte",
-    !cardNumber.trim() && "Numéro de carte",
-    !expiry.trim() && "Date d'expiration",
-    !cvv.trim() && "Code de sécurité",
-    !agreed && "Acceptation des conditions générales",
-  ].filter(Boolean) as string[];
-
   return (
     <div className="res-page">
       <div className="container">
@@ -326,6 +306,7 @@ export default function ReservationTunnel({ boat, initialStartDate, initialEndDa
                     onChange={(e) => setRequests(e.target.value)}
                     placeholder="Heure d'arrivée souhaitée, besoins spécifiques, allergies alimentaires…"
                     style={{ minHeight: "90px" }}
+                    maxLength={500}
                   />
                 </div>
 
