@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth, useMessages, useNotifications, utilisateursApi, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 import { useI18n } from "@/shared/i18n";
 import type { NotificationType } from "@/shared/lib";
 import "./profile.css";
@@ -80,6 +81,7 @@ export default function ProfileContent() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user?.id) return;
+    if (!isValidEmail(email)) { setSaveError(t.errEmailInvalid); return; }
     setSaving(true);
     setSaveError("");
     setSaveSuccess(false);
@@ -147,20 +149,20 @@ export default function ProfileContent() {
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="pf-fn">{t.labelFirstName}</label>
-                  <input id="pf-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required />
+                  <input id="pf-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required maxLength={60} />
                 </div>
                 <div className="form-group">
                   <label htmlFor="pf-ln">{t.labelLastName}</label>
-                  <input id="pf-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required />
+                  <input id="pf-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required maxLength={60} />
                 </div>
               </div>
               <div className="form-group">
                 <label htmlFor="pf-email">{t.labelEmail}</label>
-                <input id="pf-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <input id="pf-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} />
               </div>
               <div className="form-group">
                 <label htmlFor="pf-phone">{t.labelPhone}</label>
-                <input id="pf-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+                <input id="pf-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} maxLength={20} />
               </div>
               <div className="form-group">
                 <label htmlFor="pf-password">

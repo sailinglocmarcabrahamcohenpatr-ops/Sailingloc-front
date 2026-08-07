@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiForgotPassword, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 
 export default function ForgotPasswordForm() {
   const t = useI18n().dict.forgotPasswordPage;
@@ -14,6 +15,7 @@ export default function ForgotPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+    if (!isValidEmail(email)) { setError(t.errEmailInvalid); return; }
     setLoading(true);
     setError("");
     try {
@@ -53,6 +55,7 @@ export default function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          maxLength={254}
         />
       </div>
       {error && <p className="auth-error">{error}</p>}

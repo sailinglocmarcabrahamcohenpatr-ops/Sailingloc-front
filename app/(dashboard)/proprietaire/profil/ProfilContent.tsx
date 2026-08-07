@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth, utilisateursApi, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 import { useI18n } from "@/shared/i18n";
 import "./profil.css";
 
@@ -27,6 +28,7 @@ export default function ProfilContent() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user?.id) return;
+    if (!isValidEmail(email)) { setSaveError(t.errEmailInvalid); return; }
     setSaving(true);
     setSaveError("");
     setSaveSuccess(false);
@@ -111,20 +113,20 @@ export default function ProfilContent() {
           <div className="form-row-2">
             <div className="form-group">
               <label htmlFor="op-fn">{t.labelFirstName}</label>
-              <input id="op-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required />
+              <input id="op-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required maxLength={60} />
             </div>
             <div className="form-group">
               <label htmlFor="op-ln">{t.labelLastName}</label>
-              <input id="op-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required />
+              <input id="op-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required maxLength={60} />
             </div>
           </div>
           <div className="form-group">
             <label htmlFor="op-email">{t.labelEmail}</label>
-            <input id="op-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input id="op-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} />
           </div>
           <div className="form-group">
             <label htmlFor="op-phone">{t.labelPhone}</label>
-            <input id="op-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+            <input id="op-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} maxLength={20} />
           </div>
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving

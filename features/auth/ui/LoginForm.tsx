@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiLogin, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -25,6 +26,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || !password) { setError(t.errRequired); return; }
+    if (!isValidEmail(email)) { setError(t.errEmailInvalid); return; }
 
     setLoading(true);
     setError("");
@@ -70,6 +72,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
+          maxLength={254}
         />
       </div>
 
