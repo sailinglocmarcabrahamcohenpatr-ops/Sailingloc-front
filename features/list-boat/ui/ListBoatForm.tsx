@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { referentielsApi, portsApi } from "@/shared/lib/referentiels-api";
-import type { TypeBateauAPI, PortAPI, TypeDocumentAPI } from "@/shared/lib/referentiels-api";
+import type { TypeBateauAPI, PortAPI, TypeDocumentAPI, TypeEquipementAPI } from "@/shared/lib/referentiels-api";
 import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { uploadPhoto } from "../api/photos";
 import { uploadDocument } from "../api/documents";
@@ -44,9 +44,11 @@ export default function ListBoatForm() {
   const submittingRef = useRef(false);
 
   /* ── Données API ── */
-  const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
-  const [ports,     setPorts]     = useState<PortAPI[]>([]);
-  const [docTypes,  setDocTypes]  = useState<TypeDocumentAPI[]>([]);
+  const [boatTypes,      setBoatTypes]      = useState<TypeBateauAPI[]>([]);
+  const [ports,          setPorts]          = useState<PortAPI[]>([]);
+  const [docTypes,       setDocTypes]       = useState<TypeDocumentAPI[]>([]);
+  const [typesEquipements, setTypesEquipements] = useState<TypeEquipementAPI[]>([]);
+  const [selectedEquipementIds, setSelectedEquipementIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     referentielsApi.getTypesBateaux()
@@ -73,9 +75,11 @@ export default function ListBoatForm() {
           : (res as Record<string, unknown>)?.["hydra:member"] as TypeDocumentAPI[]
           ?? (res as Record<string, unknown>)?.["data"]         as TypeDocumentAPI[]
           ?? [];
-        console.log("document types: ", res)
         setDocTypes(arr);
       })
+      .catch(() => {});
+    referentielsApi.getTypesEquipements()
+      .then((res) => setTypesEquipements(Array.isArray(res) ? res : []))
       .catch(() => {});
   }, []);
 
@@ -327,7 +331,12 @@ export default function ListBoatForm() {
         prix_heure:       prixHeure ? parseFloat(prixHeure) : undefined,
       });
 
-      // Étape 2 — Uploader les photos
+      // Étape 2 — Associer les équipements sélectionnés
+      for (const equipementId of selectedEquipementIds) {
+        await boatsApi.addEquipement(boat.id, equipementId);
+      }
+
+      // Étape 3 — Uploader les photos
       setSubmitStep("photos");
       setUploadedPhotos(0);
       for (let i = 0; i < photos.length; i++) {
@@ -630,6 +639,41 @@ export default function ListBoatForm() {
                 onChange={(e) => setDescription(e.target.value)}
               />
               <small className="form-hint">{t.descHint.replace("{n}", String(description.length))}</small>
+            </div>
+
+            {/* ── Équipements ── */}
+            <div className="form-group" style={{ marginTop: "24px" }}>
+              <label>{t.equipementsTitle}</label>
+              <p className="form-hint">{t.equipementsSubtitle}</p>
+              {typesEquipements.length === 0 ? (
+                <p className="form-hint">{t.equipementsNone}</p>
+              ) : (
+                typesEquipements.map((type) => (
+                  <div key={type.id} className="equipements-type-group">
+                    <p className="equipements-type-label"><strong>{type.labelTypeEquipement}</strong></p>
+                    <div className="equipements-checkboxes">
+                      {(type.equipements ?? []).map((eq) => (
+                        <label key={eq.id} className="equipements-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={selectedEquipementIds.has(eq.id)}
+                            onChange={(e) => {
+                              setSelectedEquipementIds((prev) => {
+                                const next = new Set(prev);
+                                if (e.target.checked) next.add(eq.id);
+                                else next.delete(eq.id);
+                                return next;
+                              });
+                            }}
+                          />
+                          {eq.icone && <i className={`fa-solid ${eq.icone}`} aria-hidden="true" />}
+                          {eq.nom}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

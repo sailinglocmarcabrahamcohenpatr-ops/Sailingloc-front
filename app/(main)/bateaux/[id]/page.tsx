@@ -170,10 +170,12 @@ export default async function ProductPage({ params }: PageProps) {
 
   let boat: BoatPageData;
   let statut: string;
+  let equipements: import("@/shared/lib/boats-api").BoatAPI["equipements"] = [];
   try {
     const data = await boatsApi.getOne(id);
     statut = data.statut;
     boat = adaptBoat(data, t);
+    equipements = data.equipements ?? [];
   } catch {
     notFound();
   }
@@ -252,6 +254,39 @@ export default async function ProductPage({ params }: PageProps) {
               ))}
             </div>
           </div>
+
+          {equipements.length > 0 && (() => {
+            const byType = equipements.reduce<Record<string, { label: string; items: typeof equipements }>>(
+              (acc, eq) => {
+                const key = String(eq.typeEquipement?.id ?? "other");
+                if (!acc[key]) acc[key] = { label: eq.typeEquipement?.labelTypeEquipement ?? "Autre", items: [] };
+                acc[key].items.push(eq);
+                return acc;
+              },
+              {}
+            );
+            return (
+              <div className="equipements-section">
+                <h3>{t.equipementsTitle}</h3>
+                {Object.values(byType).map((group) => (
+                  <div key={group.label} className="equipements-group">
+                    <h4 className="equipements-group-title">{group.label}</h4>
+                    <ul className="equipements-list">
+                      {group.items.map((eq) => (
+                        <li key={eq.id} className="equipements-item">
+                          {eq.icone
+                            ? <i className={`fa-solid ${eq.icone}`} aria-hidden="true" />
+                            : <i className="fa-solid fa-check" aria-hidden="true" />
+                          }
+                          {eq.nom}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           <div className="description">
             <h3>{t.descriptionTitle}</h3>

@@ -58,6 +58,19 @@ export interface TypeDocumentAPI {
   libelle?: string;            // fallback selon mapping backend
 }
 
+export interface TypeEquipementAPI {
+  id: number;
+  labelTypeEquipement: string;
+  equipements?: EquipementAPI[];
+}
+
+export interface EquipementAPI {
+  id: number;
+  nom: string;
+  icone?: string | null;
+  typeEquipement?: TypeEquipementAPI;
+}
+
 export interface UtilisateurAPI {
   id: number;
   email: string;
@@ -84,6 +97,10 @@ export const referentielsApi = {
     api.get<StatutPaiementAPI[]>("/api/referentiels/statuts-paiements"),
   getAssurances: () =>
     api.get<AssuranceAPI[]>("/api/referentiels/assurances"),
+  getTypesEquipements: () =>
+    api.get<TypeEquipementAPI[]>("/api/referentiels/types-equipements"),
+  getEquipements: () =>
+    api.get<EquipementAPI[]>("/api/referentiels/equipements"),
 };
 
 export const portsApi = {

@@ -646,3 +646,41 @@
 .save-confirm p      { color: var(--text-2); margin: 0; }
 .save-confirm small  { color: var(--text-3); font-size: .8125rem; }
 
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ÉQUIPEMENTS — form checkboxes (list-boat & modifier)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.equipements-type-group {
+  margin-bottom: 16px;
+}
+.equipements-type-label {
+  font-size: .875rem;
+  color: var(--text-2);
+  margin: 0 0 8px 0;
+}
+.equipements-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.equipements-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .875rem;
+  cursor: pointer;
+  color: var(--text-1);
+}
+.equipements-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.equipements-checkbox-label i {
+  width: 14px;
+  text-align: center;
+  color: var(--primary);
+  font-size: .8125rem;
+}

@@ -7,7 +7,7 @@ import "@/features/list-boat/ui/list-boat.css";
 import SearchableSelect from "@/features/list-boat/ui/SearchableSelect";
 import type { Motorisation } from "@/features/list-boat";
 import { boatsApi, referentielsApi, portsApi, useAuth } from "@/shared/lib";
-import type { TypeBateauAPI, PortAPI } from "@/shared/lib";
+import type { TypeBateauAPI, PortAPI, TypeEquipementAPI, EquipementAPI } from "@/shared/lib";
 import { useI18n } from "@/shared/i18n";
 
 export default function EditBoatPage() {
@@ -31,6 +31,9 @@ export default function EditBoatPage() {
 
   const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
   const [ports, setPorts] = useState<PortAPI[]>([]);
+  const [typesEquipements, setTypesEquipements] = useState<TypeEquipementAPI[]>([]);
+  const [originalEquipementIds, setOriginalEquipementIds] = useState<Set<number>>(new Set());
+  const [selectedEquipementIds, setSelectedEquipementIds] = useState<Set<number>>(new Set());
   const [ownerId, setOwnerId] = useState<number | undefined>(undefined);
 
   const [typeId, setTypeId] = useState<number | null>(null);
@@ -49,10 +52,11 @@ export default function EditBoatPage() {
   const [caution, setCaution] = useState("");
 
   useEffect(() => {
-    Promise.all([boatsApi.getOne(boatId), referentielsApi.getTypesBateaux(), portsApi.getAll()])
-      .then(([boat, types, portsRes]) => {
+    Promise.all([boatsApi.getOne(boatId), referentielsApi.getTypesBateaux(), portsApi.getAll(), referentielsApi.getTypesEquipements()])
+      .then(([boat, types, portsRes, typesEq]) => {
         setBoatTypes(Array.isArray(types) ? types : []);
         setPorts(Array.isArray(portsRes) ? portsRes : []);
+        setTypesEquipements(Array.isArray(typesEq) ? typesEq : []);
         setOwnerId(boat.id_utilisateur);
         setTypeId(boat.id_type_bateau ?? boat.typeBateau?.id ?? null);
         setMotorisation((boat.motorisation as Motorisation) || "voile");
@@ -68,6 +72,9 @@ export default function EditBoatPage() {
         setPricePerDay(boat.prixJour != null ? String(boat.prixJour) : "");
         setPrixHeure(boat.prixHeure != null ? String(boat.prixHeure) : "");
         setCaution(boat.caution != null ? String(boat.caution) : "");
+        const existingIds = new Set<number>((boat.equipements ?? []).map((eq: EquipementAPI) => eq.id));
+        setOriginalEquipementIds(existingIds);
+        setSelectedEquipementIds(new Set(existingIds));
       })
       .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
@@ -99,6 +106,14 @@ export default function EditBoatPage() {
         carburant_inclus: carburantInclus,
         prix_heure: prixHeure ? parseFloat(prixHeure) : undefined,
       });
+
+      const toAdd = [...selectedEquipementIds].filter((id) => !originalEquipementIds.has(id));
+      const toRemove = [...originalEquipementIds].filter((id) => !selectedEquipementIds.has(id));
+      await Promise.all([
+        ...toAdd.map((id) => boatsApi.addEquipement(boatId, id)),
+        ...toRemove.map((id) => boatsApi.removeEquipement(boatId, id)),
+      ]);
+
       setSaved(true);
       setTimeout(() => router.push("/proprietaire/bateaux"), 1200);
     } catch {
@@ -249,6 +264,41 @@ export default function EditBoatPage() {
           <div className="form-group" style={{ marginTop: "8px" }}>
             <label htmlFor="eb-desc">{tf.step0Description}</label>
             <textarea id="eb-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+
+          {/* ── Équipements ── */}
+          <div className="form-group" style={{ marginTop: "24px" }}>
+            <label>{tf.equipementsTitle}</label>
+            <p className="form-hint">{tf.equipementsSubtitle}</p>
+            {typesEquipements.length === 0 ? (
+              <p className="form-hint">{tf.equipementsNone}</p>
+            ) : (
+              typesEquipements.map((type) => (
+                <div key={type.id} className="equipements-type-group">
+                  <p className="equipements-type-label"><strong>{type.labelTypeEquipement}</strong></p>
+                  <div className="equipements-checkboxes">
+                    {(type.equipements ?? []).map((eq) => (
+                      <label key={eq.id} className="equipements-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={selectedEquipementIds.has(eq.id)}
+                          onChange={(e) => {
+                            setSelectedEquipementIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(eq.id);
+                              else next.delete(eq.id);
+                              return next;
+                            });
+                          }}
+                        />
+                        {eq.icone && <i className={`fa-solid ${eq.icone}`} aria-hidden="true" />}
+                        {eq.nom}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

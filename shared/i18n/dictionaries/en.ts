@@ -687,6 +687,8 @@ export const en: Dictionary = {
     specCabins: "Cabins",
     specLocation: "Home port",
     characteristicsTitle: "Specifications",
+    equipementsTitle: "Equipment",
+    equipementsEmpty: "No equipment listed for this boat.",
     persons: "guests",
     cabinsShort: "cab.",
     dash: "—",
@@ -1254,6 +1256,10 @@ export const en: Dictionary = {
 
     pcaPlaceholder: "e.g. Cannes",
     pcaNoCity: "No known port city for \"{city}\".",
+
+    equipementsTitle: "Equipment",
+    equipementsSubtitle: "Check the equipment available on board",
+    equipementsNone: "No equipment available at the moment.",
   },
 
   ownerDashboardPage: {
