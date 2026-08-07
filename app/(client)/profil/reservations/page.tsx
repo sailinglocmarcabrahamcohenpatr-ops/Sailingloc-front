@@ -15,6 +15,7 @@ import {
 } from "@/shared/lib";
 import type { ReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
 import { resolvePhotoUrl } from "@/shared/lib/boats-api";
+import { interpolate } from "@/shared/lib/utils";
 import { RatingForm } from "@/features/rate-boat";
 import { useI18n } from "@/shared/i18n";
 import "./reservations.css";
@@ -193,14 +194,13 @@ const BookingCard = ({
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
             <h2>{t.cancelModalTitle}</h2>
-            <p
-              dangerouslySetInnerHTML={{
-                __html: t.cancelModalText
-                  .replace("{name}", `<strong>${boatName}</strong>`)
-                  .replace("{from}", fmt(r.dateDebut, t.intlLocale))
-                  .replace("{to}", fmt(r.dateFin, t.intlLocale)),
-              }}
-            />
+            <p>
+              {interpolate(t.cancelModalText, {
+                name: <strong>{boatName}</strong>,
+                from: fmt(r.dateDebut, t.intlLocale),
+                to: fmt(r.dateFin, t.intlLocale),
+              })}
+            </p>
             <div className="cancel-modal-actions">
               <button
                 type="button"

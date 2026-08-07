@@ -6,6 +6,7 @@ import Link from "next/link";
 import { avisApi, reservationsApi } from "@/shared/lib";
 import type { AvisAPI, ReservationAPI } from "@/shared/lib";
 import { resolvePhotoUrl } from "@/shared/lib/boats-api";
+import { interpolate } from "@/shared/lib/utils";
 import { RatingForm } from "@/features/rate-boat";
 import { useI18n } from "@/shared/i18n";
 import "./notations.css";
@@ -89,7 +90,7 @@ const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
             <h2>{t.deleteConfirmTitle}</h2>
-            <p dangerouslySetInnerHTML={{ __html: t.deleteConfirmText.replace("{name}", `<strong>${boatName}</strong>`) }} />
+            <p>{interpolate(t.deleteConfirmText, { name: <strong>{boatName}</strong> })}</p>
             <div className="cancel-modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setConfirming(false)} disabled={deleting}>
                 {t.back}

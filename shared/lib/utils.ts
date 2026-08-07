@@ -1,3 +1,4 @@
+import { Fragment, createElement, type ReactNode } from "react";
 import { SERVICE_FEE_RATE } from "@/shared/config";
 
 export function cn(
@@ -50,6 +51,31 @@ export function pluralize(
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trimEnd() + "…";
+}
+
+/**
+ * Interpole des {placeholders} dans un texte en nœuds React, sans jamais
+ * passer par du HTML brut : chaque valeur (ex. un nom de bateau saisi par
+ * un propriétaire) reste un nœud texte React, donc échappée par défaut.
+ * À utiliser à la place de `dangerouslySetInnerHTML` pour ce genre de gabarit.
+ */
+export function interpolate(template: string, values: Record<string, ReactNode>): ReactNode {
+  return template.split(/(\{\w+\})/g).map((part, i) => {
+    const match = /^\{(\w+)\}$/.exec(part);
+    if (match && match[1] in values) {
+      return createElement(Fragment, { key: i }, values[match[1]]);
+    }
+    return part;
+  });
+}
+
+/**
+ * Vérifie qu'une adresse e-mail a une forme plausible (quelque chose@quelque
+ * chose.quelque chose, sans espace) — rejette par ex. "test", "test@exemple"
+ * ou "test.com" saisis sans @ ni domaine valide.
+ */
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export function slugify(text: string): string {
