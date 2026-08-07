@@ -75,7 +75,7 @@ export default function Navbar() {
       <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
         <div className="container navbar-inner">
           <Link href="/" className="navbar-logo">
-            <Logo />
+            <Logo animated />
           </Link>
 
           <nav className="navbar-nav" aria-label={t.mainNav}>
