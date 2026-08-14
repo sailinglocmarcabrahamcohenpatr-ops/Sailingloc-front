@@ -18,7 +18,7 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getRequestLocale()).home;
-  return { title: t.metaTitle, description: t.metaDescription };
+  return { title: t.metaTitle, description: t.metaDescription, alternates: { canonical: "/" } };
 }
 
 /* Seules les 3 premières catégories sont mises en avant sur l'accueil, en

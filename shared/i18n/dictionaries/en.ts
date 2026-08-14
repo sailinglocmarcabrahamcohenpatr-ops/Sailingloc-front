@@ -160,7 +160,7 @@ export const en: Dictionary = {
   },
 
   home: {
-    metaTitle: "SailingLoc — Peer-to-peer boat rental in France and Europe",
+    metaTitle: "Peer-to-peer boat rental in France and Europe",
     metaDescription:
       "Find the ideal boat for your holidays. Sailboats, catamarans, motorboats. Insurance included, secure payment, verified owners. France and Europe.",
     statsAria: "Key figures",
@@ -238,7 +238,7 @@ export const en: Dictionary = {
   },
 
   destinationsPage: {
-    metaTitle: "Sailing destinations — SailingLoc",
+    metaTitle: "Sailing destinations",
     metaDescription:
       "Explore the finest sailing destinations across the Mediterranean and the Atlantic for your next boating trip.",
     heroEyebrow: "Our destinations",
@@ -269,7 +269,7 @@ export const en: Dictionary = {
 
   destinationDetail: {
     metaNotFound: "Destination not found",
-    metaTitle: "{name} — Boat rental | SailingLoc",
+    metaTitle: "{name} — Boat rental",
     breadcrumb: "Destinations",
     scrollDown: "Discover {name}",
     heroBoatsAvailable: "{count} boats available",
@@ -327,7 +327,7 @@ export const en: Dictionary = {
   },
 
   cguPage: {
-    metaTitle: "Terms and Conditions of Use — SailingLoc",
+    metaTitle: "Terms and Conditions of Use",
     metaDescription: "SailingLoc terms of use: registration, booking, obligations of renters and owners, cancellation, liability.",
     tag: "Terms and Conditions of Use",
     title: "Terms and Conditions of Use",
@@ -339,7 +339,7 @@ export const en: Dictionary = {
   },
 
   privacyPage: {
-    metaTitle: "Privacy Policy (GDPR) — SailingLoc",
+    metaTitle: "Privacy Policy (GDPR)",
     metaDescription: "SailingLoc privacy and personal data protection policy: data collected, purposes, retention periods and GDPR rights.",
     tag: "GDPR",
     title: "Privacy Policy",
@@ -356,7 +356,7 @@ export const en: Dictionary = {
   },
 
   cookiesPage: {
-    metaTitle: "Cookie Policy — SailingLoc",
+    metaTitle: "Cookie Policy",
     metaDescription: "Find out which cookies are used on SailingLoc, their purpose, retention period, and how to manage your preferences.",
     tag: "Cookies",
     title: "Cookie Policy",
@@ -370,7 +370,7 @@ export const en: Dictionary = {
   },
 
   mentionsPage: {
-    metaTitle: "Legal Notice — SailingLoc",
+    metaTitle: "Legal Notice",
     metaDescription: "Legal notice for the SailingLoc website: publisher, hosting provider, publication director and intellectual property.",
     tag: "Legal Notice",
     title: "Legal Notice",
@@ -383,7 +383,7 @@ export const en: Dictionary = {
   },
 
   ownerPage: {
-    metaTitle: "List your boat — SailingLoc Owners",
+    metaTitle: "List your boat — Owners",
     metaDescription: "List your boat for free and earn up to €40,000 a year. Insurance included, secure payment, simplified management. Join 3,200 owners.",
     heroAlt: "Boat owner at the harbour",
 
@@ -472,7 +472,7 @@ export const en: Dictionary = {
   },
 
   contactPage: {
-    metaTitle: "Contact & Support — SailingLoc",
+    metaTitle: "Contact & Support",
     metaDescription: "Contact the SailingLoc team for any question about your boat rental. Form, phone, WhatsApp and FAQ available.",
 
     heroTag: "Support & Contact",
@@ -571,7 +571,7 @@ export const en: Dictionary = {
   },
 
   howItWorksPage: {
-    metaTitle: "How It Works — SailingLoc",
+    metaTitle: "How It Works",
     metaDescription: "Rent or list your boat in a few easy steps. Search, secure booking, set sail. Peer-to-peer boat rental made simple.",
 
     heroEyebrow: "Transparent & secure",
@@ -626,6 +626,11 @@ export const en: Dictionary = {
   },
 
   catalog: {
+    metaTitleDefault: "Boat Rental Between Individuals",
+    metaDescriptionDefault: "Browse hundreds of sailboats, catamarans and motorboats available for rental between individuals in France and Europe.",
+    metaTitleDestination: "Boat Rental in {destination}",
+    metaTitleType: "{type} for Rent Between Individuals",
+    metaTitleTypeDestination: "{type} for Rent in {destination}",
     countBoat: "boat",
     countBoats: "boats",
     availableSingular: "available",
@@ -905,7 +910,7 @@ export const en: Dictionary = {
   },
 
   loginPage: {
-    metaTitle: "Log in — SailingLoc",
+    metaTitle: "Log in",
     metaDescription: "Log in to your SailingLoc account to access your bookings and messages.",
     registeredSuccess: "Account created! A confirmation email has been sent — click the link inside to activate your account, then log in.",
     heading: "Welcome back!",
@@ -930,7 +935,7 @@ export const en: Dictionary = {
   },
 
   registerPage: {
-    metaTitle: "Create an account — SailingLoc",
+    metaTitle: "Create an account",
     metaDescription: "Join SailingLoc and rent or list your boat.",
     heading: "Create an account",
     sub: "Join 50,000 sailors on SailingLoc",
@@ -987,7 +992,7 @@ export const en: Dictionary = {
   },
 
   forgotPasswordPage: {
-    metaTitle: "Forgot password — SailingLoc",
+    metaTitle: "Forgot password",
     metaDescription: "Reset your SailingLoc password.",
     heading: "Forgot your password?",
     sub: "Don't worry, it happens to the best of us",

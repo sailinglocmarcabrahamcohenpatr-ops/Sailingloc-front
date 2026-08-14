@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { BoatsSidebar, ResultsControls, BoatsSplitMapView } from "@/widgets/boats-catalog";
@@ -7,6 +8,11 @@ import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from 
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
 import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
+
+/** Remplace les {placeholders} d'un gabarit par leurs valeurs. */
+function fill(tpl: string, vars: Record<string, string>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+}
 
 const adaptBoat = adaptBoatFromApi;
 
@@ -36,6 +42,44 @@ interface PageProps {
     vue?: string;
     tri?: string;
   }>;
+}
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const sp = await searchParams;
+  const t = getDictionary(await getRequestLocale()).catalog;
+
+  const singleType =
+    sp.type && !sp.type.includes(",") && sp.type !== "tous"
+      ? (t.typeLabels as Record<string, string>)[sp.type]
+      : null;
+  const destination = sp.destination?.trim() || null;
+
+  let title = t.metaTitleDefault;
+  if (singleType && destination) {
+    title = fill(t.metaTitleTypeDestination, { type: singleType, destination });
+  } else if (destination) {
+    title = fill(t.metaTitleDestination, { destination });
+  } else if (singleType) {
+    title = fill(t.metaTitleType, { type: singleType });
+  }
+
+  // Canonique = destination/type seuls (facettes indexables) ; les autres filtres
+  // (prix, capacité, dates…) retombent sur cette même URL pour éviter le contenu dupliqué.
+  const canonicalParams = new URLSearchParams();
+  if (destination) canonicalParams.set("destination", destination);
+  if (sp.type && sp.type !== "tous") canonicalParams.set("type", sp.type);
+  const canonical = `/bateaux${canonicalParams.toString() ? `?${canonicalParams.toString()}` : ""}`;
+
+  const hasSecondaryFilters = Boolean(
+    sp.prixMin || sp.prixMax || sp.capacite || sp.note || sp.tailleMin || sp.tailleMax || sp.cabines || sp.skipper || sp.arrivee || sp.depart
+  );
+
+  return {
+    title,
+    description: t.metaDescriptionDefault,
+    alternates: { canonical },
+    ...(hasSecondaryFilters ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function BoatsPage({ searchParams }: PageProps) {

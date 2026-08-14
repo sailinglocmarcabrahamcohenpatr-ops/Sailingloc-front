@@ -159,7 +159,7 @@ export const fr = {
   },
 
   home: {
-    metaTitle: "SailingLoc — Location de bateaux entre particuliers en France et Europe",
+    metaTitle: "Location de bateaux entre particuliers en France et Europe",
     metaDescription:
       "Trouvez le bateau idéal pour vos vacances. Voiliers, catamarans, bateaux à moteur. Assurance incluse, paiement sécurisé, propriétaires vérifiés. France et Europe.",
     statsAria: "Chiffres clés",
@@ -237,7 +237,7 @@ export const fr = {
   },
 
   destinationsPage: {
-    metaTitle: "Destinations de voile — SailingLoc",
+    metaTitle: "Destinations de voile",
     metaDescription:
       "Explorez les plus belles destinations nautiques en Méditerranée et en Atlantique pour votre prochain voyage en bateau.",
     heroEyebrow: "Nos destinations",
@@ -268,7 +268,7 @@ export const fr = {
 
   destinationDetail: {
     metaNotFound: "Destination introuvable",
-    metaTitle: "{name} — Location de bateau | SailingLoc",
+    metaTitle: "{name} — Location de bateau",
     breadcrumb: "Destinations",
     scrollDown: "Découvrir {name}",
     heroBoatsAvailable: "{count} bateaux disponibles",
@@ -326,7 +326,7 @@ export const fr = {
   },
 
   cguPage: {
-    metaTitle: "Conditions Générales d'Utilisation — SailingLoc",
+    metaTitle: "Conditions Générales d'Utilisation",
     metaDescription: "Conditions générales d'utilisation de SailingLoc : inscription, réservation, obligations des locataires et propriétaires, annulation, responsabilité.",
     tag: "Conditions Générales d'Utilisation",
     title: "Conditions Générales d'Utilisation",
@@ -338,7 +338,7 @@ export const fr = {
   },
 
   privacyPage: {
-    metaTitle: "Politique de confidentialité (RGPD) — SailingLoc",
+    metaTitle: "Politique de confidentialité (RGPD)",
     metaDescription: "Politique de confidentialité et de protection des données personnelles de SailingLoc : données collectées, finalités, durée de conservation et droits RGPD.",
     tag: "RGPD",
     title: "Politique de confidentialité",
@@ -355,7 +355,7 @@ export const fr = {
   },
 
   cookiesPage: {
-    metaTitle: "Politique de cookies — SailingLoc",
+    metaTitle: "Politique de cookies",
     metaDescription: "Découvrez quels cookies sont utilisés sur SailingLoc, leur finalité, leur durée de conservation, et comment gérer vos préférences.",
     tag: "Cookies",
     title: "Politique de cookies",
@@ -369,7 +369,7 @@ export const fr = {
   },
 
   mentionsPage: {
-    metaTitle: "Mentions légales — SailingLoc",
+    metaTitle: "Mentions légales",
     metaDescription: "Mentions légales du site SailingLoc : éditeur, hébergeur, directeur de publication et propriété intellectuelle.",
     tag: "Mentions légales",
     title: "Mentions légales",
@@ -382,7 +382,7 @@ export const fr = {
   },
 
   ownerPage: {
-    metaTitle: "Louez votre bateau — SailingLoc Propriétaires",
+    metaTitle: "Louez votre bateau — Propriétaires",
     metaDescription: "Inscrivez votre bateau gratuitement et gagnez jusqu'à 40 000 € par an. Assurance incluse, paiement sécurisé, gestion simplifiée. Rejoignez 3 200 propriétaires.",
     heroAlt: "Propriétaire de bateau au port",
 
@@ -471,7 +471,7 @@ export const fr = {
   },
 
   contactPage: {
-    metaTitle: "Contact & Support — SailingLoc",
+    metaTitle: "Contact & Support",
     metaDescription: "Contactez l'équipe SailingLoc pour toute question sur votre location de bateau. Formulaire, téléphone, WhatsApp et FAQ disponibles.",
 
     heroTag: "Support & Contact",
@@ -570,7 +570,7 @@ export const fr = {
   },
 
   howItWorksPage: {
-    metaTitle: "Comment ça marche — SailingLoc",
+    metaTitle: "Comment ça marche",
     metaDescription: "Louez ou inscrivez votre bateau en quelques étapes. Recherche, réservation sécurisée, navigation. Location de bateaux entre particuliers simplifiée.",
 
     heroEyebrow: "Transparent & sécurisé",
@@ -625,6 +625,11 @@ export const fr = {
   },
 
   catalog: {
+    metaTitleDefault: "Location de bateaux entre particuliers",
+    metaDescriptionDefault: "Parcourez des centaines de voiliers, catamarans et bateaux à moteur disponibles à la location entre particuliers en France et en Europe.",
+    metaTitleDestination: "Location de bateaux à {destination}",
+    metaTitleType: "{type} à louer entre particuliers",
+    metaTitleTypeDestination: "{type} à louer à {destination}",
     countBoat: "bateau",
     countBoats: "bateaux",
     availableSingular: "disponible",
@@ -904,7 +909,7 @@ export const fr = {
   },
 
   loginPage: {
-    metaTitle: "Connexion — SailingLoc",
+    metaTitle: "Connexion",
     metaDescription: "Connectez-vous à votre espace SailingLoc pour accéder à vos réservations et messages.",
     registeredSuccess: "Compte créé avec succès ! Un e-mail de confirmation vous a été envoyé — cliquez sur le lien qu'il contient pour activer votre compte, puis connectez-vous.",
     heading: "Bon retour !",
@@ -929,7 +934,7 @@ export const fr = {
   },
 
   registerPage: {
-    metaTitle: "Créer un compte — SailingLoc",
+    metaTitle: "Créer un compte",
     metaDescription: "Rejoignez SailingLoc et louez ou mettez en location votre bateau.",
     heading: "Créer un compte",
     sub: "Rejoignez 50 000 navigateurs sur SailingLoc",
@@ -986,7 +991,7 @@ export const fr = {
   },
 
   forgotPasswordPage: {
-    metaTitle: "Mot de passe oublié — SailingLoc",
+    metaTitle: "Mot de passe oublié",
     metaDescription: "Réinitialisez votre mot de passe SailingLoc.",
     heading: "Mot de passe oublié ?",
     sub: "Pas de panique, ça arrive aux meilleurs",

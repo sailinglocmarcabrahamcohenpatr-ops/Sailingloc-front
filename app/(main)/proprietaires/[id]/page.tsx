@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (owned.length === 0) return { title: "Propriétaire introuvable" };
     const info = owned[0].proprietaire ?? owned[0].utilisateur;
     const name = info ? `${info.prenom} ${info.nom}`.trim() : "Propriétaire";
-    return { title: `${name} — Propriétaire SailingLoc` };
+    return { title: `${name} — Propriétaire` };
   } catch {
     return { title: "Propriétaire introuvable" };
   }

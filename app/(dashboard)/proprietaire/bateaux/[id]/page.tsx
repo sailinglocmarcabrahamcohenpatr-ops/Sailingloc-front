@@ -100,7 +100,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
   try {
     const b = await boatsApi.getOne(id);
-    return { title: `${b.nomBateau} — SailingLoc` };
+    return { title: b.nomBateau };
   } catch {
     return { title: "Bateau introuvable" };
   }
