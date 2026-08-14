@@ -546,6 +546,8 @@ export const en: Dictionary = {
     errFileSize: "The file exceeds the maximum allowed size (5 MB).",
     errFileType: "File type not allowed. Please use an image or a PDF.",
     errRgpd: "Please accept the privacy policy to continue.",
+    errServer: "An error occurred. Please try again.",
+    errNetwork: "Unable to send the message. Check your connection.",
 
     sidebarTitle: "Contact us directly",
     contacts: [

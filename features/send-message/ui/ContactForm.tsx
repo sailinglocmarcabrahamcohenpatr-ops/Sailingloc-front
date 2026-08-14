@@ -99,8 +99,12 @@ export default function ContactForm() {
 
     if (result.success) {
       setSubmitted(true);
+    } else if (result.errorKind === "network") {
+      setError(t.errNetwork);
+    } else if (result.errorKind === "server") {
+      setError(t.errServer);
     } else {
-      setError(result.error ?? t.formError);
+      setError(t.formError);
     }
   };
 

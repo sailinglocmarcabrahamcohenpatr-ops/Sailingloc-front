@@ -545,6 +545,8 @@ export const fr = {
     errFileSize: "Le fichier dépasse la taille maximale autorisée (5 Mo).",
     errFileType: "Format de fichier non autorisé. Utilisez une image ou un PDF.",
     errRgpd: "Veuillez accepter la politique de confidentialité pour continuer.",
+    errServer: "Une erreur est survenue. Veuillez réessayer.",
+    errNetwork: "Impossible d'envoyer le message. Vérifiez votre connexion.",
 
     sidebarTitle: "Nous contacter directement",
     contacts: [

@@ -22,7 +22,9 @@ export interface ContactPayload {
 
 export interface ContactResult {
   success: boolean;
-  error?: string;
+  /** Pas de texte en dur ici : la traduction du message affiché à
+   *  l'utilisateur relève de la couche UI (i18n), pas de cette API. */
+  errorKind?: "server" | "network";
 }
 
 /**
@@ -67,17 +69,11 @@ export async function sendContactMessage(
     });
 
     if (!res.ok) {
-      return {
-        success: false,
-        error: "Une erreur est survenue. Veuillez réessayer.",
-      };
+      return { success: false, errorKind: "server" };
     }
 
     return { success: true };
   } catch {
-    return {
-      success: false,
-      error: "Impossible d'envoyer le message. Vérifiez votre connexion.",
-    };
+    return { success: false, errorKind: "network" };
   }
 }
