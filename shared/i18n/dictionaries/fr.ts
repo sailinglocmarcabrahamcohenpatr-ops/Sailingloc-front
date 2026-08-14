@@ -512,6 +512,10 @@ export const fr = {
     phBooking: "ex. SL-2025-00124",
     labelMessage: "Votre message",
     phMessage: "Décrivez votre demande en détail…",
+    labelAttachment: "Pièce jointe (facultatif)",
+    attachmentHint: "Image ou PDF, 5 Mo maximum.",
+    attachmentChoose: "Choisir un fichier",
+    attachmentRemove: "Retirer le fichier",
     rgpdPrefix: "J'accepte que mes données soient traitées conformément à la ",
     rgpdLink: "politique de confidentialité",
     rgpdSuffix: " de SailingLoc.",
@@ -522,6 +526,8 @@ export const fr = {
     formError: "Une erreur est survenue.",
     errRequiredFields: "Veuillez remplir tous les champs obligatoires.",
     errEmailInvalid: "Veuillez saisir une adresse e-mail valide.",
+    errFileSize: "Le fichier dépasse la taille maximale autorisée (5 Mo).",
+    errFileType: "Format de fichier non autorisé. Utilisez une image ou un PDF.",
 
     sidebarTitle: "Nous contacter directement",
     contacts: [

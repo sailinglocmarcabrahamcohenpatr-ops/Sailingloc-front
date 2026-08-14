@@ -17,6 +17,7 @@ export interface ContactPayload {
   phone?: string;
   booking?: string;
   message: string;
+  attachment?: File;
 }
 
 export interface ContactResult {
@@ -28,33 +29,41 @@ export interface ContactResult {
  * Envoi 100% front, sans backend ni clé API : relais via FormSubmit.co.
  * Le premier envoi déclenche un mail d'activation à support@dsp-dev-o24a-g1.cloud
  * (lien à confirmer une fois) ; les envois suivants partent normalement.
+ * La pièce jointe nécessite un envoi en multipart/form-data (pas de JSON) :
+ * on laisse le navigateur poser le Content-Type avec sa boundary.
  */
 export async function sendContactMessage(
   payload: ContactPayload
 ): Promise<ContactResult> {
   const subjectLabel = SUBJECT_LABELS[payload.subject] ?? payload.subject;
 
+  const formData = new FormData();
+  formData.append("_subject", `[Contact] ${subjectLabel} — ${payload.firstName} ${payload.lastName}`);
+  formData.append("_template", "table");
+  formData.append("_captcha", "false");
+  formData.append("_replyto", payload.email);
+  formData.append(
+    "_autoresponse",
+    `Bonjour ${payload.firstName},\n\nNous avons bien reçu votre message et vous répondrons sous 24-48h ouvrées.\n\nÀ bientôt,\nL'équipe SailingLoc`
+  );
+  formData.append("Sujet", subjectLabel);
+  formData.append("Prénom", payload.firstName);
+  formData.append("Nom", payload.lastName);
+  formData.append("Email", payload.email);
+  formData.append("Téléphone", payload.phone ?? "");
+  formData.append("Référence réservation", payload.booking ?? "");
+  formData.append("Message", payload.message);
+  if (payload.attachment) {
+    formData.append("attachment", payload.attachment, payload.attachment.name);
+  }
+
   try {
     const res = await fetch(FORMSUBMIT_ENDPOINT, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({
-        _subject: `[Contact] ${subjectLabel} — ${payload.firstName} ${payload.lastName}`,
-        _template: "table",
-        _captcha: "false",
-        _replyto: payload.email,
-        _autoresponse: `Bonjour ${payload.firstName},\n\nNous avons bien reçu votre message et vous répondrons sous 24-48h ouvrées.\n\nÀ bientôt,\nL'équipe SailingLoc`,
-        Sujet: subjectLabel,
-        Prénom: payload.firstName,
-        Nom: payload.lastName,
-        Email: payload.email,
-        Téléphone: payload.phone ?? "",
-        "Référence réservation": payload.booking ?? "",
-        Message: payload.message,
-      }),
+      body: formData,
     });
 
     if (!res.ok) {

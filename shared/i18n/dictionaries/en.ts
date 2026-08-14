@@ -513,6 +513,10 @@ export const en: Dictionary = {
     phBooking: "e.g. SL-2025-00124",
     labelMessage: "Your message",
     phMessage: "Describe your request in detail…",
+    labelAttachment: "Attachment (optional)",
+    attachmentHint: "Image or PDF, 5 MB maximum.",
+    attachmentChoose: "Choose a file",
+    attachmentRemove: "Remove file",
     rgpdPrefix: "I agree that my data will be processed in accordance with the ",
     rgpdLink: "privacy policy",
     rgpdSuffix: " of SailingLoc.",
@@ -523,6 +527,8 @@ export const en: Dictionary = {
     formError: "An error occurred.",
     errRequiredFields: "Please fill in all required fields.",
     errEmailInvalid: "Please enter a valid email address.",
+    errFileSize: "The file exceeds the maximum allowed size (5 MB).",
+    errFileType: "File type not allowed. Please use an image or a PDF.",
 
     sidebarTitle: "Contact us directly",
     contacts: [

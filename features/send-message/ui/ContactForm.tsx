@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { isValidEmail } from "@/shared/lib/utils";
 import { sendContactMessage } from "../api/contact";
+import { ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE_BYTES } from "../model/constants";
 
 type SubjectId = "resa" | "pay" | "doc" | "assur" | "prop" | "other";
 
@@ -24,6 +25,36 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setError(null);
+
+    if (!file) {
+      setAttachment(null);
+      return;
+    }
+    if (!ALLOWED_ATTACHMENT_TYPES.includes(file.type)) {
+      setError(t.errFileType);
+      e.target.value = "";
+      setAttachment(null);
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+      setError(t.errFileSize);
+      e.target.value = "";
+      setAttachment(null);
+      return;
+    }
+    setAttachment(file);
+  };
+
+  const handleRemoveFile = () => {
+    setAttachment(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,6 +87,7 @@ export default function ContactForm() {
       phone: (data.get("phone") as string) || undefined,
       booking: (data.get("booking") as string) || undefined,
       message,
+      attachment: attachment ?? undefined,
     });
 
     setLoading(false);
@@ -140,6 +172,34 @@ export default function ContactForm() {
         <div className="form-group">
           <label className="form-label req" htmlFor="message">{t.labelMessage}</label>
           <textarea id="message" name="message" className="form-input" rows={5} placeholder={t.phMessage} required maxLength={2000} />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="attachment">{t.labelAttachment}</label>
+          <div className="form-file">
+            <label htmlFor="attachment" className="form-file-btn">
+              <i className="fa-solid fa-paperclip" aria-hidden="true" /> {t.attachmentChoose}
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="attachment"
+              name="attachment"
+              className="form-file-input"
+              accept={ALLOWED_ATTACHMENT_TYPES.join(",")}
+              onChange={handleFileChange}
+            />
+            {attachment && (
+              <div className="form-file-preview">
+                <i className="fa-solid fa-file" aria-hidden="true" />
+                <span className="form-file-name">{attachment.name}</span>
+                <button type="button" className="form-file-remove" onClick={handleRemoveFile} aria-label={t.attachmentRemove}>
+                  <i className="fa-solid fa-xmark" aria-hidden="true" />
+                </button>
+              </div>
+            )}
+          </div>
+          <p className="form-file-hint">{t.attachmentHint}</p>
         </div>
 
         {error && (
