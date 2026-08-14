@@ -777,6 +777,7 @@ export const fr = {
     /* Galerie */
     galleryAria: "Galerie photos",
     galleryMainAlt: "Photo principale",
+    galleryOpenAria: "Agrandir la photo principale",
     galleryThumbAria: "Voir photo : {alt}",
     galleryMainViewAlt: "{name} vue principale",
     galleryPhotoAlt: "Photo {n}",
@@ -795,6 +796,7 @@ export const fr = {
     perDay: "/ jour",
     startingFrom: "À partir de",
     viewAvailabilityCta: "Voir disponibilité",
+    bookingSheetAria: "Réserver ce bateau",
     rentalDates: "Dates de location",
     checkingAvailability: "Vérification des disponibilités…",
     bookingHint: "Cliquez sur le calendrier pour choisir vos dates de location.",

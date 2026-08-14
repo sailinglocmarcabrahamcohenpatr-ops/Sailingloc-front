@@ -80,7 +80,13 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
   return (
     <>
       <div className="gallery" role="group" aria-label={t.galleryAria}>
-        <div className="gallery-main" onClick={() => openLightbox(activeIndex)}>
+        <button
+          type="button"
+          className="gallery-main"
+          onClick={() => openLightbox(activeIndex)}
+          aria-label={t.galleryOpenAria}
+          style={{ border: "none", padding: 0, background: "none", cursor: "pointer", display: "block" }}
+        >
           <Image
             src={mainSrc}
             alt={images[activeIndex]?.alt ?? t.galleryMainAlt}
@@ -89,7 +95,7 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
             unoptimized
             style={{ objectFit: "cover" }}
           />
-        </div>
+        </button>
         {images.slice(1, 3).map((img, i) => (
           <button
             key={img.src}

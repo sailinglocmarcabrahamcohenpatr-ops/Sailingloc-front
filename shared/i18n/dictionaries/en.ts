@@ -778,6 +778,7 @@ export const en: Dictionary = {
     /* Gallery */
     galleryAria: "Photo gallery",
     galleryMainAlt: "Main photo",
+    galleryOpenAria: "Enlarge main photo",
     galleryThumbAria: "View photo: {alt}",
     galleryMainViewAlt: "{name} main view",
     galleryPhotoAlt: "Photo {n}",
@@ -796,6 +797,7 @@ export const en: Dictionary = {
     perDay: "/ day",
     startingFrom: "From",
     viewAvailabilityCta: "View availability",
+    bookingSheetAria: "Book this boat",
     rentalDates: "Rental dates",
     checkingAvailability: "Checking availability…",
     bookingHint: "Click the calendar to choose your rental dates.",

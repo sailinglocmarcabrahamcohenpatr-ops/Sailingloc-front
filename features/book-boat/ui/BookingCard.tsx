@@ -153,7 +153,12 @@ export default function BookingCard({
         className={`booking-sheet-overlay${sheetOpen ? " open" : ""}`}
         onClick={(e) => { if (e.target === e.currentTarget) setSheetOpen(false); }}
       >
-        <aside className="booking-sheet-panel">
+        <aside
+          className="booking-sheet-panel"
+          role={sheetOpen ? "dialog" : undefined}
+          aria-modal={sheetOpen ? true : undefined}
+          aria-label={sheetOpen ? t.bookingSheetAria : undefined}
+        >
           <button
             type="button"
             className="booking-sheet-close"

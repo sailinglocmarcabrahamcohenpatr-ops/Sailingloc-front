@@ -189,11 +189,11 @@ const BookingCard = ({
 
       {showCancelConfirm && (
         <div className="cancel-modal-overlay" onClick={() => !cancelling && setShowCancelConfirm(false)}>
-          <div className="cancel-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-modal-title" onClick={(e) => e.stopPropagation()}>
             <div className="cancel-modal-icon">
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
-            <h2>{t.cancelModalTitle}</h2>
+            <h2 id="cancel-modal-title">{t.cancelModalTitle}</h2>
             <p>
               {interpolate(t.cancelModalText, {
                 name: <strong>{boatName}</strong>,

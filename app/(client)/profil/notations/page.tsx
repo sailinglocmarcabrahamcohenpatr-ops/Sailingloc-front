@@ -85,11 +85,11 @@ const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number
 
       {confirming && (
         <div className="cancel-modal-overlay" onClick={() => !deleting && setConfirming(false)}>
-          <div className="cancel-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" onClick={(e) => e.stopPropagation()}>
             <div className="cancel-modal-icon">
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
-            <h2>{t.deleteConfirmTitle}</h2>
+            <h2 id="delete-confirm-title">{t.deleteConfirmTitle}</h2>
             <p>{interpolate(t.deleteConfirmText, { name: <strong>{boatName}</strong> })}</p>
             <div className="cancel-modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setConfirming(false)} disabled={deleting}>

@@ -395,13 +395,13 @@ function ReservationDetailsModal({
 
   return (
     <div className="rsv-modal-overlay" onClick={onClose}>
-      <div className="rsv-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="rsv-modal" role="dialog" aria-modal="true" aria-labelledby="rsv-modal-title" onClick={(e) => e.stopPropagation()}>
         <div className="rsv-modal-hd">
           <div className="rsv-modal-hd-icon">
             <i className="fa-solid fa-calendar-check" />
           </div>
           <div className="rsv-modal-hd-text">
-            <h3>{t.modalTitle.replace("{id}", String(r.id))}</h3>
+            <h3 id="rsv-modal-title">{t.modalTitle.replace("{id}", String(r.id))}</h3>
             {r.dateReservation && (
               <span className="rsv-modal-muted">{t.modalBookedOn.replace("{date}", fmtLong(r.dateReservation, t.intlLocale))}</span>
             )}
