@@ -84,3 +84,22 @@
 .profile-activity-empty { padding: 12px 0; color: var(--text-2); font-size: .875rem; }
 
 .profile-form { display: flex; flex-direction: column; gap: 16px; }
+
+/* Zone de danger / suppression de compte */
+.cancel-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 24px;
+}
+.cancel-modal {
+  background: var(--card-bg); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 420px; padding: 28px; text-align: center;
+}
+.cancel-modal-icon {
+  width: 56px; height: 56px; border-radius: 50%; background: #FEE2E2; color: var(--red);
+  display: flex; align-items: center; justify-content: center; font-size: 1.375rem;
+  margin: 0 auto 16px;
+}
+.cancel-modal h2 { font-size: 1.0625rem; font-weight: 700; margin-bottom: 8px; }
+.cancel-modal p { font-size: .875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+.cancel-modal-actions { display: flex; gap: 10px; }
+.cancel-modal-actions .btn { flex: 1; justify-content: center; }

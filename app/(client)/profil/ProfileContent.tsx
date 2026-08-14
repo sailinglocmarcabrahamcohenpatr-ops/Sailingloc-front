@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth, useMessages, useNotifications, utilisateursApi } from "@/shared/lib";
 import { isValidEmail } from "@/shared/lib/utils";
 import { useI18n } from "@/shared/i18n";
@@ -33,7 +34,8 @@ function formatRelativeTime(
 }
 
 export default function ProfileContent() {
-  const { user, updateUser } = useAuth();
+  const router = useRouter();
+  const { user, updateUser, logout } = useAuth();
   const { messages, unreadCount, loading: messagesLoading } = useMessages();
   const { notifications, loading: notificationsLoading } = useNotifications();
   const t = useI18n().dict.profil;
@@ -78,6 +80,10 @@ export default function ProfileContent() {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user?.id) return;
@@ -100,6 +106,20 @@ export default function ProfileContent() {
       setSaveError(t.saveError);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!user?.id) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await utilisateursApi.delete(user.id);
+      logout();
+      router.push("/");
+    } catch {
+      setDeleteError(t.deleteError);
+      setDeleting(false);
     }
   }
 
@@ -195,6 +215,23 @@ export default function ProfileContent() {
               </div>
             </div>
           </div>
+
+          <div className="dash-card">
+            <div className="dash-card-hd"><h3>{t.dangerZoneTitle}</h3></div>
+            <div className="security-items">
+              <div className="security-item">
+                <div><strong>{t.deleteAccountLabel}</strong><span>{t.deleteAccountSub}</span></div>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{ background: "#FEF2F2", color: "var(--red)", border: "1.5px solid #FCA5A5" }}
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  <i className="fa-solid fa-trash" aria-hidden="true" /> {t.deleteAccountBtn}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="profile-col-side">
@@ -225,6 +262,42 @@ export default function ProfileContent() {
           </div>
         </div>
       </div>
+
+      {deleteConfirm && (
+        <div className="cancel-modal-overlay" onClick={() => !deleting && setDeleteConfirm(false)}>
+          <div className="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="delete-account-title" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-modal-icon">
+              <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            </div>
+            <h2 id="delete-account-title">{t.deleteModalTitle}</h2>
+            <p>{t.deleteModalText}</p>
+            {deleteError && (
+              <div className="profile-form-alert" role="alert" style={{ marginBottom: 16, textAlign: "left" }}>
+                <i className="fa-solid fa-circle-exclamation" aria-hidden="true" /> {deleteError}
+              </div>
+            )}
+            <div className="cancel-modal-actions">
+              <button type="button" className="btn btn-outline" onClick={() => setDeleteConfirm(false)} disabled={deleting}>
+                {t.deleteModalBack}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ background: "var(--red)", borderColor: "var(--red)" }}
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+                ) : (
+                  <i className="fa-solid fa-trash" aria-hidden="true" />
+                )}{" "}
+                {t.deleteModalConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
