@@ -93,6 +93,7 @@ export const en: Dictionary = {
       cookies: "Cookies",
       privacy: "Privacy",
       legal: "Legal notice",
+      sitemap: "Sitemap",
     },
   },
 
@@ -380,6 +381,21 @@ export const en: Dictionary = {
     linkPrivacy: "privacy policy",
     linkCookies: "cookie policy",
     linkContact: "contact page",
+  },
+
+  sitemapPage: {
+    metaTitle: "Sitemap",
+    metaDescription: "Find every page on the SailingLoc website: boats, destinations, owner space, help and legal information.",
+    tag: "Sitemap",
+    title: "Sitemap",
+    description: "All of SailingLoc's pages at a glance, so you can easily navigate to what you're looking for.",
+    sectionBoats: "Boats",
+    sectionDestinations: "Destinations",
+    sectionOwners: "Owners",
+    sectionAccount: "My account",
+    sectionHelp: "Help & Information",
+    sectionLegal: "Legal",
+    allDestinations: "All destinations",
   },
 
   ownerPage: {

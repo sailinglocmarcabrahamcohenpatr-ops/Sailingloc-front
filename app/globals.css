@@ -2085,6 +2085,22 @@ textarea.form-input { resize: vertical; min-height: 130px; }
   .legal-toc { position: static; }
 }
 
+/* ── Plan du site ───────────────────────────────── */
+.sitemap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  padding: 48px 0 64px;
+}
+.sitemap-col h5 {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; color: var(--text); font-size: .9375rem; font-weight: 700;
+}
+.sitemap-col h5 i { color: var(--primary); font-size: .875rem; }
+.sitemap-col ul { display: flex; flex-direction: column; gap: 10px; }
+.sitemap-col a { color: var(--text-2); font-size: .875rem; transition: var(--transition); }
+.sitemap-col a:hover { color: var(--primary); text-decoration: underline; }
+
 /* ── Booking guarantees ─────────────────────────── */
 .booking-guarantees {
   margin-top: 20px;

@@ -92,6 +92,7 @@ export const fr = {
       cookies: "Cookies",
       privacy: "Confidentialité",
       legal: "Mentions légales",
+      sitemap: "Plan du site",
     },
   },
 
@@ -379,6 +380,21 @@ export const fr = {
     linkPrivacy: "politique de confidentialité",
     linkCookies: "politique de cookies",
     linkContact: "page de contact",
+  },
+
+  sitemapPage: {
+    metaTitle: "Plan du site",
+    metaDescription: "Retrouvez l'ensemble des pages du site SailingLoc : bateaux, destinations, espace propriétaire, aide et informations légales.",
+    tag: "Plan du site",
+    title: "Plan du site",
+    description: "Toutes les pages de SailingLoc en un coup d'œil, pour naviguer facilement vers ce que vous cherchez.",
+    sectionBoats: "Bateaux",
+    sectionDestinations: "Destinations",
+    sectionOwners: "Propriétaires",
+    sectionAccount: "Mon compte",
+    sectionHelp: "Aide & Informations",
+    sectionLegal: "Légal",
+    allDestinations: "Toutes les destinations",
   },
 
   ownerPage: {

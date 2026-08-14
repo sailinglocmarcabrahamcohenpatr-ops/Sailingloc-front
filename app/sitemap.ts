@@ -81,6 +81,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.2,
     },
+    {
+      url: `${APP_URL}/plan-du-site`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
     ...destinationUrls,
     ...boatUrls,
   ];

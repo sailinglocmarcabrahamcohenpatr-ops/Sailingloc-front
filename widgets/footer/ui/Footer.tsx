@@ -97,6 +97,7 @@ export default async function Footer() {
             <Link href="/cookies">{l.cookies}</Link>
             <Link href="/confidentialite">{l.privacy}</Link>
             <Link href="/mentions-legales">{l.legal}</Link>
+            <Link href="/plan-du-site">{l.sitemap}</Link>
             <CookieSettingsButton className="">{t.manageCookies}</CookieSettingsButton>
           </div>
         </div>
