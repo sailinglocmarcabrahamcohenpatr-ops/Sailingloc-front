@@ -36,8 +36,16 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
     setSubmitting(false);
     if (result.success && result.avis) {
       onSuccess(result.avis);
+    } else if (result.errorKind === "already-rated") {
+      setError(t.errAlreadyRated);
+    } else if (result.errorKind === "not-completed") {
+      setError(t.errNotCompleted);
+    } else if (result.errorKind === "network") {
+      setError(t.errNetwork);
+    } else if (result.errorKind === "server") {
+      setError(t.errServer);
     } else {
-      setError(result.error ?? t.errFallback);
+      setError(t.errFallback);
     }
   };
 

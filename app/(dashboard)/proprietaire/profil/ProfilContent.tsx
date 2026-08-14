@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, utilisateursApi, ApiError } from "@/shared/lib";
+import { useAuth, utilisateursApi } from "@/shared/lib";
 import { isValidEmail } from "@/shared/lib/utils";
 import { useI18n } from "@/shared/i18n";
 import "./profil.css";
@@ -41,8 +41,8 @@ export default function ProfilContent() {
       });
       updateUser({ name: `${prenom} ${nom}`.trim(), email, telephone });
       setSaveSuccess(true);
-    } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : t.saveError);
+    } catch {
+      setSaveError(t.saveError);
     } finally {
       setSaving(false);
     }
@@ -78,8 +78,8 @@ export default function ProfilContent() {
       setNewPassword("");
       setConfirmPassword("");
       setPwSuccess(true);
-    } catch (err) {
-      setPwError(err instanceof ApiError ? err.message : t.saveError);
+    } catch {
+      setPwError(t.saveError);
     } finally {
       setPwSaving(false);
     }

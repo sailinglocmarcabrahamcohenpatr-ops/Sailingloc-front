@@ -22,7 +22,7 @@ export default function ForgotPasswordForm() {
       await apiForgotPassword(email);
       setSent(true);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t.errServer);
+      setError(err instanceof ApiError ? t.errUnknown : t.errServer);
     } finally {
       setLoading(false);
     }

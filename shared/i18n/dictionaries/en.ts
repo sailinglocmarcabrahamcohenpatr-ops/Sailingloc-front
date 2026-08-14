@@ -950,6 +950,7 @@ export const en: Dictionary = {
     errRecaptcha: "Please validate the reCAPTCHA.",
     errCredentials: "Incorrect credentials. Check your email and password.",
     errServer: "Could not reach the server. Please try again in a moment.",
+    errUnknown: "An error occurred. Please try again.",
   },
 
   registerPage: {
@@ -999,6 +1000,7 @@ export const en: Dictionary = {
     errCgu: "You must accept the Terms of Use to continue.",
     errEmailTaken: "An account already exists with this email.",
     errServer: "Could not reach the server. Please try again in a moment.",
+    errUnknown: "An error occurred. Please try again.",
   },
 
   phoneInput: {
@@ -1024,6 +1026,7 @@ export const en: Dictionary = {
     sentText: "A reset link has been sent to {email}. Check your spam folder if you don't see it within 5 minutes.",
     errEmailInvalid: "Please enter a valid email address.",
     errServer: "An error occurred. Please try again in a moment.",
+    errUnknown: "An error occurred. Please try again.",
   },
 
   dateField: {
@@ -1769,6 +1772,10 @@ export const en: Dictionary = {
     submitting: "Submitting…",
     submit: "Post my review",
     errFallback: "An error occurred.",
+    errAlreadyRated: "You have already rated this rental.",
+    errNotCompleted: "This rental must be completed before it can be rated.",
+    errServer: "An error occurred. Please try again.",
+    errNetwork: "Unable to send your review. Check your connection.",
   },
 
   documentsPage: {
@@ -1818,6 +1825,10 @@ export const en: Dictionary = {
     submit: "Send my request",
     errFallback: "An error occurred.",
     errRequiredFields: "Please fill in all required fields.",
+    errAlreadyPending: "A request is already being processed for your account.",
+    errUnauthorized: "Your session has expired. Please log in again.",
+    errServer: "The server couldn't process your request. Try again in a moment; if the problem persists, contact support.",
+    errNetwork: "Unable to send the request. Check your connection.",
   },
 
   clientShell: {

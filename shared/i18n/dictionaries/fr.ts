@@ -949,6 +949,7 @@ export const fr = {
     errRecaptcha: "Veuillez valider le reCAPTCHA.",
     errCredentials: "Identifiants incorrects. Vérifiez votre e-mail et mot de passe.",
     errServer: "Impossible de joindre le serveur. Réessayez dans un instant.",
+    errUnknown: "Une erreur est survenue. Veuillez réessayer.",
   },
 
   registerPage: {
@@ -998,6 +999,7 @@ export const fr = {
     errCgu: "Vous devez accepter les CGU pour continuer.",
     errEmailTaken: "Un compte existe déjà avec cet e-mail.",
     errServer: "Impossible de joindre le serveur. Réessayez dans un instant.",
+    errUnknown: "Une erreur est survenue. Veuillez réessayer.",
   },
 
   phoneInput: {
@@ -1023,6 +1025,7 @@ export const fr = {
     sentText: "Un lien de réinitialisation a été envoyé à {email}. Vérifiez vos spams si vous ne le voyez pas dans les 5 minutes.",
     errEmailInvalid: "Veuillez saisir une adresse e-mail valide.",
     errServer: "Une erreur est survenue. Réessayez dans un instant.",
+    errUnknown: "Une erreur est survenue. Veuillez réessayer.",
   },
 
   dateField: {
@@ -1768,6 +1771,10 @@ export const fr = {
     submitting: "Envoi…",
     submit: "Publier ma notation",
     errFallback: "Une erreur est survenue.",
+    errAlreadyRated: "Vous avez déjà noté cette location.",
+    errNotCompleted: "Cette location doit être terminée pour pouvoir être notée.",
+    errServer: "Une erreur est survenue. Veuillez réessayer.",
+    errNetwork: "Impossible d'envoyer votre notation. Vérifiez votre connexion.",
   },
 
   documentsPage: {
@@ -1817,6 +1824,10 @@ export const fr = {
     submit: "Envoyer ma demande",
     errFallback: "Une erreur est survenue.",
     errRequiredFields: "Veuillez remplir tous les champs obligatoires.",
+    errAlreadyPending: "Une demande est déjà en cours de traitement pour votre compte.",
+    errUnauthorized: "Votre session a expiré. Veuillez vous reconnecter.",
+    errServer: "Le serveur n'a pas pu traiter votre demande. Réessayez dans un instant ; si le problème persiste, contactez le support.",
+    errNetwork: "Impossible d'envoyer la demande. Vérifiez votre connexion.",
   },
 
   clientShell: {

@@ -66,8 +66,16 @@ export default function BecomeOwnerForm() {
 
     if (result.success && result.request) {
       setSubmitted(result.request);
+    } else if (result.errorKind === "already-pending") {
+      setError(t.errAlreadyPending);
+    } else if (result.errorKind === "unauthorized") {
+      setError(t.errUnauthorized);
+    } else if (result.errorKind === "server") {
+      setError(t.errServer);
+    } else if (result.errorKind === "network") {
+      setError(t.errNetwork);
     } else {
-      setError(result.error ?? t.errFallback);
+      setError(t.errFallback);
     }
   };
 

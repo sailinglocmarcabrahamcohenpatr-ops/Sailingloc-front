@@ -364,8 +364,8 @@ export default function ListBoatForm() {
       clearFilesDraft();
       setSubmitted(true);
       setTimeout(() => router.push("/proprietaire/bateaux"), 3000);
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : t.errSubmit);
+    } catch {
+      setSubmitError(t.errSubmit);
       setSubmitStep("idle");
     } finally {
       submittingRef.current = false;

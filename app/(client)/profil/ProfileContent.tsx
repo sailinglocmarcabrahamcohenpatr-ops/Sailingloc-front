@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth, useMessages, useNotifications, utilisateursApi, ApiError } from "@/shared/lib";
+import { useAuth, useMessages, useNotifications, utilisateursApi } from "@/shared/lib";
 import { isValidEmail } from "@/shared/lib/utils";
 import { useI18n } from "@/shared/i18n";
 import type { NotificationType } from "@/shared/lib";
@@ -96,8 +96,8 @@ export default function ProfileContent() {
       updateUser({ name: `${prenom} ${nom}`.trim(), email, telephone });
       setPassword("");
       setSaveSuccess(true);
-    } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : t.saveError);
+    } catch {
+      setSaveError(t.saveError);
     } finally {
       setSaving(false);
     }

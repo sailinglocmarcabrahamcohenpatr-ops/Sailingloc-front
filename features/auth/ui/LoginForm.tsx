@@ -48,7 +48,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 401 ? t.errCredentials : err.message);
+        setError(err.status === 401 ? t.errCredentials : t.errUnknown);
       } else {
         setError(t.errServer);
       }

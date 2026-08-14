@@ -63,7 +63,7 @@ export default function RegisterForm() {
       router.push("/connexion?registered=1");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 409 ? t.errEmailTaken : err.message);
+        setError(err.status === 409 ? t.errEmailTaken : t.errUnknown);
       } else {
         setError(t.errServer);
       }
