@@ -26,6 +26,7 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [rgpdAccepted, setRgpdAccepted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +75,10 @@ export default function ContactForm() {
     }
     if (!isValidEmail(email)) {
       setError(t.errEmailInvalid);
+      return;
+    }
+    if (!rgpdAccepted) {
+      setError(t.errRgpd);
       return;
     }
 
@@ -210,7 +215,14 @@ export default function ContactForm() {
         )}
 
         <div className="form-rgpd">
-          <input type="checkbox" id="rgpd" required className="form-rgpd-checkbox" />
+          <input
+            type="checkbox"
+            id="rgpd"
+            required
+            className="form-rgpd-checkbox"
+            checked={rgpdAccepted}
+            onChange={(e) => setRgpdAccepted(e.target.checked)}
+          />
           <label htmlFor="rgpd" className="form-rgpd-label">
             {t.rgpdPrefix}
             <Link href="/confidentialite" target="_blank" className="form-rgpd-link">{t.rgpdLink}</Link>

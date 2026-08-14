@@ -529,6 +529,7 @@ export const en: Dictionary = {
     errEmailInvalid: "Please enter a valid email address.",
     errFileSize: "The file exceeds the maximum allowed size (5 MB).",
     errFileType: "File type not allowed. Please use an image or a PDF.",
+    errRgpd: "Please accept the privacy policy to continue.",
 
     sidebarTitle: "Contact us directly",
     contacts: [

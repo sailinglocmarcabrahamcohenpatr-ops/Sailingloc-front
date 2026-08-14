@@ -528,6 +528,7 @@ export const fr = {
     errEmailInvalid: "Veuillez saisir une adresse e-mail valide.",
     errFileSize: "Le fichier dépasse la taille maximale autorisée (5 Mo).",
     errFileType: "Format de fichier non autorisé. Utilisez une image ou un PDF.",
+    errRgpd: "Veuillez accepter la politique de confidentialité pour continuer.",
 
     sidebarTitle: "Nous contacter directement",
     contacts: [
