@@ -152,4 +152,7 @@ export const boatsApi = {
     api.post<BoatAPI>(`/api/bateaux/${boatId}/equipements/${equipementId}`, {}, true),
   removeEquipement: (boatId: number | string, equipementId: number) =>
     api.delete<BoatAPI>(`/api/bateaux/${boatId}/equipements/${equipementId}`),
+  /** Associe plusieurs équipements en un seul appel (equipementIds non vide, requis). */
+  addEquipements: (boatId: number | string, equipementIds: number[]) =>
+    api.post<BoatAPI>(`/api/bateaux/${boatId}/equipements`, { equipementIds }, true),
 };

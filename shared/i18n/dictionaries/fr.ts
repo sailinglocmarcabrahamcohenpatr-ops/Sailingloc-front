@@ -1784,6 +1784,7 @@ export const fr = {
     navAdminUsers: "Utilisateurs",
     navAdminPublication: "Publication",
     navAdminPorts: "Gestion des ports",
+    navAdminEquipements: "Gestion des équipements",
     navAdminOwnerRequests: "Demandes propriétaire",
     navAdminMessages: "Messages",
     navFindBoat: "Trouver un bateau",

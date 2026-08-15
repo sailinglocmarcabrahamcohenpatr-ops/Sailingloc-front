@@ -1785,6 +1785,7 @@ export const en: Dictionary = {
     navAdminUsers: "Users",
     navAdminPublication: "Publication",
     navAdminPorts: "Port management",
+    navAdminEquipements: "Equipment management",
     navAdminOwnerRequests: "Owner requests",
     navAdminMessages: "Messages",
     navFindBoat: "Find a boat",

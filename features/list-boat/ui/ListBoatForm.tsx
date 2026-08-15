@@ -18,6 +18,7 @@ import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/fi
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
 import PortCreateForm from "./PortCreateForm";
+import EquipementsPicker from "./EquipementsPicker";
 import { useI18n } from "@/shared/i18n";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
@@ -331,9 +332,9 @@ export default function ListBoatForm() {
         prix_heure:       prixHeure ? parseFloat(prixHeure) : undefined,
       });
 
-      // Étape 2 — Associer les équipements sélectionnés
-      for (const equipementId of selectedEquipementIds) {
-        await boatsApi.addEquipement(boat.id, equipementId);
+      // Étape 2 — Associer les équipements sélectionnés (un seul appel bulk)
+      if (selectedEquipementIds.size > 0) {
+        await boatsApi.addEquipements(boat.id, [...selectedEquipementIds]);
       }
 
       // Étape 3 — Uploader les photos
@@ -645,35 +646,19 @@ export default function ListBoatForm() {
             <div className="form-group" style={{ marginTop: "24px" }}>
               <label>{t.equipementsTitle}</label>
               <p className="form-hint">{t.equipementsSubtitle}</p>
-              {typesEquipements.length === 0 ? (
-                <p className="form-hint">{t.equipementsNone}</p>
-              ) : (
-                typesEquipements.map((type) => (
-                  <div key={type.id} className="equipements-type-group">
-                    <p className="equipements-type-label"><strong>{type.labelTypeEquipement}</strong></p>
-                    <div className="equipements-checkboxes">
-                      {(type.equipements ?? []).map((eq) => (
-                        <label key={eq.id} className="equipements-checkbox-label">
-                          <input
-                            type="checkbox"
-                            checked={selectedEquipementIds.has(eq.id)}
-                            onChange={(e) => {
-                              setSelectedEquipementIds((prev) => {
-                                const next = new Set(prev);
-                                if (e.target.checked) next.add(eq.id);
-                                else next.delete(eq.id);
-                                return next;
-                              });
-                            }}
-                          />
-                          {eq.icone && <i className={`fa-solid ${eq.icone}`} aria-hidden="true" />}
-                          {eq.nom}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+              <EquipementsPicker
+                typesEquipements={typesEquipements}
+                selectedIds={selectedEquipementIds}
+                emptyLabel={t.equipementsNone}
+                onToggle={(equipementId, checked) => {
+                  setSelectedEquipementIds((prev) => {
+                    const next = new Set(prev);
+                    if (checked) next.add(equipementId);
+                    else next.delete(equipementId);
+                    return next;
+                  });
+                }}
+              />
             </div>
           </div>
         )}

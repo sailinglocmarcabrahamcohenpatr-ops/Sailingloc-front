@@ -35,7 +35,7 @@ export type { MessageAPI, SendMessagePayload } from "./messages-api";
 export { notificationsApi } from "./notifications-api";
 export type { NotificationAPI, NotificationType } from "./notifications-api";
 
-export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi } from "./referentiels-api";
+export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi, typesEquipementsApi, equipementsApi } from "./referentiels-api";
 export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI, TypeDocumentAPI, TypeEquipementAPI, EquipementAPI } from "./referentiels-api";
 
 export { ownerRequestsApi } from "./owner-requests-api";

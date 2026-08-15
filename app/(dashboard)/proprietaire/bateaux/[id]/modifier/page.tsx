@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import "@/features/list-boat/ui/list-boat.css";
 import SearchableSelect from "@/features/list-boat/ui/SearchableSelect";
+import EquipementsPicker from "@/features/list-boat/ui/EquipementsPicker";
 import type { Motorisation } from "@/features/list-boat";
 import { boatsApi, referentielsApi, portsApi, useAuth } from "@/shared/lib";
 import type { TypeBateauAPI, PortAPI, TypeEquipementAPI, EquipementAPI } from "@/shared/lib";
@@ -110,7 +111,7 @@ export default function EditBoatPage() {
       const toAdd = [...selectedEquipementIds].filter((id) => !originalEquipementIds.has(id));
       const toRemove = [...originalEquipementIds].filter((id) => !selectedEquipementIds.has(id));
       await Promise.all([
-        ...toAdd.map((id) => boatsApi.addEquipement(boatId, id)),
+        ...(toAdd.length > 0 ? [boatsApi.addEquipements(boatId, toAdd)] : []),
         ...toRemove.map((id) => boatsApi.removeEquipement(boatId, id)),
       ]);
 
@@ -270,35 +271,19 @@ export default function EditBoatPage() {
           <div className="form-group" style={{ marginTop: "24px" }}>
             <label>{tf.equipementsTitle}</label>
             <p className="form-hint">{tf.equipementsSubtitle}</p>
-            {typesEquipements.length === 0 ? (
-              <p className="form-hint">{tf.equipementsNone}</p>
-            ) : (
-              typesEquipements.map((type) => (
-                <div key={type.id} className="equipements-type-group">
-                  <p className="equipements-type-label"><strong>{type.labelTypeEquipement}</strong></p>
-                  <div className="equipements-checkboxes">
-                    {(type.equipements ?? []).map((eq) => (
-                      <label key={eq.id} className="equipements-checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={selectedEquipementIds.has(eq.id)}
-                          onChange={(e) => {
-                            setSelectedEquipementIds((prev) => {
-                              const next = new Set(prev);
-                              if (e.target.checked) next.add(eq.id);
-                              else next.delete(eq.id);
-                              return next;
-                            });
-                          }}
-                        />
-                        {eq.icone && <i className={`fa-solid ${eq.icone}`} aria-hidden="true" />}
-                        {eq.nom}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
+            <EquipementsPicker
+              typesEquipements={typesEquipements}
+              selectedIds={selectedEquipementIds}
+              emptyLabel={tf.equipementsNone}
+              onToggle={(equipementId, checked) => {
+                setSelectedEquipementIds((prev) => {
+                  const next = new Set(prev);
+                  if (checked) next.add(equipementId);
+                  else next.delete(equipementId);
+                  return next;
+                });
+              }}
+            />
           </div>
         </div>
 

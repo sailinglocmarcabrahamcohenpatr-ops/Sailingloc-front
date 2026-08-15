@@ -103,6 +103,24 @@ export const referentielsApi = {
     api.get<EquipementAPI[]>("/api/referentiels/equipements"),
 };
 
+export const typesEquipementsApi = {
+  create: (data: { label_type_equipement: string }) =>
+    api.post<TypeEquipementAPI>("/api/referentiels/types-equipements", data, true),
+  update: (id: number | string, data: { label_type_equipement?: string }) =>
+    api.put<TypeEquipementAPI>(`/api/referentiels/types-equipements/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/referentiels/types-equipements/${id}`),
+};
+
+export const equipementsApi = {
+  create: (data: { nom: string; type_equipement_id: number; icone?: string | null }) =>
+    api.post<EquipementAPI>("/api/referentiels/equipements", data, true),
+  update: (id: number | string, data: { nom?: string; icone?: string | null; type_equipement_id?: number }) =>
+    api.put<EquipementAPI>(`/api/referentiels/equipements/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/referentiels/equipements/${id}`),
+};
+
 export const portsApi = {
   /** GET /api/ports renvoie { data, pagination }, pas un tableau brut —
    *  on normalise ici pour que tous les appelants reçoivent un PortAPI[]. */
