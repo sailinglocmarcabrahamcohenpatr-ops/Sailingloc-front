@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { referentielsApi, portsApi } from "@/shared/lib/referentiels-api";
-import type { TypeBateauAPI, PortAPI, TypeDocumentAPI } from "@/shared/lib/referentiels-api";
+import type { TypeBateauAPI, PortAPI, TypeDocumentAPI, TypeEquipementAPI } from "@/shared/lib/referentiels-api";
 import { geocodeCity, type GeocodeResult } from "../api/geocode";
 import { uploadPhoto } from "../api/photos";
 import { uploadDocument } from "../api/documents";
@@ -18,6 +18,7 @@ import { saveFilesToDraft, loadFilesFromDraft, clearFilesDraft } from "../lib/fi
 import LocationMap from "./LocationMapLoader";
 import SearchableSelect from "./SearchableSelect";
 import PortCreateForm from "./PortCreateForm";
+import EquipementsPicker from "./EquipementsPicker";
 import { useI18n } from "@/shared/i18n";
 
 type GeocodeStatus = "idle" | "loading" | "success" | "error";
@@ -44,9 +45,11 @@ export default function ListBoatForm() {
   const submittingRef = useRef(false);
 
   /* ── Données API ── */
-  const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
-  const [ports,     setPorts]     = useState<PortAPI[]>([]);
-  const [docTypes,  setDocTypes]  = useState<TypeDocumentAPI[]>([]);
+  const [boatTypes,      setBoatTypes]      = useState<TypeBateauAPI[]>([]);
+  const [ports,          setPorts]          = useState<PortAPI[]>([]);
+  const [docTypes,       setDocTypes]       = useState<TypeDocumentAPI[]>([]);
+  const [typesEquipements, setTypesEquipements] = useState<TypeEquipementAPI[]>([]);
+  const [selectedEquipementIds, setSelectedEquipementIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     referentielsApi.getTypesBateaux()
@@ -73,9 +76,11 @@ export default function ListBoatForm() {
           : (res as Record<string, unknown>)?.["hydra:member"] as TypeDocumentAPI[]
           ?? (res as Record<string, unknown>)?.["data"]         as TypeDocumentAPI[]
           ?? [];
-        console.log("document types: ", res)
         setDocTypes(arr);
       })
+      .catch(() => {});
+    referentielsApi.getTypesEquipements()
+      .then((res) => setTypesEquipements(Array.isArray(res) ? res : []))
       .catch(() => {});
   }, []);
 
@@ -333,7 +338,12 @@ export default function ListBoatForm() {
         prix_heure:       prixHeure ? parseFloat(prixHeure) : undefined,
       });
 
-      // Étape 2 — Uploader les photos
+      // Étape 2 — Associer les équipements sélectionnés (un seul appel bulk)
+      if (selectedEquipementIds.size > 0) {
+        await boatsApi.addEquipements(boat.id, [...selectedEquipementIds]);
+      }
+
+      // Étape 3 — Uploader les photos
       setSubmitStep("photos");
       setUploadedPhotos(0);
       for (let i = 0; i < photos.length; i++) {
@@ -639,6 +649,25 @@ export default function ListBoatForm() {
                 maxLength={2000}
               />
               <small className="form-hint">{t.descHint.replace("{n}", String(description.length))}</small>
+            </div>
+
+            {/* ── Équipements ── */}
+            <div className="form-group" style={{ marginTop: "24px" }}>
+              <label>{t.equipementsTitle}</label>
+              <p className="form-hint">{t.equipementsSubtitle}</p>
+              <EquipementsPicker
+                typesEquipements={typesEquipements}
+                selectedIds={selectedEquipementIds}
+                emptyLabel={t.equipementsNone}
+                onToggle={(equipementId, checked) => {
+                  setSelectedEquipementIds((prev) => {
+                    const next = new Set(prev);
+                    if (checked) next.add(equipementId);
+                    else next.delete(equipementId);
+                    return next;
+                  });
+                }}
+              />
             </div>
           </div>
         )}

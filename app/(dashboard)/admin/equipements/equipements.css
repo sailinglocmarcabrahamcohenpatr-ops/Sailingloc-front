@@ -1,0 +1,166 @@
+/* ─────────────────────────────────────────────────
+   Admin · Gestion des équipements
+   Même langage visuel que /admin/ports, mais reste sur
+   la palette primaire du site (pas de couleur d'accent
+   dédiée comme pour les ports).
+───────────────────────────────────────────────── */
+
+.equip-admin-page {
+  --equip-900: var(--primary-dark);
+  --equip-800: var(--primary);
+  --equip-600: var(--primary);
+  --equip-100: var(--primary-light);
+}
+
+/* ── Bouton d'ajout, header ── */
+.equip-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(155deg, var(--equip-900), var(--equip-800));
+  color: #fff;
+  font-size: .9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.equip-add-btn:hover { opacity: .92; box-shadow: var(--shadow-md); }
+
+/* ── Groupes de catégories ── */
+.equip-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.equip-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.equip-card-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+.equip-card-hd-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.equip-card-hd-toggle {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 4px;
+  margin: -4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: var(--transition);
+}
+.equip-card-hd-toggle:hover { background: var(--bg); }
+.equip-card-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: .8125rem;
+  color: var(--text-3);
+  transition: transform .25s ease;
+}
+.equip-card-chevron.open { transform: rotate(180deg); }
+.equip-card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease;
+}
+.equip-card-body.open {
+  max-height: 2000px;
+}
+.equip-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--equip-100);
+  color: var(--equip-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.equip-card-hd-info h3 { font-size: 1rem; font-weight: 700; margin: 0; }
+.equip-card-hd-info span { font-size: .8125rem; color: var(--text-2); }
+.equip-card-hd-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.equip-empty-hint {
+  font-size: .875rem;
+  color: var(--text-2);
+  font-style: italic;
+  padding: 8px 0 4px;
+}
+
+.equip-list { display: flex; flex-direction: column; margin-top: 8px; }
+
+.equip-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.equip-row-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--equip-100);
+  color: var(--equip-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .875rem;
+  flex-shrink: 0;
+}
+
+.equip-row-info { flex: 1; min-width: 0; }
+.equip-row-info strong { font-size: .9rem; }
+
+.equip-row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.equip-row-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8125rem;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.equip-row-action-btn:hover { border-color: var(--equip-600); color: var(--equip-600); background: var(--equip-100); }
+.equip-row-action-btn.danger:hover { border-color: var(--red); color: var(--red); background: #FEF2F2; }
+
+/* ── Modale : icône violette cohérente avec la liste ── */
+.equip-modal-icon {
+  background: var(--equip-100) !important;
+  color: var(--equip-800) !important;
+}
+.equip-primary-btn {
+  background: var(--equip-600) !important;
+  border-color: var(--equip-600) !important;
+}
+.equip-primary-btn:hover { opacity: .92; }
+
+@media (max-width: 640px) {
+  .equip-card-hd { flex-wrap: wrap; }
+  .equip-card-hd-actions { margin-left: 54px; }
+}

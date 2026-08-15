@@ -1384,6 +1384,15 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 .description { padding: 28px 0; border-top: 1px solid var(--border); }
 .description h3 { margin-bottom: 16px; }
 .description p { font-size: .9375rem; color: var(--text-2); line-height: 1.8; margin-bottom: 12px; }
+.equipements-section { padding: 28px 0; border-top: 1px solid var(--border); }
+.equipements-section h3 { margin-bottom: 20px; }
+.equipements-group { margin-bottom: 20px; }
+.equipements-group-title { font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); margin: 0 0 10px 0; }
+.equipements-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; }
+.equipements-item { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--text-2); }
+.equipements-item i { color: var(--primary); width: 16px; text-align: center; font-size: .8rem; flex-shrink: 0; }
+@media (max-width: 600px) { .equipements-list { grid-template-columns: 1fr; } }
+
 .equipment { padding: 28px 0; border-top: 1px solid var(--border); }
 .equipment h3 { margin-bottom: 20px; }
 .equip-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }

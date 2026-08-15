@@ -718,6 +718,8 @@ export const fr = {
     specCabins: "Cabines",
     specLocation: "Port d'attache",
     characteristicsTitle: "Caractéristiques",
+    equipementsTitle: "Équipements",
+    equipementsEmpty: "Aucun équipement renseigné pour ce bateau.",
     persons: "pers.",
     cabinsShort: "cab.",
     dash: "—",
@@ -1309,6 +1311,10 @@ export const fr = {
 
     pcaPlaceholder: "Ex : Cannes",
     pcaNoCity: "Aucune ville portuaire connue pour « {city} ».",
+
+    equipementsTitle: "Équipements",
+    equipementsSubtitle: "Cochez les équipements disponibles à bord",
+    equipementsNone: "Aucun équipement disponible pour le moment.",
   },
 
   ownerDashboardPage: {
@@ -1874,6 +1880,7 @@ export const fr = {
     navAdminUsers: "Utilisateurs",
     navAdminPublication: "Publication",
     navAdminPorts: "Gestion des ports",
+    navAdminEquipements: "Gestion des équipements",
     navAdminOwnerRequests: "Demandes propriétaire",
     navAdminMessages: "Messages",
     navFindBoat: "Trouver un bateau",

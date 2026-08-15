@@ -37,6 +37,7 @@ export default function DashboardSidebar({ open = false, onClose }: Props) {
     { href: "/admin/utilisateurs",     icon: "fa-users",             label: t.navAdminUsers },
     { href: "/admin/publication",      icon: "fa-file-circle-check", label: t.navAdminPublication },
     { href: "/admin/ports",            icon: "fa-map-location-dot",  label: t.navAdminPorts },
+    { href: "/admin/equipements",      icon: "fa-toolbox",           label: t.navAdminEquipements },
     { href: "/admin/demandes-proprio", icon: "fa-user-check",        label: t.navAdminOwnerRequests },
     { href: "/admin/messages",         icon: "fa-envelope",          label: t.navAdminMessages },
   ];

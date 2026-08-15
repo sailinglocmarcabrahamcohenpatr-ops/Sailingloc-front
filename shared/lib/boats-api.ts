@@ -1,5 +1,6 @@
 import { api } from "./api-client";
 import type { ReservationAPI } from "./reservations-api";
+import type { EquipementAPI } from "./referentiels-api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -77,6 +78,7 @@ export interface BoatAPI {
   photos?: PhotoAPI[];
   disponibilites?: DisponibiliteAPI[];
   documents?: DocumentAPI[];
+  equipements?: EquipementAPI[];
 }
 
 export interface CreateBoatPayload {
@@ -146,4 +148,11 @@ export const boatsApi = {
     api.get<DocumentAPI[]>(`/api/bateaux/${id}/documents`),
   updateStatut: (id: number | string, statut: string) =>
     api.patch<BoatAPI>(`/api/bateaux/${id}`, { statut }),
+  addEquipement: (boatId: number | string, equipementId: number) =>
+    api.post<BoatAPI>(`/api/bateaux/${boatId}/equipements/${equipementId}`, {}, true),
+  removeEquipement: (boatId: number | string, equipementId: number) =>
+    api.delete<BoatAPI>(`/api/bateaux/${boatId}/equipements/${equipementId}`),
+  /** Associe plusieurs équipements en un seul appel (equipementIds non vide, requis). */
+  addEquipements: (boatId: number | string, equipementIds: number[]) =>
+    api.post<BoatAPI>(`/api/bateaux/${boatId}/equipements`, { equipementIds }, true),
 };
