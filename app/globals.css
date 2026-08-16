@@ -3195,6 +3195,7 @@ textarea.form-input { resize: vertical; min-height: 130px; }
 
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-row-2 .form-group { margin-top: 0 !important; }
+@media (max-width: 560px) { .form-row-2 { grid-template-columns: 1fr; } }
 .form-group label { font-size: .875rem; font-weight: 500; }
 .form-group input,
 .form-group textarea,
