@@ -1599,6 +1599,15 @@ export const fr = {
     securityIdLabel: "Identité vérifiée",
     securityIdSub: "Votre identité a été confirmée",
     securityIdBadge: "Vérifiée",
+    dangerZoneTitle: "Zone de danger",
+    deleteAccountLabel: "Supprimer mon compte",
+    deleteAccountSub: "Cette action est définitive et irréversible.",
+    deleteAccountBtn: "Supprimer mon compte",
+    deleteModalTitle: "Supprimer votre compte ?",
+    deleteModalText: "Toutes vos données, annonces de bateaux, réservations et messages seront définitivement supprimés. Cette action est irréversible.",
+    deleteModalBack: "Annuler",
+    deleteModalConfirm: "Oui, supprimer mon compte",
+    deleteError: "Impossible de supprimer votre compte. Réessayez ou contactez le support.",
   },
 
   reservationDetailPage: {

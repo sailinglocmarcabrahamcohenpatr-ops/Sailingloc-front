@@ -1600,6 +1600,15 @@ export const en: Dictionary = {
     securityIdLabel: "Verified identity",
     securityIdSub: "Your identity has been confirmed",
     securityIdBadge: "Verified",
+    dangerZoneTitle: "Danger zone",
+    deleteAccountLabel: "Delete my account",
+    deleteAccountSub: "This action is permanent and cannot be undone.",
+    deleteAccountBtn: "Delete my account",
+    deleteModalTitle: "Delete your account?",
+    deleteModalText: "All your data, boat listings, bookings and messages will be permanently deleted. This action cannot be undone.",
+    deleteModalBack: "Cancel",
+    deleteModalConfirm: "Yes, delete my account",
+    deleteError: "Unable to delete your account. Please try again or contact support.",
   },
 
   reservationDetailPage: {
