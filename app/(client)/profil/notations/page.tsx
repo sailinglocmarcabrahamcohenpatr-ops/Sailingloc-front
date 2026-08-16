@@ -6,11 +6,13 @@ import Link from "next/link";
 import { avisApi, reservationsApi } from "@/shared/lib";
 import type { AvisAPI, ReservationAPI } from "@/shared/lib";
 import { resolvePhotoUrl } from "@/shared/lib/boats-api";
+import { interpolate } from "@/shared/lib/utils";
 import { RatingForm } from "@/features/rate-boat";
+import { useI18n } from "@/shared/i18n";
 import "./notations.css";
 
-const fmt = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+const fmt = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 
 /** Une réservation est notable dès qu'elle a été validée par le propriétaire
  *  ("confirmée") ou une fois le séjour marqué "terminée", et pas encore notée.
@@ -30,8 +32,9 @@ const Stars = ({ n }: { n: number }) => (
 );
 
 const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number) => void }) => {
+  const t = useI18n().dict.notationsPage;
   const boat = a.reservation?.bateau;
-  const boatName = boat?.nomBateau ?? `Réservation #${a.reservation?.id ?? ""}`;
+  const boatName = boat?.nomBateau ?? t.boatFallback.replace("{id}", String(a.reservation?.id ?? ""));
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +46,7 @@ const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number
       await avisApi.delete(a.id);
       onDeleted(a.id);
     } catch {
-      setError("Impossible de supprimer cet avis.");
+      setError(t.errDelete);
       setDeleting(false);
       setConfirming(false);
     }
@@ -62,38 +65,35 @@ const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number
           )}
           <Stars n={a.note} />
         </div>
-        <span className="notation-card-date">Noté le {fmt(a.dateAvis)}</span>
+        <span className="notation-card-date">{t.ratedOn.replace("{date}", fmt(a.dateAvis, t.intlLocale))}</span>
       </div>
 
       <div className="notation-card-subnotes">
-        <span><i className="fa-solid fa-user" /> Propriétaire <Stars n={a.noteProprietaire} /></span>
-        <span><i className="fa-solid fa-sailboat" /> Bateau <Stars n={a.noteBateau} /></span>
-        <span><i className="fa-solid fa-map-location-dot" /> Lieu <Stars n={a.noteLieu} /></span>
+        <span><i className="fa-solid fa-user" /> {t.owner} <Stars n={a.noteProprietaire} /></span>
+        <span><i className="fa-solid fa-sailboat" /> {t.boat} <Stars n={a.noteBateau} /></span>
+        <span><i className="fa-solid fa-map-location-dot" /> {t.place} <Stars n={a.noteLieu} /></span>
       </div>
 
       {a.commentaire && <p className="notation-card-comment">{a.commentaire}</p>}
 
       <div className="notation-card-actions">
         <button className="btn btn-ghost btn-sm notation-card-delete" onClick={() => setConfirming(true)}>
-          <i className="fa-solid fa-trash-can" /> Supprimer mon avis
+          <i className="fa-solid fa-trash-can" /> {t.deleteMine}
         </button>
       </div>
       {error && <p style={{ color: "var(--red)", fontSize: ".8125rem", marginTop: 4 }}>{error}</p>}
 
       {confirming && (
         <div className="cancel-modal-overlay" onClick={() => !deleting && setConfirming(false)}>
-          <div className="cancel-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title" onClick={(e) => e.stopPropagation()}>
             <div className="cancel-modal-icon">
               <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             </div>
-            <h2>Supprimer cet avis ?</h2>
-            <p>
-              Votre note et votre commentaire sur <strong>{boatName}</strong> seront définitivement supprimés.
-              Vous pourrez ensuite noter à nouveau cette location depuis « Bateaux à noter ».
-            </p>
+            <h2 id="delete-confirm-title">{t.deleteConfirmTitle}</h2>
+            <p>{interpolate(t.deleteConfirmText, { name: <strong>{boatName}</strong> })}</p>
             <div className="cancel-modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setConfirming(false)} disabled={deleting}>
-                Retour
+                {t.back}
               </button>
               <button
                 type="button"
@@ -103,7 +103,7 @@ const NotationCard = ({ a, onDeleted }: { a: AvisAPI; onDeleted: (avisId: number
                 disabled={deleting}
               >
                 {deleting ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-trash-can" />}{" "}
-                Oui, supprimer
+                {t.confirmDelete}
               </button>
             </div>
           </div>
@@ -120,6 +120,7 @@ const ToRateCard = ({
   r: ReservationAPI;
   onRated: (reservationId: number, avis: AvisAPI) => void;
 }) => {
+  const t = useI18n().dict.notationsPage;
   const [showRating, setShowRating] = useState(false);
   const boatId = r.bateau?.id;
   const boatName = r.bateau?.nomBateau ?? `Bateau #${boatId ?? "?"}`;
@@ -135,7 +136,7 @@ const ToRateCard = ({
       <div className="torate-card-img">
         <Image src={imgSrc} alt={boatName} fill unoptimized sizes="160px" style={{ objectFit: "cover" }} />
         <span className="badge-status green torate-card-badge">
-          <i className="fa-solid fa-check" /> Confirmée
+          <i className="fa-solid fa-check" /> {t.confirmedBadge}
         </span>
       </div>
       <div className="torate-card-body">
@@ -150,12 +151,12 @@ const ToRateCard = ({
           {r.bateau?.port?.ville && (
             <span><i className="fa-solid fa-location-dot" /> {r.bateau.port.ville}</span>
           )}
-          <span><i className="fa-regular fa-calendar" /> {fmt(r.dateDebut)} → {fmt(r.dateFin)}</span>
+          <span><i className="fa-regular fa-calendar" /> {fmt(r.dateDebut, t.intlLocale)} → {fmt(r.dateFin, t.intlLocale)}</span>
         </div>
       </div>
       <div className="torate-card-action">
         <button className="btn btn-primary" onClick={() => setShowRating(true)}>
-          <i className="fa-solid fa-star" /> Noter cette location
+          <i className="fa-solid fa-star" /> {t.rateThis}
         </button>
       </div>
 
@@ -175,6 +176,7 @@ const ToRateCard = ({
 };
 
 export default function MesNotationsPage() {
+  const t = useI18n().dict.notationsPage;
   const [avis, setAvis] = useState<AvisAPI[]>([]);
   const [toRate, setToRate] = useState<ReservationAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,7 +188,7 @@ export default function MesNotationsPage() {
         setAvis(avisList);
         setToRate(reservations.filter(isNotable));
       })
-      .catch(() => setError("Impossible de charger vos notations."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
   }, []);
 
@@ -218,7 +220,7 @@ export default function MesNotationsPage() {
   if (loading)
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   if (error)
@@ -228,17 +230,19 @@ export default function MesNotationsPage() {
       </div>
     );
 
+  const countLabel = avis.length === 1
+    ? t.countSingular.replace("{n}", String(avis.length))
+    : t.countPlural.replace("{n}", String(avis.length));
+
   return (
     <div className="dash-page">
       <div className="dash-page-hd">
         <div>
-          <h1 className="dash-title">Mes notations</h1>
-          <p className="dash-sub">
-            {avis.length} notation{avis.length !== 1 ? "s" : ""} laissée{avis.length !== 1 ? "s" : ""} sur vos locations
-          </p>
+          <h1 className="dash-title">{t.title}</h1>
+          <p className="dash-sub">{countLabel}</p>
         </div>
         <Link href="/profil/reservations" className="btn btn-primary">
-          <i className="fa-solid fa-calendar-check" /> Voir mes réservations
+          <i className="fa-solid fa-calendar-check" /> {t.seeReservations}
         </Link>
       </div>
 
@@ -247,8 +251,8 @@ export default function MesNotationsPage() {
           <div className="torate-section-hd">
             <span className="torate-section-icon"><i className="fa-solid fa-star" aria-hidden="true" /></span>
             <div>
-              <h2>Bateaux à noter <span>({toRate.length})</span></h2>
-              <p>Locations confirmées par le propriétaire, en attente de votre avis.</p>
+              <h2>{t.toRateTitle} <span>({toRate.length})</span></h2>
+              <p>{t.toRateSub}</p>
             </div>
           </div>
           <div className="torate-list">
@@ -263,11 +267,11 @@ export default function MesNotationsPage() {
         <div className="notation-empty">
           <i className="fa-regular fa-star" />
           {toRate.length > 0 ? (
-            <p>Notez vos locations ci-dessus pour qu&apos;elles apparaissent ici.</p>
+            <p>{t.emptyAfterToRate}</p>
           ) : (
             <>
-              <p>Vous n&apos;avez pas encore noté de location.</p>
-              <p>Une fois une réservation terminée, retrouvez le bouton « Laisser un avis » depuis <Link href="/profil/reservations">Mes réservations</Link>.</p>
+              <p>{t.emptyNone}</p>
+              <p>{t.emptyHintBefore}<Link href="/profil/reservations">{t.emptyHintLink}</Link>{t.emptyHintAfter}</p>
             </>
           )}
         </div>

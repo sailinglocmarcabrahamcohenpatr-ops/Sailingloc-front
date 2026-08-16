@@ -58,6 +58,19 @@ export interface TypeDocumentAPI {
   libelle?: string;            // fallback selon mapping backend
 }
 
+export interface TypeEquipementAPI {
+  id: number;
+  labelTypeEquipement: string;
+  equipements?: EquipementAPI[];
+}
+
+export interface EquipementAPI {
+  id: number;
+  nom: string;
+  icone?: string | null;
+  typeEquipement?: TypeEquipementAPI;
+}
+
 export interface UtilisateurAPI {
   id: number;
   email: string;
@@ -84,6 +97,28 @@ export const referentielsApi = {
     api.get<StatutPaiementAPI[]>("/api/referentiels/statuts-paiements"),
   getAssurances: () =>
     api.get<AssuranceAPI[]>("/api/referentiels/assurances"),
+  getTypesEquipements: () =>
+    api.get<TypeEquipementAPI[]>("/api/referentiels/types-equipements"),
+  getEquipements: () =>
+    api.get<EquipementAPI[]>("/api/referentiels/equipements"),
+};
+
+export const typesEquipementsApi = {
+  create: (data: { label_type_equipement: string }) =>
+    api.post<TypeEquipementAPI>("/api/referentiels/types-equipements", data, true),
+  update: (id: number | string, data: { label_type_equipement?: string }) =>
+    api.put<TypeEquipementAPI>(`/api/referentiels/types-equipements/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/referentiels/types-equipements/${id}`),
+};
+
+export const equipementsApi = {
+  create: (data: { nom: string; type_equipement_id: number; icone?: string | null }) =>
+    api.post<EquipementAPI>("/api/referentiels/equipements", data, true),
+  update: (id: number | string, data: { nom?: string; icone?: string | null; type_equipement_id?: number }) =>
+    api.put<EquipementAPI>(`/api/referentiels/equipements/${id}`, data),
+  delete: (id: number | string) =>
+    api.delete<void>(`/api/referentiels/equipements/${id}`),
 };
 
 export const portsApi = {

@@ -26,6 +26,7 @@ function adaptBoat(b: BoatAPI): Boat {
     rating: 0,
     reviewCount: 0,
     pricePerDay: typeof b.prixJour === "string" ? parseFloat(b.prixJour) : (b.prixJour ?? 0),
+    deposit: typeof b.caution === "string" ? parseFloat(b.caution) : (b.caution ?? undefined),
     imageUrl: sortedPhotos[0] ?? "",
     imageSeed: String(b.id),
     photos: sortedPhotos,
@@ -38,9 +39,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { boatId } = await params;
   try {
     const b = await boatsApi.getOne(boatId);
-    return { title: `Réserver ${b.nomBateau} — SailingLoc` };
+    return { title: `Réserver ${b.nomBateau}` };
   } catch {
-    return { title: "Réservation — SailingLoc" };
+    return { title: "Réservation" };
   }
 }
 
@@ -70,10 +71,18 @@ export default async function ReservationPage({ params, searchParams }: PageProp
       <div className="container" style={{ padding: "60px 0" }}>
         <div className="messages-empty" style={{ minHeight: 280, padding: 40 }}>
           <i className="fa-solid fa-user-lock" aria-hidden="true" />
-          <p>La réservation est réservée aux comptes locataires.</p>
-          <Link href="/proprietaire/bateaux" className="btn btn-outline btn-sm">
-            <i className="fa-solid fa-arrow-left" /> Retour à mon espace propriétaire
-          </Link>
+          <p>
+            La réservation est réservée aux comptes locataires. Un compte propriétaire
+            ne peut pas réserver de bateau — il vous faut un compte locataire.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            <Link href="/inscription" className="btn btn-primary btn-sm">
+              <i className="fa-solid fa-user-plus" /> Créer un compte locataire
+            </Link>
+            <Link href="/proprietaire/bateaux" className="btn btn-outline btn-sm">
+              <i className="fa-solid fa-arrow-left" /> Retour à mon espace propriétaire
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -2,33 +2,75 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth, useMessages, utilisateursApi, ApiError } from "@/shared/lib";
+import { useRouter } from "next/navigation";
+import { useAuth, useMessages, useNotifications, utilisateursApi } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
+import { useI18n } from "@/shared/i18n";
+import type { NotificationType } from "@/shared/lib";
 import "./profile.css";
 
-const MENU_BOXES = [
-  { href: "/profil/reservations", icon: "fa-calendar-check", label: "Réservations", desc: "Vos voyages en cours et passés", color: "#114B6B", bg: "#EAF0F4" },
-  { href: "/profil/messages", icon: "fa-envelope", label: "Messages", desc: "Vos échanges avec les propriétaires", color: "#10B981", bg: "#D1FAE5" },
-  { href: "/profil/notations", icon: "fa-star", label: "Notations", desc: "Les avis que vous avez laissés", color: "#EAB308", bg: "#FEF9C3" },
-  { href: "/profil/favoris", icon: "fa-heart", label: "Favoris", desc: "Les bateaux que vous avez sauvegardés", color: "#DB2777", bg: "#FCE7F3" },
-  { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: "Devenir propriétaire", desc: "Publiez votre bateau à la location", color: "#059669", bg: "#D1FAE5" },
-];
+const ACTIVITY_META: Record<NotificationType, { icon: string; color: string; bg: string }> = {
+  nouvelle_reservation: { icon: "fa-calendar-plus", color: "#114B6B", bg: "#EAF0F4" },
+  reservation_confirmee: { icon: "fa-calendar-check", color: "#114B6B", bg: "#EAF0F4" },
+  nouvel_avis: { icon: "fa-star", color: "#EAB308", bg: "#FEF9C3" },
+};
+const ACTIVITY_FALLBACK = { icon: "fa-bell", color: "#637083", bg: "#F1F5F9" };
 
-const ACTIVITY = [
-  { icon: "fa-calendar-check", color: "#114B6B", bg: "#EAF0F4", title: "Réservation confirmée", detail: "Voilier Excellence · Marseille", time: "il y a 2 j" },
-  { icon: "fa-envelope", color: "#10B981", bg: "#D1FAE5", title: "Nouveau message", detail: "Capitaine Léa vous a répondu", time: "il y a 4 j" },
-  { icon: "fa-credit-card", color: "#D97706", bg: "#FEF3C7", title: "Paiement effectué", detail: "6 230 € · Location Sun Odyssey 440", time: "il y a 1 sem." },
-  { icon: "fa-circle-check", color: "#8B5CF6", bg: "#F5F3FF", title: "Profil vérifié", detail: "Pièce d'identité validée", time: "il y a 1 mois" },
-];
+function formatRelativeTime(
+  iso: string,
+  t: { timeJustNow: string; timeMinutes: string; timeHours: string; timeYesterday: string; timeDays: string; intlLocale: string },
+): string {
+  const fill = (s: string, n: number) => s.replace("{n}", String(n));
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return t.timeJustNow;
+  if (min < 60) return fill(t.timeMinutes, min);
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return fill(t.timeHours, hours);
+  const days = Math.floor(hours / 24);
+  if (days === 1) return t.timeYesterday;
+  if (days < 30) return fill(t.timeDays, days);
+  return new Date(iso).toLocaleDateString(t.intlLocale, { day: "numeric", month: "short" });
+}
 
 export default function ProfileContent() {
-  const { user, updateUser } = useAuth();
-  const { unreadCount } = useMessages();
+  const router = useRouter();
+  const { user, updateUser, logout } = useAuth();
+  const { messages, unreadCount, loading: messagesLoading } = useMessages();
+  const { notifications, loading: notificationsLoading } = useNotifications();
+  const t = useI18n().dict.profil;
+  const activityLoading = messagesLoading || notificationsLoading;
+
+  const MENU_BOXES = [
+    { href: "/profil/reservations", icon: "fa-calendar-check", label: t.menuReservationsLabel, desc: t.menuReservationsDesc, color: "#114B6B", bg: "#EAF0F4" },
+    { href: "/profil/messages", icon: "fa-envelope", label: t.menuMessagesLabel, desc: t.menuMessagesDesc, color: "#10B981", bg: "#D1FAE5" },
+    { href: "/profil/notations", icon: "fa-star", label: t.menuNotationsLabel, desc: t.menuNotationsDesc, color: "#EAB308", bg: "#FEF9C3" },
+    { href: "/profil/favoris", icon: "fa-heart", label: t.menuFavorisLabel, desc: t.menuFavorisDesc, color: "#DB2777", bg: "#FCE7F3" },
+    { href: "/profil/radar", icon: "fa-satellite-dish", label: t.menuRadarLabel, desc: t.menuRadarDesc, color: "#0891B2", bg: "#CFFAFE" },
+    { href: "/profil/devenir-proprietaire", icon: "fa-sailboat", label: t.menuOwnerLabel, desc: t.menuOwnerDesc, color: "#059669", bg: "#D1FAE5" },
+  ];
+
+  const activity = [
+    ...notifications.map((n) => {
+      const meta = ACTIVITY_META[n.type] ?? ACTIVITY_FALLBACK;
+      return { id: `notif-${n.id}`, dateIso: n.dateCreation, icon: meta.icon, color: meta.color, bg: meta.bg, title: n.titre, detail: n.message };
+    }),
+    ...messages
+      .filter((m) => m.destinataire.email === user?.email)
+      .map((m) => ({
+        id: `msg-${m.id}`,
+        dateIso: m.dateEnvoi,
+        icon: "fa-envelope",
+        color: "#10B981",
+        bg: "#D1FAE5",
+        title: t.activityMsgFrom.replace("{name}", m.expediteur.prenom),
+        detail: m.contenu.length > 70 ? `${m.contenu.slice(0, 67)}…` : m.contenu,
+      })),
+  ].sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
 
   const displayName = user?.name ?? "Mon compte";
   const firstName = displayName.split(" ")[0] ?? "";
 
-  // Le layout (client) bloque le rendu tant que `user` n'est pas chargé —
-  // à ce stade il est donc déjà disponible, d'où les initialiseurs directs.
   const [prenom, setPrenom] = useState(() => user?.name.split(" ")[0] ?? "");
   const [nom, setNom] = useState(() => user?.name.split(" ").slice(1).join(" ") ?? "");
   const [email, setEmail] = useState(() => user?.email ?? "");
@@ -38,9 +80,14 @@ export default function ProfileContent() {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!user?.id) return;
+    if (!isValidEmail(email)) { setSaveError(t.errEmailInvalid); return; }
     setSaving(true);
     setSaveError("");
     setSaveSuccess(false);
@@ -55,22 +102,38 @@ export default function ProfileContent() {
       updateUser({ name: `${prenom} ${nom}`.trim(), email, telephone });
       setPassword("");
       setSaveSuccess(true);
-    } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : "Impossible d'enregistrer les modifications.");
+    } catch {
+      setSaveError(t.saveError);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!user?.id) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await utilisateursApi.delete(user.id);
+      logout();
+      router.push("/");
+    } catch {
+      setDeleteError(t.deleteError);
+      setDeleting(false);
     }
   }
 
   return (
     <div className="profile-page-v2">
       <div className="profile-welcome">
-        <h1>Bonjour {firstName || "à vous"}</h1>
-        <p>Retrouvez ici toutes vos réservations, messages et informations personnelles.</p>
+        <h1>{t.welcomeTitle.replace("{name}", firstName || "")}</h1>
+        <p>{t.welcomeSub}</p>
       </div>
 
-      <nav className="profile-menu-grid" aria-label="Accès rapide">
-        {MENU_BOXES.filter((m) => user?.role === "proprietaire" ? m.href !== "/profil/devenir-proprietaire" : true).map((m) => {
+      <nav className="profile-menu-grid" aria-label={t.quickAccessAria}>
+        {MENU_BOXES.filter((m) =>
+          user?.role === "proprietaire" ? m.href !== "/profil/devenir-proprietaire" && m.href !== "/profil/radar" : true
+        ).map((m) => {
           const badge = m.href === "/profil/messages" ? unreadCount : 0;
           return (
             <Link key={m.href} href={m.href} className="profile-menu-box">
@@ -91,7 +154,7 @@ export default function ProfileContent() {
       <div className="profile-columns">
         <div className="profile-col-main">
           <div className="dash-card">
-            <div className="dash-card-hd"><h3>Informations personnelles</h3></div>
+            <div className="dash-card-hd"><h3>{t.personalTitle}</h3></div>
             <form className="profile-form" onSubmit={handleSave}>
               {saveError && (
                 <div className="profile-form-alert" role="alert">
@@ -100,55 +163,72 @@ export default function ProfileContent() {
               )}
               {saveSuccess && (
                 <div className="profile-form-alert success" role="status">
-                  <i className="fa-solid fa-circle-check" aria-hidden="true" /> Informations mises à jour.
+                  <i className="fa-solid fa-circle-check" aria-hidden="true" /> {t.saveSuccess}
                 </div>
               )}
               <div className="form-row-2">
                 <div className="form-group">
-                  <label htmlFor="pf-fn">Prénom</label>
-                  <input id="pf-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required />
+                  <label htmlFor="pf-fn">{t.labelFirstName}</label>
+                  <input id="pf-fn" type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} required maxLength={60} />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="pf-ln">Nom</label>
-                  <input id="pf-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required />
+                  <label htmlFor="pf-ln">{t.labelLastName}</label>
+                  <input id="pf-ln" type="text" value={nom} onChange={(e) => setNom(e.target.value)} required maxLength={60} />
                 </div>
               </div>
               <div className="form-group">
-                <label htmlFor="pf-email">E-mail</label>
-                <input id="pf-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <label htmlFor="pf-email">{t.labelEmail}</label>
+                <input id="pf-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={254} />
               </div>
               <div className="form-group">
-                <label htmlFor="pf-phone">Téléphone</label>
-                <input id="pf-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+                <label htmlFor="pf-phone">{t.labelPhone}</label>
+                <input id="pf-phone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} maxLength={20} />
               </div>
               <div className="form-group">
                 <label htmlFor="pf-password">
-                  Nouveau mot de passe <span className="form-optional">(laisser vide pour ne pas changer)</span>
+                  {t.labelPassword} <span className="form-optional">{t.passwordHint}</span>
                 </label>
-                <input id="pf-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="8 caractères minimum" />
+                <input id="pf-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder={t.passwordPlaceholder} />
               </div>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving
-                  ? <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
-                  : <><i className="fa-solid fa-floppy-disk" /> Enregistrer</>}
+                  ? <><i className="fa-solid fa-circle-notch fa-spin" /> {t.saving}</>
+                  : <><i className="fa-solid fa-floppy-disk" /> {t.save}</>}
               </button>
             </form>
           </div>
 
           <div className="dash-card">
-            <div className="dash-card-hd"><h3>Sécurité du compte</h3></div>
+            <div className="dash-card-hd"><h3>{t.securityTitle}</h3></div>
             <div className="security-items">
               <div className="security-item">
-                <div><strong>Mot de passe</strong><span>Modifié il y a 3 mois</span></div>
-                <button className="btn btn-outline btn-sm">Changer</button>
+                <div><strong>{t.securityPasswordLabel}</strong><span>{t.securityPasswordSub}</span></div>
+                <button className="btn btn-outline btn-sm">{t.securityPasswordBtn}</button>
               </div>
               <div className="security-item">
-                <div><strong>Double authentification</strong><span>Non activée</span></div>
-                <button className="btn btn-outline btn-sm">Activer</button>
+                <div><strong>{t.security2faLabel}</strong><span>{t.security2faSub}</span></div>
+                <button className="btn btn-outline btn-sm">{t.security2faBtn}</button>
               </div>
               <div className="security-item">
-                <div><strong>Identité vérifiée</strong><span>Pièce d&apos;identité validée</span></div>
-                <span className="badge-status green"><i className="fa-solid fa-check" /> Vérifié</span>
+                <div><strong>{t.securityIdLabel}</strong><span>{t.securityIdSub}</span></div>
+                <span className="badge-status green"><i className="fa-solid fa-check" /> {t.securityIdBadge}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="dash-card">
+            <div className="dash-card-hd"><h3>{t.dangerZoneTitle}</h3></div>
+            <div className="security-items">
+              <div className="security-item">
+                <div><strong>{t.deleteAccountLabel}</strong><span>{t.deleteAccountSub}</span></div>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  style={{ background: "#FEF2F2", color: "var(--red)", border: "1.5px solid #FCA5A5" }}
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  <i className="fa-solid fa-trash" aria-hidden="true" /> {t.deleteAccountBtn}
+                </button>
               </div>
             </div>
           </div>
@@ -156,24 +236,68 @@ export default function ProfileContent() {
 
         <div className="profile-col-side">
           <div className="dash-card">
-            <div className="dash-card-hd"><h3>Activité récente</h3></div>
-            <div className="profile-activity-list">
-              {ACTIVITY.map((a) => (
-                <div key={a.title + a.time} className="profile-activity-item">
-                  <div className="profile-activity-icon" style={{ background: a.bg, color: a.color }}>
-                    <i className={`fa-solid ${a.icon}`} aria-hidden="true" />
+            <div className="dash-card-hd"><h3>{t.activityTitle}</h3></div>
+            {activityLoading ? (
+              <div className="profile-activity-loading">
+                <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+              </div>
+            ) : activity.length === 0 ? (
+              <p className="profile-activity-empty">{t.activityEmpty}</p>
+            ) : (
+              <div className="profile-activity-list">
+                {activity.slice(0, 5).map((a) => (
+                  <div key={a.id} className="profile-activity-item">
+                    <div className="profile-activity-icon" style={{ background: a.bg, color: a.color }}>
+                      <i className={`fa-solid ${a.icon}`} aria-hidden="true" />
+                    </div>
+                    <div className="profile-activity-content">
+                      <strong>{a.title}</strong>
+                      <span>{a.detail}</span>
+                    </div>
+                    <span className="profile-activity-time">{formatRelativeTime(a.dateIso, t)}</span>
                   </div>
-                  <div className="profile-activity-content">
-                    <strong>{a.title}</strong>
-                    <span>{a.detail}</span>
-                  </div>
-                  <span className="profile-activity-time">{a.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {deleteConfirm && (
+        <div className="cancel-modal-overlay" onClick={() => !deleting && setDeleteConfirm(false)}>
+          <div className="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="delete-account-title" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-modal-icon">
+              <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+            </div>
+            <h2 id="delete-account-title">{t.deleteModalTitle}</h2>
+            <p>{t.deleteModalText}</p>
+            {deleteError && (
+              <div className="profile-form-alert" role="alert" style={{ marginBottom: 16, textAlign: "left" }}>
+                <i className="fa-solid fa-circle-exclamation" aria-hidden="true" /> {deleteError}
+              </div>
+            )}
+            <div className="cancel-modal-actions">
+              <button type="button" className="btn btn-outline" onClick={() => setDeleteConfirm(false)} disabled={deleting}>
+                {t.deleteModalBack}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ background: "var(--red)", borderColor: "var(--red)" }}
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" />
+                ) : (
+                  <i className="fa-solid fa-trash" aria-hidden="true" />
+                )}{" "}
+                {t.deleteModalConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

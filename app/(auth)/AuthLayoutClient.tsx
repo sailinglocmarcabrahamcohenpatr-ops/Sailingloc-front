@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/shared/ui";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { formatStatNumber } from "@/shared/lib/site-stats";
 import type { AuthStatsValues } from "./getAuthStats";
 import "@/features/auth/ui/auth.css";
@@ -15,8 +15,9 @@ export default function AuthLayoutClient({
   children: React.ReactNode;
   stats: AuthStatsValues;
 }) {
+  const t = useI18n().dict.authLayout;
   const pathname = usePathname();
-  const invertLogo = pathname === "/connexion";
+  const invertLogo = pathname.endsWith("/connexion");
 
   return (
     <div className="auth-page">
@@ -41,44 +42,40 @@ export default function AuthLayoutClient({
             </Link>
 
             <div className="auth-split-center">
-              <p className="auth-split-eyebrow">Rejoignez la communauté</p>
+              <p className="auth-split-eyebrow">{t.eyebrow}</p>
               <h2 className="auth-split-headline">
-                La mer vous attend.<br />Votre bateau aussi.
+                {t.headline1}<br />{t.headline2}
               </h2>
-              <p className="auth-split-sub">
-                Louez le bateau de vos rêves ou rentabilisez le vôtre. Simple, sécurisé, et assuré.
-              </p>
+              <p className="auth-split-sub">{t.sub}</p>
 
               <div className="auth-split-testi">
                 <div className="auth-split-testi-avatar">MD</div>
                 <div>
-                  <p className="auth-split-testi-quote">
-                    « En louant mon voilier 8 semaines l&apos;été, je couvre toutes mes charges annuelles. »
-                  </p>
-                  <span className="auth-split-testi-name">Marc D. · Marseille · Sun Odyssey 440</span>
+                  <p className="auth-split-testi-quote">{t.testiQuote}</p>
+                  <span className="auth-split-testi-name">{t.testiName}</span>
                 </div>
               </div>
 
               <div className="auth-split-stats">
                 <div className="auth-split-stat">
                   <strong>{formatStatNumber(stats.owners)}+</strong>
-                  <span>Propriétaires</span>
+                  <span>{t.statOwners}</span>
                 </div>
                 <div className="auth-split-stat">
                   <strong>{formatStatNumber(stats.trips)}+</strong>
-                  <span>Voyages</span>
+                  <span>{t.statTrips}</span>
                 </div>
                 <div className="auth-split-stat">
                   <strong>{formatStatNumber(stats.satisfaction, 1)}/5</strong>
-                  <span>Satisfaction</span>
+                  <span>{t.statSatisfaction}</span>
                 </div>
               </div>
             </div>
 
             <div className="auth-split-trust">
-              <span><i className="fa-solid fa-shield-halved" /> Assurance incluse</span>
-              <span><i className="fa-solid fa-lock" /> Paiement sécurisé</span>
-              <span><i className="fa-solid fa-id-card" /> Identités vérifiées</span>
+              <span><i className="fa-solid fa-shield-halved" /> {t.trustInsurance}</span>
+              <span><i className="fa-solid fa-lock" /> {t.trustPayment}</span>
+              <span><i className="fa-solid fa-id-card" /> {t.trustId}</span>
             </div>
           </div>
         </div>
@@ -87,7 +84,7 @@ export default function AuthLayoutClient({
         <div className="auth-split-right">
           <div className="auth-split-topbar">
             <Link href="/" className="auth-split-back">
-              <i className="fa-solid fa-arrow-left" aria-hidden="true" /> Retour au site
+              <i className="fa-solid fa-arrow-left" aria-hidden="true" /> {t.backToSite}
             </Link>
           </div>
 
@@ -107,8 +104,8 @@ export default function AuthLayoutClient({
       {/* ── Footer pleine largeur ── */}
       <footer className="auth-footer-full">
         <Link href="/contact">Contact</Link>
-        <Link href="#">CGU</Link>
-        <Link href="#">Confidentialité</Link>
+        <Link href="/cgu">{t.footerCgu}</Link>
+        <Link href="/confidentialite">{t.footerPrivacy}</Link>
         <span>© 2026 SailingLoc</span>
       </footer>
 

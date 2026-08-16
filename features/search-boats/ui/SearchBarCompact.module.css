@@ -1,9 +1,14 @@
 .bar {
   display: flex;
   align-items: stretch;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: visible;
+  /* contexte de positionnement pour les popovers DateField en mobile */
+  position: relative;
 }
 
 /* ── Section générique ───────────────────────── */
@@ -82,34 +87,58 @@
   color: #637083;
 }
 
-/* ── Durée ───────────────────────────────────── */
-.dateTrigger {
+/* ── DateField : adapter couleurs et direction du popover ─────── */
+
+/* Trigger : texte foncé (sur fond blanc, pas blanc sur transparent) */
+.bar :global(.sb-date) {
+  width: auto;
+}
+.bar :global(.sb-date-trigger) {
+  color: #1a202c;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.bar :global(.sb-date-trigger.is-empty) {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* Desktop (≥769px) : popover s'ouvre vers le BAS sous le champ */
+@media (min-width: 769px) {
+  .bar :global(.sb-popover) {
+    top: calc(100% + 8px);
+    bottom: auto;
+    box-shadow: 0 14px 44px rgba(8, 20, 40, 0.22);
+  }
+  .bar :global(.sb-popover--right) {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* ── Filtres : segment de la pilule, juste avant Rechercher ──── */
+.filtersSlot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  white-space: nowrap;
-  color: #9ca3af;
-  transition: color 0.15s;
+  padding: 0 6px;
 }
-
-.dateTrigger:hover {
-  color: #637083;
-}
-
-.dateTrigger--active {
+/* Le bouton "Filtres" (classes globales de FiltersBar) garde une vraie
+   apparence de bouton (fond, bordure) mais s'intègre à la hauteur et à
+   l'espacement de la pilule plutôt que d'avoir son propre cadre plein. */
+.filtersSlot :global(.filters-bar) { padding: 0; border-top: none; }
+.filtersSlot :global(.filters-bar-inner) { height: 100%; }
+.filtersSlot :global(.filters-bar-inner) > :global(.clear-filters) { display: none; }
+.filtersSlot :global(.filter-btn-icon) {
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
   color: #1a202c;
+  padding: 0 16px;
 }
-
-.dateIcon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
+.filtersSlot :global(.filter-btn-icon:hover) { border-color: #1a202c; }
+.filtersSlot :global(.filter-btn-icon.primary-filter) { background: #fff; color: #1a202c; }
+.filtersSlot :global(.filter-count-badge) { background: #111827; color: #fff; }
 
 /* ── Submit ──────────────────────────────────── */
 .submitWrap {
@@ -123,9 +152,9 @@
   align-items: center;
   gap: 8px;
   padding: 9px 20px;
-  background: var(--primary, #114b6b);
+  background: #111827;
   color: #fff;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 600;
   border: none;
@@ -135,7 +164,7 @@
 }
 
 .submitBtn:hover {
-  background: var(--primary-dark, #0c3850);
+  background: #374151;
 }
 
 .submitIcon {
@@ -218,6 +247,7 @@
 @media (max-width: 640px) {
   .bar {
     flex-direction: column;
+    border-radius: 16px;
   }
 
   .section {
@@ -228,6 +258,15 @@
     width: auto;
     height: 1px;
     margin: 0 16px;
+  }
+
+  .filtersSlot {
+    padding: 8px 16px 0;
+    width: 100%;
+  }
+  .filtersSlot :global(.filter-btn-icon) {
+    width: 100%;
+    justify-content: center;
   }
 
   .submitWrap {

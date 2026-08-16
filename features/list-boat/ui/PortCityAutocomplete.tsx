@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { resolveCountryCode } from "../api/countries";
 import { PORT_CITIES } from "../api/portCities";
 import { resolvePortLocation } from "../api/geocode";
+import { useI18n } from "@/shared/i18n";
 
 export interface PortCitySelection {
   ville: string;
@@ -48,6 +49,7 @@ function PortCityAutocompleteBody({
   onVilleChange,
   onSelect,
 }: Omit<PortCityAutocompleteProps, "pays"> & { countryCode: string | null }) {
+  const t = useI18n().dict.listBoatForm;
   const cities = countryCode ? PORT_CITIES[countryCode] ?? [] : [];
   const [open, setOpen] = useState(cities.length > 0);
   const [resolving, setResolving] = useState(false);
@@ -89,9 +91,10 @@ function PortCityAutocompleteBody({
       <input
         id={id}
         type="text"
-        placeholder="Ex : Cannes"
+        placeholder={t.pcaPlaceholder}
         value={ville}
         autoComplete="off"
+        maxLength={60}
         onChange={(e) => onVilleChange(e.target.value)}
         onFocus={() => { if (cities.length > 0) setOpen(true); }}
       />
@@ -100,7 +103,7 @@ function PortCityAutocompleteBody({
       {open && cities.length > 0 && (
         <div className="pca-dropdown" role="listbox">
           {suggestions.length === 0 ? (
-            <div className="pca-empty">Aucune ville portuaire connue pour « {ville} ».</div>
+            <div className="pca-empty">{t.pcaNoCity.replace("{city}", ville)}</div>
           ) : (
             suggestions.map((cityName) => (
               <button

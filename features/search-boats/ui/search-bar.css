@@ -3,18 +3,20 @@
    Isolée hors de app/globals.css pour éviter les conflits de merge.
    ────────────────────────────────────────────────────────────── */
 .search-card {
-  background: rgba(8,20,40,.4);
+  background: rgba(255,255,255,.42);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.5);
   border-radius: var(--radius-xl);
-  box-shadow: 0 16px 48px rgba(0,0,0,.35);
-  padding: 8px; max-width: 920px; margin: 0 auto 36px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.25);
+  /* width:100% est nécessaire : .search-card est un flex-item, max-width seul
+     restait sans effet et « Type de bateau » passait à la ligne. */
+  padding: 8px; width: 100%; max-width: 1000px; margin: 0 auto 36px;
 }
 .search-fields { display: flex; align-items: center; gap: 0; background: transparent; border-radius: var(--radius-lg); }
-.search-field { position: relative; flex: 1; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid rgba(255,255,255,.28); }
+.search-field { flex: 1; padding: 12px 16px; min-width: 0; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid rgba(255,255,255,.28); }
 .search-field:last-of-type { border-right: none; }
-.search-field label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 5px; }
+.search-field label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 5px; }
 .search-field label i { color: #93C5FD; }
 .search-field input { border: none; outline: none; font-size: .9375rem; font-weight: 500; color: var(--white); background: transparent; padding: 0; width: 100%; }
 .search-field input::placeholder { color: rgba(255,255,255,.6); font-weight: 400; }
@@ -31,15 +33,22 @@
 
 @media (max-width: 768px) {
   .search-card { border-radius: var(--radius-lg); }
-  /* 1 champ par ligne : Destination, Type de bateau, Durée empilés. */
+  /* 2 champs par ligne : [Destination | Type] puis [Arrivée | Départ]
+     align-items:stretch : les 2 champs d'une même ligne s'étendent à la
+     hauteur du plus grand → border-bottom alignée des deux côtés. */
   .search-fields { flex-wrap: wrap; align-items: stretch; }
-  .search-field {
-    flex: 1 1 100%;
+.search-field {
+    flex: 1 1 50%;
     min-width: 0;
-    border-right: none;
+    border-right: 1px solid rgba(255,255,255,.28);
     border-bottom: 1px solid rgba(255,255,255,.28);
   }
-  .search-field:last-of-type { border-bottom: none; }
+  /* Colonne droite (champs pairs) : pas de border-right */
+  .search-field:nth-child(2),
+  .search-field:nth-child(4) { border-right: none; }
+  /* Dernière ligne (champs 3 et 4) : pas de border-bottom */
+  .search-field:nth-child(3),
+  .search-field:nth-child(4) { border-bottom: none; }
   .search-btn-wrap { flex: 1 1 100%; padding: 6px; }
   .search-btn { width: 100%; justify-content: center; border-radius: var(--radius); }
 }
@@ -52,13 +61,15 @@
    ────────────────────────────────────────────────────────────── */
 
 /* ── Wrappers : la popover se positionne par rapport au champ ── */
-.sb-select {
+.sb-select,
+.sb-date {
   position: relative;
   width: 100%;
 }
 
-/* ── Déclencheur select : même rendu que .search-field input (texte blanc) ── */
-.sb-select-trigger {
+/* ── Déclencheurs : même rendu que .search-field input (texte blanc) ── */
+.sb-select-trigger,
+.sb-date-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,27 +85,9 @@
   color: var(--white);
   text-align: left;
 }
-/* ── Déclencheur Durée (shadcn Popover) : même rendu, état actif quand une date est choisie ── */
-.sb-duree-trigger {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  outline: none;
-  cursor: pointer;
-  font-size: .9375rem;
-  font-weight: 400;
+.sb-date-trigger.is-empty {
   color: rgba(255, 255, 255, .6);
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sb-duree-trigger.is-active {
-  color: var(--white);
-  font-weight: 500;
+  font-weight: 400;
 }
 .sb-select-caret {
   font-size: .7rem;
@@ -111,7 +104,7 @@
   z-index: 60;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: var(--radius);
   box-shadow: 0 -14px 44px rgba(8, 20, 40, .22); /* ombre projetée vers le haut */
   padding: 8px;
   animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
@@ -166,7 +159,7 @@
   padding: 11px 12px;
   border: none;
   background: transparent;
-  border-radius: 12px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: .9375rem;
   font-weight: 600;
@@ -199,75 +192,104 @@
   flex-shrink: 0;
 }
 
-/* ── Suggestions destination (ports dynamiques) ── */
-.sb-suggestions {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  z-index: 60;
-  min-width: 280px;
-  max-width: 360px;
-  max-height: 320px;
-  overflow-y: auto;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: 0 14px 44px rgba(8, 20, 40, .22);
-  padding: 8px;
-  animation: sb-pop-in .16s cubic-bezier(.22, 1, .36, 1);
+/* ── Calendrier ── */
+.sb-calendar {
+  width: 292px;
+  padding: 14px;
 }
-.sb-suggestion-item {
+.sb-cal-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sb-cal-title {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: capitalize;
+  letter-spacing: -.2px;
+}
+.sb-cal-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: .8rem;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.sb-cal-nav:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.sb-cal-nav:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+.sb-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.sb-cal-weekdays { margin-bottom: 4px; }
+.sb-cal-wd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.sb-cal-empty { aspect-ratio: 1; }
+.sb-cal-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
   border: none;
   background: transparent;
-  border-radius: 12px;
+  border-radius: var(--radius);
   cursor: pointer;
-  text-align: left;
-  transition: background-color .15s ease;
-}
-.sb-suggestion-item:hover,
-.sb-suggestion-item:focus {
-  background: color-mix(in srgb, var(--primary) 9%, transparent);
-  outline: none;
-}
-.sb-suggestion-item i {
-  color: var(--text-3);
-  flex-shrink: 0;
-  font-size: .8rem;
-}
-.sb-suggestion-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.sb-suggestion-name {
-  font-size: .9375rem;
-  font-weight: 600;
+  font-size: .875rem;
+  font-weight: 500;
   color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: background-color .12s ease, color .12s ease;
 }
-.sb-suggestion-sub {
-  font-size: .75rem;
+.sb-cal-day:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+.sb-cal-day.is-today {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+.sb-cal-day.is-selected {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.sb-cal-day:disabled {
   color: var(--text-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  opacity: .4;
+  cursor: not-allowed;
 }
 
 /* ── Mobile : popovers repositionnés en overlay sur la carte de recherche ──
-   .search-card (position:relative) sert de référence ; .sb-select
-   repasse en static pour ne pas en devenir une lui-même.
+   .search-card (position:relative) sert de référence ; .sb-select/.sb-date
+   repassent en static pour ne pas en devenir une eux-mêmes.
    Le popover part du bord supérieur de la carte (top:0) et s'étend sur
    toute la largeur de celle-ci (left:0, right:0). */
 @media (max-width: 768px) {
   .search-card { position: relative; }
-  .sb-select { position: static; }
+  .sb-select, .sb-date { position: static; }
   .sb-popover {
     top: 0;
     bottom: auto;
@@ -281,5 +303,37 @@
   }
   .sb-popover--right { left: 0; right: 0; }
   .sb-select-list { min-width: 0; width: 100%; }
-  .sb-suggestions { left: 0; right: 0; min-width: unset; max-width: none; }
+  .sb-calendar { width: 100%; box-sizing: border-box; }
+}
+
+/* ── Hero de la home, mobile uniquement (≤640px) : popover plein écran ──
+   Desktop ET tablette (>640px, y compris la version carte pleine largeur
+   ci-dessus qui s'applique jusqu'à 768px) gardent leur comportement
+   d'origine intact. Seul le vrai mobile passe en plein écran
+   (position:fixed + inset:0, même pattern que .gallery-lightbox-overlay
+   / .map-modal-overlay). Scopé à .hero pour ne pas affecter la barre
+   de recherche du catalogue (/bateaux). */
+@media (max-width: 640px) {
+  .hero .sb-popover {
+    position: fixed;
+    inset: 0;
+    transform: none;
+    width: auto;
+    max-width: none;
+    border-radius: 0;
+    overflow-y: auto;
+    /* .navbar (header) est en z-index:1000 (position:sticky) : un
+       z-index plus bas laissait le header — et sa croix "menu" — se
+       dessiner par-dessus le popover, masquant sa propre croix de
+       fermeture. 1300 : au-dessus de tout, y compris .gallery-lightbox
+       (1200), le z-index le plus élevé du site. */
+    z-index: 1300;
+    animation: sb-pop-in-fullpage .18s ease;
+  }
+  .hero .sb-select-list { min-width: 0; width: 100%; }
+  .hero .sb-calendar { width: 100%; box-sizing: border-box; }
+}
+@keyframes sb-pop-in-fullpage {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

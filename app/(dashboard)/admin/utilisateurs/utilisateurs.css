@@ -564,4 +564,5 @@
 @media (max-width: 500px) {
   .users-filters { width: 100%; }
   .users-filter-select { flex: 1; }
+  .users-modal-row { grid-template-columns: 1fr; }
 }

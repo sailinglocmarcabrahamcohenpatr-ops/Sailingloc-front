@@ -24,7 +24,8 @@ export type { BoatAPI, PhotoAPI, DisponibiliteAPI, CreateBoatPayload, DocumentAP
 export { reservationsApi, avisApi, canCancelReservation, CANCELLATION_MIN_HOURS } from "./reservations-api";
 export type { ReservationAPI, CreateReservationPayload, AvisAPI, CreateAvisPayload, PaiementAPI } from "./reservations-api";
 
-export { generateReservationInvoicePdf, generateReservationsInvoicesPdf, generateReservationContractPdf } from "./invoice-pdf";
+export { generateReservationInvoicePdf, generateReservationsInvoicesPdf, generateReservationContractPdf, generateOwnerRevenueReportPdf } from "./invoice-pdf";
+export type { OwnerRevenueRow, OwnerRevenueSummary } from "./invoice-pdf";
 
 export { downloadBlob } from "./download-blob";
 
@@ -34,8 +35,8 @@ export type { MessageAPI, SendMessagePayload } from "./messages-api";
 export { notificationsApi } from "./notifications-api";
 export type { NotificationAPI, NotificationType } from "./notifications-api";
 
-export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi } from "./referentiels-api";
-export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI, TypeDocumentAPI } from "./referentiels-api";
+export { referentielsApi, portsApi, utilisateursApi, disponibilitesApi, paiementsApi, typesEquipementsApi, equipementsApi } from "./referentiels-api";
+export type { TypeBateauAPI, PortAPI, StatutReservationAPI, UtilisateurAPI, TypeDocumentAPI, TypeEquipementAPI, EquipementAPI } from "./referentiels-api";
 
 export { ownerRequestsApi } from "./owner-requests-api";
 export type { OwnerRequestAPI, OwnerRequestUser, OwnerType, OwnerRequestStatus, CreateOwnerRequestPayload } from "./owner-requests-api";

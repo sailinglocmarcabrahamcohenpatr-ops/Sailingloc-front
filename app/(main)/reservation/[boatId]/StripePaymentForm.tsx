@@ -5,6 +5,7 @@ import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 
 interface Props {
   total: number;
+  deposit: number;
   returnUrl: string;
   agreed: boolean;
   onAgreedChange: (v: boolean) => void;
@@ -14,6 +15,7 @@ interface Props {
 
 export default function StripePaymentForm({
   total,
+  deposit,
   returnUrl,
   agreed,
   onAgreedChange,
@@ -57,10 +59,19 @@ export default function StripePaymentForm({
       <div className="res-caution-box" style={{ marginTop: "20px" }}>
         <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
         <div>
-          <strong>Caution de 5 000 €</strong>
-          <span>
-            Une empreinte bancaire sera prise à titre de caution. Aucun montant ne sera débité si le bateau est rendu en bon état dans les délais convenus.
-          </span>
+          <strong>{deposit > 0 ? `Caution de ${formatPrice(deposit)}` : "Aucune caution requise"}</strong>
+          {deposit > 0 ? (
+            <>
+              <span>
+                Une empreinte bancaire sera prise à titre de caution. Aucun montant ne sera débité si le bateau est rendu en bon état dans les délais convenus.
+              </span>
+              <span className="res-caution-alt">
+                Elle doit être remise en main propre au propriétaire, en espèces ou par chèque, le jour de l&apos;embarquement.
+              </span>
+            </>
+          ) : (
+            <span>Ce propriétaire ne demande pas de caution pour ce bateau.</span>
+          )}
         </div>
       </div>
 

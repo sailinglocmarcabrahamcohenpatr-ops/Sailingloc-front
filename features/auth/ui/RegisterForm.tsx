@@ -1,51 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AccountType } from "@/shared/types";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiRegister, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
 import PhoneInput from "./PhoneInput";
 
-const STEPS = ["Type de compte", "Vos infos", "Confirmation"];
+const ACCOUNT_TYPE_ICONS: Record<AccountType, { icon: string; bg: string }> = {
+  locataire:   { icon: "fa-sailboat", bg: "#114B6B" },
+  proprietaire: { icon: "fa-anchor",  bg: "#0B1929" },
+};
 
-const ACCOUNT_TYPES: {
-  type: AccountType;
-  icon: string;
-  bg: string;
-  title: string;
-  sub: string;
-}[] = [
-  {
-    type: "locataire",
-    icon: "fa-sailboat",
-    bg: "#114B6B",
-    title: "Je loue un bateau",
-    sub: "Trouvez le voilier idéal parmi 3 200+ annonces",
-  },
-  {
-    type: "proprietaire",
-    icon: "fa-anchor",
-    bg: "#0B1929",
-    title: "Je propose mon bateau",
-    sub: "Rentabilisez votre bateau et gérez vos réservations",
-  },
-];
-
-function calcStrength(pwd: string): { score: number; label: string; color: string } {
-  if (pwd.length === 0) return { score: 0, label: "", color: "" };
-  let score = 0;
-  if (pwd.length >= 8) score++;
-  if (/[A-Z]/.test(pwd)) score++;
-  if (/[0-9]/.test(pwd)) score++;
-  if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const labels = ["Trop court", "Faible", "Moyen", "Fort", "Excellent"];
-  const colors = ["", "#EF4444", "#F59E0B", "#10B981", "#059669"];
-  return { score, label: labels[score] ?? "", color: colors[score] ?? "" };
+/** Les 4 critères sont tous obligatoires (voir `next()`) — pas de "score" à
+ *  moitié acceptable, d'où une checklist plutôt qu'une jauge de force. */
+function getPasswordChecks(pwd: string) {
+  return {
+    length: pwd.length >= 8,
+    upper: /[A-Z]/.test(pwd),
+    digit: /[0-9]/.test(pwd),
+    special: /[^A-Za-z0-9]/.test(pwd),
+  };
 }
 
 export default function RegisterForm() {
   const router = useRouter();
+  const t = useI18n().dict.registerPage;
 
   const [step, setStep] = useState(0);
   const [accountType, setAccountType] = useState<AccountType>("locataire");
@@ -59,13 +40,15 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const strength = calcStrength(password);
+  const pwdChecks = getPasswordChecks(password);
+  const pwdValid = pwdChecks.length && pwdChecks.upper && pwdChecks.digit && pwdChecks.special;
 
   const next = () => {
-    if (step === 0 && (!email || !password)) { setError("E-mail et mot de passe requis."); return; }
-    if (step === 0 && password.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères."); return; }
-    if (step === 1 && (!firstName || !lastName)) { setError("Prénom et nom requis."); return; }
-    if (step === 1 && !agreedCgu) { setError("Vous devez accepter les CGU pour continuer."); return; }
+    if (step === 0 && (!email || !password)) { setError(t.errEmailPwd); return; }
+    if (step === 0 && !isValidEmail(email)) { setError(t.errEmailInvalid); return; }
+    if (step === 0 && !pwdValid) { setError(t.errPwdLen); return; }
+    if (step === 1 && (!firstName || !lastName)) { setError(t.errNames); return; }
+    if (step === 1 && !agreedCgu) { setError(t.errCgu); return; }
     setError("");
     setStep((s) => s + 1);
   };
@@ -80,9 +63,9 @@ export default function RegisterForm() {
       router.push("/connexion?registered=1");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 409 ? "Un compte existe déjà avec cet e-mail." : err.message);
+        setError(err.status === 409 ? t.errEmailTaken : t.errUnknown);
       } else {
-        setError("Impossible de joindre le serveur. Réessayez dans un instant.");
+        setError(t.errServer);
       }
       setStep(0);
     } finally {
@@ -95,8 +78,8 @@ export default function RegisterForm() {
 
       {/* ── Barre de progression ── */}
       <div className="reg-steps">
-        {STEPS.map((s, i) => (
-          <div key={s} className={`reg-step${i < step ? " done" : ""}${i === step ? " act" : ""}`}>
+        {t.steps.map((s, i) => (
+          <div key={i} className={`reg-step${i < step ? " done" : ""}${i === step ? " act" : ""}`}>
             <div className="reg-step-dot">
               {i < step
                 ? <i className="fa-solid fa-check" aria-hidden="true" />
@@ -117,119 +100,125 @@ export default function RegisterForm() {
       {step === 0 && (
         <>
           <div className="acct-toggle">
-            {ACCOUNT_TYPES.map(({ type, icon, bg, title, sub }) => (
-              <button
-                key={type}
-                type="button"
-                className={`acct-toggle-btn${accountType === type ? " selected" : ""}`}
-                onClick={() => setAccountType(type)}
-                aria-pressed={accountType === type}
-              >
-                <span className="acct-toggle-icon" style={{ background: bg }}>
-                  <i className={`fa-solid ${icon}`} aria-hidden="true" />
-                </span>
-                <span className="acct-toggle-text">
-                  <strong>{title}</strong>
-                  <small>{sub}</small>
-                </span>
-                <span className="acct-toggle-check" aria-hidden="true">
-                  <i className="fa-solid fa-check" />
-                </span>
-              </button>
-            ))}
+            {(["locataire", "proprietaire"] as AccountType[]).map((type) => {
+              const { icon, bg } = ACCOUNT_TYPE_ICONS[type];
+              const title = type === "locataire" ? t.typeRenterTitle : t.typeOwnerTitle;
+              const sub   = type === "locataire" ? t.typeRenterSub  : t.typeOwnerSub;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className={`acct-toggle-btn${accountType === type ? " selected" : ""}`}
+                  onClick={() => setAccountType(type)}
+                  aria-pressed={accountType === type}
+                >
+                  <span className="acct-toggle-icon" style={{ background: bg }}>
+                    <i className={`fa-solid ${icon}`} aria-hidden="true" />
+                  </span>
+                  <span className="acct-toggle-text">
+                    <strong>{title}</strong>
+                    <small>{sub}</small>
+                  </span>
+                  <span className="acct-toggle-check" aria-hidden="true">
+                    <i className="fa-solid fa-check" />
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="form-group">
-            <label htmlFor="reg-email">Adresse e-mail</label>
+            <label htmlFor="reg-email">{t.labelEmail}</label>
             <input
-                id="reg-email" type="email" placeholder="vous@exemple.com"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email" required
-              />
+              id="reg-email" type="email" placeholder="vous@exemple.com"
+              value={email} onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email" required maxLength={254}
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="reg-password">
-              Mot de passe
-              <span className="form-optional">8 car. min.</span>
+              {t.labelPassword}
+              <span className="form-optional">{t.pwdMinNote}</span>
             </label>
             <div className="input-password-wrap" style={{ position: "relative" }}>
               <input
                 id="reg-password" type={showPwd ? "text" : "password"}
-                placeholder="8 caractères minimum"
+                placeholder={t.pwdMinPh}
                 value={password} onChange={(e) => setPassword(e.target.value)}
-                required style={{ width: "100%" }}
+                required autoComplete="new-password" style={{ width: "100%" }}
               />
               <button type="button" className="input-password-toggle"
                 onClick={() => setShowPwd((v) => !v)}
-                aria-label={showPwd ? "Masquer" : "Afficher"}>
+                aria-label={showPwd ? t.hidePwd : t.showPwd}>
                 <i className={`fa-solid ${showPwd ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true" />
               </button>
             </div>
             {password && (
-              <div className="pwd-strength">
-                <div className="pwd-strength-bars">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="pwd-strength-bar"
-                      style={{ background: i <= strength.score ? strength.color : "var(--border)" }} />
-                  ))}
-                </div>
-                <span className="pwd-strength-label" style={{ color: strength.color }}>
-                  {strength.label}
-                </span>
-              </div>
+              <ul className="pwd-requirements">
+                <li className={pwdChecks.length ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.length ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqLength}
+                </li>
+                <li className={pwdChecks.upper ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.upper ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqUpper}
+                </li>
+                <li className={pwdChecks.digit ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.digit ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqDigit}
+                </li>
+                <li className={pwdChecks.special ? "met" : ""}>
+                  <i className={`fa-solid ${pwdChecks.special ? "fa-circle-check" : "fa-circle"}`} aria-hidden="true" /> {t.pwdReqSpecial}
+                </li>
+              </ul>
             )}
           </div>
 
           <button type="button" className="btn btn-primary btn-full" onClick={next} style={{ marginTop: "4px" }}>
-            Continuer <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            {t.continueBtn} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </>
       )}
 
-      {/* Étape 1 : informations personnelles */}
+      {/* ── Étape 1 : informations personnelles ── */}
       {step === 1 && (
         <>
           <div className="form-row-2">
             <div className="form-group">
-              <label htmlFor="reg-fn">Prénom</label>
+              <label htmlFor="reg-fn">{t.labelFirstName}</label>
               <input id="reg-fn" type="text" placeholder="Marie"
-                value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                value={firstName} onChange={(e) => setFirstName(e.target.value)} required maxLength={60} />
             </div>
             <div className="form-group">
-              <label htmlFor="reg-ln">Nom</label>
+              <label htmlFor="reg-ln">{t.labelLastName}</label>
               <input id="reg-ln" type="text" placeholder="Dupont"
-                value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                value={lastName} onChange={(e) => setLastName(e.target.value)} required maxLength={60} />
             </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="reg-phone">
-              Téléphone <span className="form-optional">(optionnel)</span>
+              {t.labelPhone} <span className="form-optional">{t.optional}</span>
             </label>
-            <PhoneInput
-              id="reg-phone"
-              value={phone}
-              onChange={setPhone}
-            />
+            <PhoneInput id="reg-phone" value={phone} onChange={setPhone} />
           </div>
 
           <div className="form-group">
             <label className="checkbox-label auth-cgv">
               <input type="checkbox" checked={agreedCgu} onChange={(e) => setAgreedCgu(e.target.checked)} />
               <span>
-                J'accepte les <Link href="/cgu" target="_blank" className="auth-link">CGU</Link>{" "}
-                et la <Link href="/confidentialite" target="_blank" className="auth-link">politique de confidentialité</Link>
+                {t.cguPrefix}
+                <Link href="/cgu" target="_blank" className="auth-link">{t.cguLink}</Link>
+                {t.cguMid}
+                <Link href="/confidentialite" target="_blank" className="auth-link">{t.privacyLink}</Link>
               </span>
             </label>
           </div>
 
           <div className="auth-btns-row">
             <button type="button" className="btn btn-outline" onClick={() => setStep(0)}>
-              <i className="fa-solid fa-arrow-left" aria-hidden="true" /> Retour
+              <i className="fa-solid fa-arrow-left" aria-hidden="true" /> {t.back}
             </button>
             <button type="button" className="btn btn-primary" onClick={next}>
-              Continuer <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              {t.continueBtn} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
             </button>
           </div>
         </>
@@ -248,30 +237,30 @@ export default function RegisterForm() {
             </div>
             <div className="auth-confirm-badge">
               <i className={`fa-solid ${accountType === "locataire" ? "fa-sailboat" : "fa-anchor"}`} aria-hidden="true" />
-              {accountType === "locataire" ? "Compte Locataire" : "Compte Propriétaire"}
+              {accountType === "locataire" ? t.badgeRenter : t.badgeOwner}
             </div>
             <ul className="auth-confirm-details">
-              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>E-mail enregistré</span></li>
-              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>Mot de passe sécurisé</span></li>
-              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>CGU acceptées</span></li>
+              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>{t.confirmEmail}</span></li>
+              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>{t.confirmPwd}</span></li>
+              <li><i className="fa-solid fa-check" aria-hidden="true" /><span>{t.confirmCgu}</span></li>
             </ul>
           </div>
 
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
             {loading
-              ? <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Création en cours…</>
-              : <><i className="fa-solid fa-rocket" aria-hidden="true" /> Créer mon compte</>
+              ? <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> {t.submitLoading}</>
+              : <><i className="fa-solid fa-rocket" aria-hidden="true" /> {t.submit}</>
             }
           </button>
           <button type="button" className="btn btn-ghost btn-full" onClick={() => setStep(1)} style={{ marginTop: "8px" }}>
-            <i className="fa-solid fa-arrow-left" aria-hidden="true" /> Modifier mes informations
+            <i className="fa-solid fa-arrow-left" aria-hidden="true" /> {t.editInfo}
           </button>
         </>
       )}
 
       <p className="auth-switch">
-        Déjà un compte ?{" "}
-        <Link href="/connexion" className="auth-link">Se connecter</Link>
+        {t.alreadyAccount}{" "}
+        <Link href="/connexion" className="auth-link">{t.signIn}</Link>
       </p>
     </form>
   );

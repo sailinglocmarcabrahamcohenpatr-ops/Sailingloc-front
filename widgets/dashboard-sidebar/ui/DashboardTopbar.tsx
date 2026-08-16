@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/proprietaire/reservations":       "Réservations",
   "/proprietaire/revenus":            "Revenus",
   "/proprietaire/messages":           "Messages",
+  "/proprietaire/profil":             "Mon profil",
   "/admin/dashboard":                 "Dashboard",
   "/admin/avis":                      "Avis",
   "/admin/reservations":              "Réservations",

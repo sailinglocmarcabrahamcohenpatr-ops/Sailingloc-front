@@ -193,6 +193,7 @@ export default function AdminDemandesProprioPage() {
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder={actionTarget.status === "rejected" ? "ex. Documents insuffisants." : "ex. Dossier complet, bienvenue !"}
+                  maxLength={500}
                 />
               </div>
             </div>

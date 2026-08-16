@@ -2,30 +2,29 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
-import { type DateRange } from "react-day-picker";
-import { fr } from "date-fns/locale";
-import { MapPin, CalendarRange, Search } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
+import { MapPin, Search } from "lucide-react";
 import { api } from "@/shared/lib/api-client";
 import type { PortAPI } from "@/shared/lib/referentiels-api";
+import { useI18n, localizeHref } from "@/shared/i18n";
+import DateField from "./DateField";
 import s from "./SearchBarCompact.module.css";
 
-export default function SearchBarCompact() {
+interface SearchBarCompactProps {
+  /** Rendu comme segment supplémentaire de la pilule, juste avant "Rechercher". */
+  filters?: React.ReactNode;
+}
+
+export default function SearchBarCompact({ filters }: SearchBarCompactProps) {
   const router       = useRouter();
   const searchParams = useSearchParams();
+  const { locale, dict } = useI18n();
+  const t = dict.search;
 
-  const [dest,        setDest]        = useState(searchParams.get("destination") ?? "");
-  const [range,       setRange]       = useState<DateRange | undefined>(undefined);
-  const [calOpen,     setCalOpen]     = useState(false);
-  const [ports,       setPorts]       = useState<PortAPI[]>([]);
-  const [showSug,     setShowSug]     = useState(false);
+  const [dest,      setDest]      = useState(searchParams.get("destination") ?? "");
+  const [arrival,   setArrival]   = useState(searchParams.get("arrivee") ?? "");
+  const [departure, setDeparture] = useState(searchParams.get("depart")  ?? "");
+  const [ports,     setPorts]     = useState<PortAPI[]>([]);
+  const [showSug,   setShowSug]   = useState(false);
   const destRef = useRef<HTMLDivElement>(null);
 
   /* Charge tous les ports une seule fois */
@@ -55,25 +54,28 @@ export default function SearchBarCompact() {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
-  /* Filtre les cards en direct pendant la frappe (debounce pour éviter une navigation par lettre) */
+  /* Filtre les cards en direct pendant la frappe */
   useEffect(() => {
     const current = searchParams.get("destination") ?? "";
     const next = dest.trim();
     if (next === current) return;
 
     const id = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      /* Relit l'URL courante via window.location plutôt que le `searchParams`
+         capturé à l'ouverture du timer : sinon, un filtre (FiltersBar) ou un
+         tri/vue (ResultsControls) appliqué pendant les 350ms d'attente est
+         écrasé par ce replace, qui reconstruirait les params depuis un
+         instantané périmé. */
+      const params = new URLSearchParams(window.location.search);
       if (next) params.set("destination", next);
       else params.delete("destination");
-      router.replace(`/bateaux?${params.toString()}`, { scroll: false });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      router.replace(localizeHref(`/bateaux?${params.toString()}`, locale), { scroll: false });
     }, 350);
 
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dest]);
 
-  /* Filtrage local instantané — sans saisie : tous les ports disponibles */
   const query = dest.trim().toLowerCase();
   const suggestions = (
     query.length < 2
@@ -88,29 +90,22 @@ export default function SearchBarCompact() {
   const pickSuggestion = (p: PortAPI) => {
     setDest(p.ville);
     setShowSug(false);
-    // Met à jour l'URL immédiatement → BoatsSidebar réagit et charge la météo du port
     const params = new URLSearchParams(searchParams.toString());
     params.set("destination", p.ville);
-    router.push(`/bateaux?${params.toString()}`);
+    router.push(localizeHref(`/bateaux?${params.toString()}`, locale));
   };
-
-  const dateLabel = range?.from
-    ? range.to
-      ? `${format(range.from, "d MMM", { locale: fr })} – ${format(range.to, "d MMM", { locale: fr })}`
-      : format(range.from, "d MMM yyyy", { locale: fr })
-    : "Sélectionnez vos dates";
 
   const handleSearch = () => {
     setShowSug(false);
     const params = new URLSearchParams(searchParams.toString());
     if (dest.trim()) params.set("destination", dest.trim());
     else params.delete("destination");
-    if (range?.from) params.set("arrivee", format(range.from, "yyyy-MM-dd"));
-    else params.delete("arrivee");
-    if (range?.to)   params.set("depart",  format(range.to,   "yyyy-MM-dd"));
-    else params.delete("depart");
+    if (arrival)    params.set("arrivee", arrival);
+    else            params.delete("arrivee");
+    if (departure)  params.set("depart",  departure);
+    else            params.delete("depart");
     const qs = params.toString();
-    router.push(`/bateaux${qs ? "?" + qs : ""}`);
+    router.push(localizeHref(`/bateaux${qs ? "?" + qs : ""}`, locale));
   };
 
   return (
@@ -118,13 +113,13 @@ export default function SearchBarCompact() {
 
       {/* ── DESTINATION ── */}
       <div className={`${s.section} ${s["section--dest"]}`}>
-        <span className={s.label}>Destination</span>
+        <span className={s.label}>{t.destination}</span>
         <div className={s.destWrap} ref={destRef}>
           <div className={s.destRow}>
             <MapPin className={s.destIcon} aria-hidden="true" />
             <input
               className={s.destInput}
-              placeholder="Où souhaitez-vous naviguer ?"
+              placeholder={t.compactPlaceholder}
               value={dest}
               onChange={e => { setDest(e.target.value); setShowSug(true); }}
               onFocus={() => ports.length > 0 && setShowSug(true)}
@@ -132,7 +127,7 @@ export default function SearchBarCompact() {
                 if (e.key === "Enter")  handleSearch();
                 if (e.key === "Escape") setShowSug(false);
               }}
-              aria-label="Destination"
+              aria-label={t.destination}
               aria-autocomplete="list"
               aria-expanded={showSug}
               autoComplete="off"
@@ -140,7 +135,7 @@ export default function SearchBarCompact() {
             {dest && (
               <button
                 type="button"
-                aria-label="Effacer"
+                aria-label={t.clear}
                 className={s.clearBtn}
                 onClick={() => { setDest(""); setShowSug(false); }}
               >
@@ -149,9 +144,8 @@ export default function SearchBarCompact() {
             )}
           </div>
 
-          {/* Suggestions dropdown */}
           {showSug && suggestions.length > 0 && (
-            <div className={s.suggestions} role="listbox" aria-label="Ports disponibles">
+            <div className={s.suggestions} role="listbox" aria-label={t.portsAria}>
               {suggestions.map((p) => (
                 <button
                   key={p.id}
@@ -176,43 +170,42 @@ export default function SearchBarCompact() {
 
       <div className={s.sep} />
 
-      {/* ── DURÉE ── */}
+      {/* ── ARRIVÉE ── */}
       <div className={s.section}>
-        <span className={s.label}>Durée</span>
-        <Popover open={calOpen} onOpenChange={setCalOpen}>
-          <PopoverTrigger
-            className={`${s.dateTrigger}${range?.from ? ` ${s["dateTrigger--active"]}` : ""}`}
-            aria-label="Sélectionner les dates"
-          >
-            <CalendarRange className={s.dateIcon} aria-hidden="true" />
-            {dateLabel}
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={range}
-              onSelect={setRange}
-              numberOfMonths={2}
-              disabled={{ before: new Date() }}
-              locale={fr}
-            />
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "10px 12px", borderTop: "1px solid #f1f5f9" }}>
-              <Button variant="ghost" size="sm" onClick={() => { setRange(undefined); setCalOpen(false); }}>
-                Réinitialiser
-              </Button>
-              <Button size="sm" onClick={() => setCalOpen(false)}>
-                Confirmer
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+        <span className={s.label}>{t.arrival}</span>
+        <DateField
+          id="cbc-arrival"
+          value={arrival}
+          onChange={setArrival}
+        />
       </div>
+
+      <div className={s.sep} />
+
+      {/* ── DÉPART ── */}
+      <div className={s.section}>
+        <span className={s.label}>{t.departure}</span>
+        <DateField
+          id="cbc-departure"
+          value={departure}
+          onChange={setDeparture}
+          min={arrival}
+          align="right"
+        />
+      </div>
+
+      {filters && (
+        <>
+          <div className={s.sep} />
+          <div className={s.filtersSlot}>{filters}</div>
+        </>
+      )}
 
       {/* ── RECHERCHER ── */}
       <div className={s.submitWrap}>
         <button type="button" className={s.submitBtn} onClick={handleSearch}>
           <Search className={s.submitIcon} aria-hidden="true" />
-          Rechercher
+          {t.submit}
         </button>
       </div>
 

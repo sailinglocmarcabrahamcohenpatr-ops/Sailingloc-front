@@ -1,11 +1,18 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { searchBoats, adaptBoatFromApi } from "@/entities/boat";
 import { getDestinations } from "@/entities/destination";
 import { BoatsSidebar, ResultsControls, BoatsSplitMapView } from "@/widgets/boats-catalog";
 import { boatsApi } from "@/shared/lib/boats-api";
 import { boatMatchesFreeQuery, locationMatchesDestination, normalizeText } from "@/shared/lib/destination-match";
 import { FavoriteBoatCard } from "@/features/toggle-favorite";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 import type { Boat, BoatType } from "@/entities/boat/model/types";
+
+/** Remplace les {placeholders} d'un gabarit par leurs valeurs. */
+function fill(tpl: string, vars: Record<string, string>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+}
 
 const adaptBoat = adaptBoatFromApi;
 
@@ -18,32 +25,65 @@ function boatMatchesType(labelTypeBateau: string | undefined, slug: string): boo
   return label.includes(needle);
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  voilier: "Voiliers",
-  catamaran: "Catamarans",
-  moteur: "Bateaux à moteur",
-  habitable: "Habitables",
-  "semi-rigide": "Semi-rigides",
-  "sans-permis": "Sans permis",
-  ponton: "Pontons",
-};
-
 interface PageProps {
   searchParams: Promise<{
     type?: string;
     destination?: string;
+    prixMin?: string;
     prixMax?: string;
     capacite?: string;
     note?: string;
+    tailleMin?: string;
+    tailleMax?: string;
+    cabines?: string;
     skipper?: string;
     arrivee?: string;
     depart?: string;
     vue?: string;
+    tri?: string;
   }>;
 }
 
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const sp = await searchParams;
+  const t = getDictionary(await getRequestLocale()).catalog;
+
+  const singleType =
+    sp.type && !sp.type.includes(",") && sp.type !== "tous"
+      ? (t.typeLabels as Record<string, string>)[sp.type]
+      : null;
+  const destination = sp.destination?.trim() || null;
+
+  let title = t.metaTitleDefault;
+  if (singleType && destination) {
+    title = fill(t.metaTitleTypeDestination, { type: singleType, destination });
+  } else if (destination) {
+    title = fill(t.metaTitleDestination, { destination });
+  } else if (singleType) {
+    title = fill(t.metaTitleType, { type: singleType });
+  }
+
+  // Canonique = destination/type seuls (facettes indexables) ; les autres filtres
+  // (prix, capacité, dates…) retombent sur cette même URL pour éviter le contenu dupliqué.
+  const canonicalParams = new URLSearchParams();
+  if (destination) canonicalParams.set("destination", destination);
+  if (sp.type && sp.type !== "tous") canonicalParams.set("type", sp.type);
+  const canonical = `/bateaux${canonicalParams.toString() ? `?${canonicalParams.toString()}` : ""}`;
+
+  const hasSecondaryFilters = Boolean(
+    sp.prixMin || sp.prixMax || sp.capacite || sp.note || sp.tailleMin || sp.tailleMax || sp.cabines || sp.skipper || sp.arrivee || sp.depart
+  );
+
+  return {
+    title,
+    description: t.metaDescriptionDefault,
+    alternates: { canonical },
+    ...(hasSecondaryFilters ? { robots: { index: false, follow: true } } : {}),
+  };
+}
+
 export default async function BoatsPage({ searchParams }: PageProps) {
-  const { type, destination, prixMax, capacite, note, skipper, arrivee, depart, vue } = await searchParams;
+  const { type, destination, prixMin, prixMax, capacite, note, tailleMin, tailleMax, cabines, skipper, arrivee, depart, vue, tri } = await searchParams;
 
   const types = (type?.split(",").filter((t) => t && t !== "tous") ?? []) as BoatType[];
 
@@ -56,6 +96,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     const apiParams: Record<string, string> = { statut: "disponible" };
     if (destination)  apiParams.destination   = destination;
     if (type)         apiParams.type          = type;
+    if (prixMin)      apiParams.prix_min       = prixMin;
     if (prixMax)      apiParams.prix_max       = prixMax;
     if (capacite)     apiParams.capacite       = capacite;
     if (skipper)      apiParams.avec_skipper   = skipper === "avec" ? "true" : "false";
@@ -84,11 +125,15 @@ export default async function BoatsPage({ searchParams }: PageProps) {
       const wantSkipper = skipper === "avec";
       filtered = filtered.filter((b) => b.avecSkipper === wantSkipper);
     }
-    if (prixMax) {
-      const max = Number(prixMax);
+    if (prixMin || prixMax) {
+      const min = prixMin ? Number(prixMin) : undefined;
+      const max = prixMax ? Number(prixMax) : undefined;
       filtered = filtered.filter((b) => {
         const price = typeof b.prixJour === "string" ? parseFloat(b.prixJour) : b.prixJour;
-        return typeof price === "number" && Number.isFinite(price) && price <= max;
+        if (typeof price !== "number" || !Number.isFinite(price)) return false;
+        if (min != null && price < min) return false;
+        if (max != null && price > max) return false;
+        return true;
       });
     }
     if (capacite) {
@@ -98,6 +143,22 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     if (note) {
       const min = Number(note);
       filtered = filtered.filter((b) => (b.noteMoyenne ?? 0) >= min);
+    }
+    if (tailleMin || tailleMax) {
+      // `taille` est un texte libre côté back ("12m", "12.5 m", …) : on extrait
+      // le nombre en tête de chaîne, seul format garanti par le formulaire d'ajout.
+      const min = tailleMin ? Number(tailleMin) : undefined;
+      const max = tailleMax ? Number(tailleMax) : undefined;
+      filtered = filtered.filter((b) => {
+        const size = parseFloat(b.taille ?? "") || 0;
+        if (min != null && size < min) return false;
+        if (max != null && size > max) return false;
+        return true;
+      });
+    }
+    if (cabines) {
+      const min = Number(cabines);
+      filtered = filtered.filter((b) => (b.nombreCabines ?? 0) >= min);
     }
     if (destination) {
       // Le backend ne filtre pas toujours fiablement par destination : on revérifie ici
@@ -112,9 +173,13 @@ export default async function BoatsPage({ searchParams }: PageProps) {
   } catch {
     const base = await searchBoats({
       types: types.length > 0 ? types : undefined,
-      maxPrice:    prixMax  ? Number(prixMax)  : undefined,
-      minCapacity: capacite ? Number(capacite) : undefined,
-      minRating:   note     ? Number(note)     : undefined,
+      minPrice:    prixMin   ? Number(prixMin)   : undefined,
+      maxPrice:    prixMax   ? Number(prixMax)   : undefined,
+      minCapacity: capacite  ? Number(capacite)  : undefined,
+      minRating:   note      ? Number(note)      : undefined,
+      minLength:   tailleMin ? Number(tailleMin) : undefined,
+      maxLength:   tailleMax ? Number(tailleMax) : undefined,
+      minCabins:   cabines   ? Number(cabines)   : undefined,
     });
 
     if (!destination) {
@@ -128,12 +193,36 @@ export default async function BoatsPage({ searchParams }: PageProps) {
     }
   }
 
+  if (tri === "prix-asc")        boats.sort((a, b) => a.pricePerDay - b.pricePerDay);
+  else if (tri === "prix-desc")  boats.sort((a, b) => b.pricePerDay - a.pricePerDay);
+  else if (tri === "note-desc")  boats.sort((a, b) => b.rating - a.rating);
+  else if (tri === "nouveautes") boats.sort((a, b) => Number(b.id) - Number(a.id));
+
+  const tc = getDictionary(await getRequestLocale()).catalog;
+
+  const fmtDate = (iso: string) => {
+    const [, m, d] = iso.split("-");
+    return `${parseInt(d)} ${tc.monthsShort[parseInt(m) - 1]}`;
+  };
+  const fill = (tpl: string, vars: Record<string, string>) =>
+    tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+
   const subtitle = [
-    types.length > 0 ? types.map((t) => TYPE_LABELS[t] ?? t).join(", ") : null,
-    destination ? `à ${destination}` : null,
+    types.length > 0
+      ? types.map((ty) => tc.typeLabels[ty as keyof typeof tc.typeLabels] ?? ty).join(", ")
+      : null,
+    destination ? `${tc.subAt} ${destination}` : null,
+    skipper === "avec" ? tc.subWithSkipper : skipper === "sans" ? tc.subWithoutSkipper : null,
+    arrivee && depart
+      ? fill(tc.subDateRange, { from: fmtDate(arrivee), to: fmtDate(depart) })
+      : arrivee
+      ? fill(tc.subDateFrom, { date: fmtDate(arrivee) })
+      : depart
+      ? fill(tc.subDateUntil, { date: fmtDate(depart) })
+      : null,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" · ");
 
   return (
     <div className="container">
@@ -145,7 +234,7 @@ export default async function BoatsPage({ searchParams }: PageProps) {
 
           {boats.length === 0 ? (
             <p style={{ color: "var(--text-2)", padding: "48px 0" }}>
-              Aucun bateau ne correspond à votre recherche.
+              {tc.empty}
             </p>
           ) : vue === "carte" ? (
             <BoatsSplitMapView boats={boats} />

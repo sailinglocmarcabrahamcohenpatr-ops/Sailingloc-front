@@ -1,0 +1,67 @@
+/* ──────────────────────────────────────────────────────────────
+   "Mes bateaux" (app/(dashboard)/proprietaire/bateaux) — confirmation
+   et notification pour la suppression d'un bateau.
+   Isolé hors de app/globals.css pour éviter les conflits de merge.
+   ────────────────────────────────────────────────────────────── */
+
+.owner-boat-menu-item.danger { color: var(--red); }
+.owner-boat-menu-item.danger i { color: var(--red); }
+.owner-boat-menu-item.danger:hover { background: color-mix(in srgb, var(--red) 10%, transparent); }
+
+/* `.btn-danger` n'existe nulle part ailleurs dans le CSS du projet (même
+   gap dans la modale de confirmation de l'admin) — défini ici une bonne
+   fois pour un bouton d'action destructive cohérent avec .btn-primary. */
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: var(--radius); border: none;
+  background: var(--red); color: var(--white);
+  font-size: .875rem; font-weight: 600; cursor: pointer;
+  transition: var(--transition);
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--red) 85%, black); }
+.btn-danger:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── Confirmation de suppression ── */
+.mb-confirm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(15, 23, 42, .45); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  animation: mb-fade-in .15s ease-out;
+}
+.mb-confirm-card {
+  background: var(--card-bg); border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg); padding: 32px; width: 100%; max-width: 420px;
+  text-align: center;
+  animation: mb-pop-in .18s cubic-bezier(.2, .8, .3, 1.1);
+}
+.mb-confirm-icon {
+  width: 56px; height: 56px; margin: 0 auto 16px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  color: var(--red); font-size: 1.375rem;
+}
+.mb-confirm-card h2 { font-size: 1.125rem; font-weight: 800; margin-bottom: 10px; }
+.mb-confirm-card p { font-size: .9375rem; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+.mb-confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+@keyframes mb-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mb-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Notification ── */
+.mb-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 1100; display: flex; align-items: center; gap: 10px;
+  padding: 14px 22px; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); font-size: .875rem; font-weight: 600;
+  animation: mb-toast-in .2s ease-out;
+}
+.mb-toast.success { background: var(--green); color: var(--white); }
+.mb-toast.error { background: var(--red); color: var(--white); }
+
+@keyframes mb-toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

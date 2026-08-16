@@ -149,6 +149,7 @@
 .res-caution-box > i { color: #D97706; font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
 .res-caution-box > div strong { display: block; font-size: .875rem; font-weight: 700; margin-bottom: 3px; }
 .res-caution-box > div span { font-size: .8125rem; color: var(--text-2); line-height: 1.5; }
+.res-caution-box > div .res-caution-alt { display: block; margin-top: 6px; }
 
 .res-terms {
   display: flex; align-items: flex-start; gap: 10px;

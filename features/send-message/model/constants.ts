@@ -8,3 +8,13 @@ export const CONTACT_SUBJECTS: ContactSubject[] = [
   { id: "prop", label: "Propriétaires", icon: "fa-anchor" },
   { id: "other", label: "Autre", icon: "fa-ellipsis" },
 ];
+
+export const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+
+export const ALLOWED_ATTACHMENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+];

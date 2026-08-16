@@ -6,6 +6,7 @@ import type { PortAPI } from "@/shared/lib/referentiels-api";
 import { ApiError } from "@/shared/lib/api-client";
 import { geocodeCity } from "../api/geocode";
 import PortCityAutocomplete from "./PortCityAutocomplete";
+import { useI18n } from "@/shared/i18n";
 
 interface PortCreateFormProps {
   /** Texte saisi dans la recherche, utilisé pour pré-remplir le nom. */
@@ -35,6 +36,7 @@ export default function PortCreateForm({
   onCreated,
   onCancel,
 }: PortCreateFormProps) {
+  const t = useI18n().dict.listBoatForm;
   const [nom, setNom] = useState(initialName);
   const [ville, setVille] = useState("");
   const [codePostal, setCodePostal] = useState("");
@@ -53,7 +55,7 @@ export default function PortCreateForm({
 
   const handleSubmit = async () => {
     if (!nom.trim() || !ville.trim()) {
-      setError("Le nom du port et la ville sont obligatoires.");
+      setError(t.pcErrRequired);
       return;
     }
     setSaving(true);
@@ -93,18 +95,16 @@ export default function PortCreateForm({
       if (err instanceof ApiError) {
         if (err.status === 401 || err.status === 500) {
           /* 500 : l'API renvoie une 500 au lieu d'une 401 quand le JWT manque. */
-          setError("Votre session a expiré. Reconnectez-vous puis réessayez.");
+          setError(t.pcErrSession);
         } else if (err.status === 403) {
-          setError(
-            "Votre compte n'a pas les droits pour ajouter un port. Contactez un administrateur."
-          );
+          setError(t.pcErrForbidden);
         } else if (err.status === 409) {
-          setError("Ce port existe déjà.");
+          setError(t.pcErrConflict);
         } else {
           setError(err.message);
         }
       } else {
-        setError("Impossible de joindre le serveur. Réessayez dans un instant.");
+        setError(t.pcErrNetwork);
       }
     } finally {
       setSaving(false);
@@ -112,26 +112,26 @@ export default function PortCreateForm({
   };
 
   return (
-    <div className="port-create" role="group" aria-label="Ajouter un port d'attache">
+    <div className="port-create" role="group" aria-label={t.pcAria}>
       <p className="port-create-intro">
         <i className="fa-solid fa-circle-info" aria-hidden="true" />
-        Votre port n&apos;est pas dans la liste ? Ajoutez-le, il sera
-        immédiatement sélectionné.
+        {t.pcIntro}
       </p>
 
       <div className="port-create-grid">
         <div className="form-group">
-          <label htmlFor="pc-nom">Nom du port *</label>
+          <label htmlFor="pc-nom">{t.pcName}</label>
           <input
             id="pc-nom"
             type="text"
-            placeholder="Ex : Port de Cannes"
+            placeholder={t.pcNamePlaceholder}
             value={nom}
             onChange={(e) => { setNom(e.target.value); setError(""); }}
+            maxLength={100}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="pc-ville">Ville *</label>
+          <label htmlFor="pc-ville">{t.pcCity}</label>
           <PortCityAutocomplete
             id="pc-ville"
             ville={ville}
@@ -147,24 +147,26 @@ export default function PortCreateForm({
           />
         </div>
         <div className="form-group">
-          <label htmlFor="pc-cp">Code postal</label>
+          <label htmlFor="pc-cp">{t.pcPostalCode}</label>
           <input
             id="pc-cp"
             type="text"
             inputMode="numeric"
-            placeholder="Ex : 06400"
+            placeholder={t.pcPostalPlaceholder}
             value={codePostal}
             onChange={(e) => { setCodePostal(e.target.value); setError(""); }}
+            maxLength={10}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="pc-pays">Pays</label>
+          <label htmlFor="pc-pays">{t.pcCountry}</label>
           <input
             id="pc-pays"
             type="text"
             placeholder="France"
             value={pays}
             onChange={(e) => { setPays(e.target.value); setError(""); }}
+            maxLength={60}
           />
         </div>
       </div>
@@ -172,8 +174,9 @@ export default function PortCreateForm({
       {duplicate && !error && (
         <p className="port-create-warn">
           <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-          « {duplicate.nom} » existe déjà{duplicate.ville ? ` à ${duplicate.ville}` : ""}.
-          Vérifiez avant d&apos;en créer un doublon.
+          {t.pcDuplicateWarn
+            .replace("{name}", duplicate.nom)
+            .replace("{cityPart}", duplicate.ville ? t.pcDuplicateInCity.replace("{city}", duplicate.ville) : "")}
         </p>
       )}
 
@@ -186,7 +189,7 @@ export default function PortCreateForm({
 
       <div className="port-create-actions">
         <button type="button" className="btn btn-outline btn-sm" onClick={onCancel} disabled={saving}>
-          Annuler
+          {t.pcCancel}
         </button>
         <button
           type="button"
@@ -194,7 +197,7 @@ export default function PortCreateForm({
           onClick={handleSubmit}
           disabled={saving || !nom.trim() || !ville.trim()}
         >
-          {saving ? "Création…" : "Créer ce port"}
+          {saving ? t.pcCreating : t.pcCreate}
         </button>
       </div>
     </div>

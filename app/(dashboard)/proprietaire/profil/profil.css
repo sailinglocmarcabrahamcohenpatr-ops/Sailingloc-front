@@ -1,0 +1,13 @@
+.op-form { display: flex; flex-direction: column; gap: 16px; }
+.op-form-alert {
+  display: flex; align-items: center; gap: 10px;
+  background: #FEF2F2; border: 1px solid #FCA5A5;
+  color: var(--red); border-radius: var(--radius);
+  padding: 12px 16px; font-size: .875rem; font-weight: 500;
+}
+.op-form-alert.success {
+  background: #F0FDF4; border-color: #86EFAC; color: #166534;
+}
+.op-security-item-editing { flex-direction: column; align-items: stretch; gap: 14px; }
+.op-security-item-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+.op-security-item-editing .op-form { padding-top: 2px; }

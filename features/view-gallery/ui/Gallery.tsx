@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useI18n } from "@/shared/i18n";
 import { useFavoris } from "@/shared/lib";
 
 interface GalleryImage {
@@ -21,6 +22,7 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
   const isSaved = boatId ? isFavorite(boatId) : false;
   const [activeIndex, setActiveIndex] = useState(0);
   const [mainSrc, setMainSrc] = useState(images[0]?.src ?? "");
+  const t = useI18n().dict.boatDetail;
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [shareState, setShareState] = useState<"idle" | "copied" | "error">("idle");
@@ -77,17 +79,23 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
 
   return (
     <>
-      <div className="gallery" role="group" aria-label="Galerie photos">
-        <div className="gallery-main" onClick={() => openLightbox(activeIndex)}>
+      <div className="gallery" role="group" aria-label={t.galleryAria}>
+        <button
+          type="button"
+          className="gallery-main"
+          onClick={() => openLightbox(activeIndex)}
+          aria-label={t.galleryOpenAria}
+          style={{ border: "none", padding: 0, background: "none", cursor: "pointer", display: "block" }}
+        >
           <Image
             src={mainSrc}
-            alt={images[activeIndex]?.alt ?? "Photo principale"}
+            alt={images[activeIndex]?.alt ?? t.galleryMainAlt}
             fill
             priority
             unoptimized
             style={{ objectFit: "cover" }}
           />
-        </div>
+        </button>
         {images.slice(1, 3).map((img, i) => (
           <button
             key={img.src}
@@ -96,7 +104,7 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
               select(i + 1);
               openLightbox(i + 1);
             }}
-            aria-label={`Voir photo : ${img.alt}`}
+            aria-label={t.galleryThumbAria.replace("{alt}", img.alt)}
             style={{ border: "none", padding: 0, background: "none", cursor: "pointer", display: "block" }}
           >
             <Image
@@ -117,15 +125,15 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
             aria-pressed={isSaved}
           >
             <i className={isSaved ? "fa-solid fa-heart" : "fa-regular fa-heart"} aria-hidden="true" />{" "}
-            {isSaved ? "Enregistré" : "Enregistrer"}
+            {isSaved ? t.saved : t.save}
           </button>
         )}
         <button className="gallery-act-btn" onClick={handleShare}>
           <i className={`fa-solid ${shareState === "copied" ? "fa-check" : "fa-share-nodes"}`} aria-hidden="true" />{" "}
-          {shareState === "copied" ? "Lien copié !" : "Partager"}
+          {shareState === "copied" ? t.linkCopied : t.share}
         </button>
         <button className="gallery-act-btn" onClick={() => openLightbox(0)}>
-          <i className="fa-regular fa-images" aria-hidden="true" /> Voir toutes les photos
+          <i className="fa-regular fa-images" aria-hidden="true" /> {t.seeAllPhotos}
         </button>
       </div>
 
@@ -134,14 +142,14 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
           className="gallery-lightbox-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Galerie photos"
+          aria-label={t.galleryAria}
           onClick={() => setLightboxOpen(false)}
         >
           <div className="gallery-lightbox-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="gallery-lightbox-close"
               onClick={() => setLightboxOpen(false)}
-              aria-label="Fermer la galerie"
+              aria-label={t.galleryClose}
             >
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
@@ -151,7 +159,7 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
                 <button
                   className="gallery-lightbox-nav gallery-lightbox-nav-prev"
                   onClick={showPrev}
-                  aria-label="Photo précédente"
+                  aria-label={t.galleryPrev}
                 >
                   <i className="fa-solid fa-chevron-left" aria-hidden="true" />
                 </button>
@@ -171,7 +179,7 @@ export default function Gallery({ images, title, boatId }: GalleryProps) {
                 <button
                   className="gallery-lightbox-nav gallery-lightbox-nav-next"
                   onClick={showNext}
-                  aria-label="Photo suivante"
+                  aria-label={t.galleryNext}
                 >
                   <i className="fa-solid fa-chevron-right" aria-hidden="true" />
                 </button>

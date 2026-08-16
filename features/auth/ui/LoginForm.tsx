@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/lib";
+import { useI18n, LocaleLink as Link } from "@/shared/i18n";
 import { apiLogin, ApiError } from "@/shared/lib";
+import { isValidEmail } from "@/shared/lib/utils";
+import Recaptcha from "./Recaptcha";
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -13,6 +15,7 @@ interface LoginFormProps {
 export default function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const { login } = useAuth();
+  const t = useI18n().dict.loginPage;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,10 +23,13 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email || !password) { setError("Veuillez remplir tous les champs."); return; }
+    if (!email || !password) { setError(t.errRequired); return; }
+    if (!isValidEmail(email)) { setError(t.errEmailInvalid); return; }
+    if (!recaptchaToken) { setError(t.errRecaptcha); return; }
 
     setLoading(true);
     setError("");
@@ -42,11 +48,9 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 401
-          ? "Identifiants incorrects. Vérifiez votre e-mail et mot de passe."
-          : err.message);
+        setError(err.status === 401 ? t.errCredentials : t.errUnknown);
       } else {
-        setError("Impossible de joindre le serveur. Réessayez dans un instant.");
+        setError(t.errServer);
       }
     } finally {
       setLoading(false);
@@ -62,25 +66,26 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       )}
 
       <div className="form-group">
-        <label htmlFor="login-email">Email</label>
+        <label htmlFor="login-email">{t.labelEmail}</label>
         <input
           id="login-email"
           type="email"
-          placeholder="Entrez votre email"
+          placeholder={t.phEmail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
+          maxLength={254}
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="login-password">Mot de passe</label>
+        <label htmlFor="login-password">{t.labelPassword}</label>
         <div className="input-password-wrap" style={{ position: "relative" }}>
           <input
             id="login-password"
             type={showPwd ? "text" : "password"}
-            placeholder="Entrez votre mot de passe"
+            placeholder={t.phPassword}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -90,7 +95,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           <button
             type="button"
             className="input-password-toggle"
-            aria-label={showPwd ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            aria-label={showPwd ? t.hidePwd : t.showPwd}
             onClick={() => setShowPwd((v) => !v)}
           >
             <i className={`fa-solid ${showPwd ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true" />
@@ -105,22 +110,24 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          Se souvenir de moi
+          {t.rememberMe}
         </label>
         <Link href="/mot-de-passe-oublie" className="auth-link-inline">
-          Mot de passe oublié
+          {t.forgotPassword}
         </Link>
       </div>
+
+      <Recaptcha onChange={setRecaptchaToken} />
 
       <button
         type="submit"
         className="btn-auth-primary"
-        disabled={loading}
+        disabled={loading || !recaptchaToken}
       >
         {loading ? (
-          <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> Connexion en cours…</>
+          <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true" /> {t.submitLoading}</>
         ) : (
-          "Se connecter"
+          t.submit
         )}
       </button>
     </form>

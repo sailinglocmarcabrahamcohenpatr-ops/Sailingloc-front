@@ -1,0 +1,53 @@
+/* Sélecteur de langue — contrôle segmenté compact FR / EN. */
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(0, 0, 0, .12));
+  background: var(--surface, #fff);
+}
+
+.lang-switcher-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--text-2, #637083);
+  transition: background .15s, color .15s;
+}
+
+.lang-switcher-btn:hover:not(:disabled) {
+  color: var(--text, #1a202c);
+}
+
+.lang-switcher-btn.is-active {
+  background: var(--primary, #1e90ff);
+  color: #fff;
+}
+
+.lang-switcher-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+/* Sur le fond verre de la navbar d'accueil, le contour doit rester visible. */
+:root[data-scroll-video="on"] .lang-switcher {
+  border-color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .15);
+}
+:root[data-scroll-video="on"] .lang-switcher-btn {
+  color: rgba(255, 255, 255, .85);
+}
+:root[data-scroll-video="on"] .lang-switcher-btn.is-active {
+  background: rgba(255, 255, 255, .9);
+  color: var(--primary, #1e90ff);
+}

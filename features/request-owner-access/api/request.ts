@@ -5,7 +5,9 @@ import type { OwnerRequestFormValues } from "../model/types";
 export interface OwnerRequestResult {
   success: boolean;
   request?: OwnerRequestAPI;
-  error?: string;
+  /** Pas de texte en dur ici : la traduction du message affiché à
+   *  l'utilisateur relève de la couche UI (i18n), pas de cette API. */
+  errorKind?: "already-pending" | "unauthorized" | "server" | "network";
 }
 
 function toPayload(values: OwnerRequestFormValues): CreateOwnerRequestPayload {
@@ -26,10 +28,18 @@ export async function sendOwnerRequest(values: OwnerRequestFormValues): Promise<
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 409) {
-        return { success: false, error: "Une demande est déjà en cours de traitement pour votre compte." };
+        return { success: false, errorKind: "already-pending" };
       }
-      return { success: false, error: err.message || "Une erreur est survenue. Veuillez réessayer." };
+      if (err.status === 401) {
+        return { success: false, errorKind: "unauthorized" };
+      }
+      /* Le backend renvoie 500 « Une erreur est survenue. » dans des cas très
+         différents : on n'affiche pas ce message brut, il n'aide personne. */
+      if (err.status >= 500) {
+        return { success: false, errorKind: "server" };
+      }
+      return { success: false };
     }
-    return { success: false, error: "Impossible d'envoyer la demande. Vérifiez votre connexion." };
+    return { success: false, errorKind: "network" };
   }
 }

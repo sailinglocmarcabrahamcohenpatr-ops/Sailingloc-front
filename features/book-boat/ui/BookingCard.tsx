@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
-import { useAuth, boatsApi } from "@/shared/lib";
+import { useAuth, boatsApi, type DisponibiliteAPI } from "@/shared/lib";
+import { useI18n, LocaleLink as Link, localizeHref } from "@/shared/i18n";
 import GuestCounter from "./GuestCounter";
 import AvailabilityCalendar, { type DateSpan } from "./AvailabilityCalendar";
 import { BOOKING_GUARANTEES } from "../model/constants";
@@ -28,7 +28,12 @@ interface BookingCardProps {
   rating: number;
   reviewCount: number;
   capacity: number;
+  ownerId?: number | null;
   ownerName?: string;
+  disponibilites?: DisponibiliteAPI[];
+  ownerPrenom?: string;
+  ownerNom?: string;
+  ownerEmail?: string;
 }
 
 export default function BookingCard({
@@ -37,30 +42,59 @@ export default function BookingCard({
   rating,
   reviewCount,
   capacity,
-  ownerName = "le propriétaire",
+  ownerId,
+  ownerName,
+  disponibilites = [],
+  ownerPrenom,
+  ownerNom,
+  ownerEmail,
 }: BookingCardProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const { locale, dict } = useI18n();
+  const t = dict.boatDetail;
+  const tc = dict.common;
+  const ownerLabel = ownerName ?? t.defaultOwnerName;
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setSheetOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [sheetOpen]);
+  // Vers la messagerie interne si on connaît le propriétaire ; sinon repli
+  // sur le formulaire de contact support (annonce sans propriétaire identifié).
+  const contactHref = ownerId
+    ? `/profil/messages?with=${ownerId}&prenom=${encodeURIComponent(ownerPrenom ?? "")}&nom=${encodeURIComponent(ownerNom ?? "")}&email=${encodeURIComponent(ownerEmail ?? "")}`
+    : "/contact";
   const [range, setRange] = useState<DateRange | undefined>(undefined);
   const [guests, setGuests] = useState(Math.min(4, capacity));
 
-  const [blockedRanges, setBlockedRanges] = useState<DateSpan[]>([]);
+  // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
+  // Toutes les autres dates sont réservables par défaut. On lit `disponibilites`
+  // tel qu'embarqué par boatsApi.getOne() — /api/disponibilites/bateau/{id} et
+  // /api/bateaux/{id}/disponibilites renvoient une sérialisation incomplète
+  // (statut/dateFin manquants) et ne doivent pas être utilisés ici.
+  const blockedRanges: DateSpan[] = useMemo(
+    () =>
+      disponibilites
+        .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
+        .map((d) => ({
+          from: new Date(d.dateDebut),
+          to: new Date(d.dateFin ?? d.dateDebut),
+        })),
+    [disponibilites]
+  );
+
   const [bookedRanges, setBookedRanges] = useState<DateSpan[]>([]);
   const [calLoading, setCalLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([boatsApi.getDisponibilitesParBateau(boatId), boatsApi.getReservations(boatId)])
-      .then(([disponibilites, reservations]) => {
-        // Les statuts "bloque" et "indisponible" bloquent les dates dans le calendrier.
-        // Toutes les autres dates sont réservables par défaut.
-        setBlockedRanges(
-          disponibilites
-            .filter((d) => d.statut === "bloque" || d.statut === "indisponible")
-            .map((d) => ({
-              from: new Date(d.dateDebut),
-              to: new Date(d.dateFin ?? d.dateDebut),
-            }))
-        );
+    boatsApi.getReservations(boatId)
+      .then((reservations) => {
         setBookedRanges(
           reservations
             .filter((r) => !isCancelled(r.statutReservation))
@@ -76,139 +110,189 @@ export default function BookingCard({
   const hasAvailability = !calLoading;
   const canBook = Boolean(startDate && endDate);
 
-  const days = canBook ? daysBetween(startDate, endDate) : 0;
-  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days || 1);
+  // 1 jour par défaut tant qu'aucune date n'est choisie — évite d'afficher
+  // "× 0 jour" alors que le total ci-dessous est déjà calculé sur 1 jour.
+  const days = canBook ? daysBetween(startDate, endDate) : 1;
+  const { subtotal, serviceFee, total } = calculateBookingTotal(pricePerDay, days);
 
   const isOwnerAccount = user?.role === "proprietaire" || user?.role === "admin";
 
   const handleBook = () => {
     if (!canBook || isOwnerAccount) return;
-    const destination = `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`;
+    const destination = localizeHref(
+      `/reservation/${boatId}?startDate=${startDate}&endDate=${endDate}&guests=${guests}`,
+      locale
+    );
     if (!user) {
-      router.push(`/connexion?redirect=${encodeURIComponent(destination)}`);
+      router.push(localizeHref(`/connexion?redirect=${encodeURIComponent(destination)}`, locale));
       return;
     }
     router.push(destination);
   };
 
   return (
-    <aside>
-      <div className="booking-card">
-        <div className="booking-header">
-          <div className="booking-price">
-            {formatPrice(pricePerDay)} <span>/ jour</span>
-          </div>
-          <div className="booking-rating">
-            <i className="fa-solid fa-star" aria-hidden="true" />
-            <span>
-              {rating} · {reviewCount} avis
-            </span>
-          </div>
+    <>
+      {/* Barre fixe en bas d'écran — mobile uniquement (voir CSS @media ≤768px) */}
+      <div className="booking-mobile-bar">
+        <div className="booking-mobile-bar-price">
+          <span className="booking-mobile-bar-label">{t.startingFrom}</span>
+          <strong>
+            {formatPrice(pricePerDay)} <span>{t.perDay}</span>
+          </strong>
         </div>
-        <div className="booking-body">
-          <div className="booking-dates booking-dates-cal">
-            <label>Dates de location</label>
-            <AvailabilityCalendar
-              value={range}
-              onChange={setRange}
-              blockedRanges={blockedRanges}
-              bookedRanges={bookedRanges}
-              loading={calLoading}
-            />
-          </div>
+        <button
+          type="button"
+          className="btn btn-primary booking-mobile-bar-cta"
+          onClick={() => setSheetOpen(true)}
+        >
+          {t.viewAvailabilityCta}
+        </button>
+      </div>
 
-          <GuestCounter
-            max={capacity}
-            initial={Math.min(4, capacity)}
-            onChange={setGuests}
-          />
-
-          <div className="booking-info">
-            <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
-            <span>
-              {calLoading
-                ? "Vérification des disponibilités…"
-                : hasAvailability
-                ? "Cliquez sur le calendrier pour choisir vos dates de location."
-                : "Aucune date disponible pour ce bateau."}
-            </span>
-          </div>
-
-          <div className="booking-total">
-            <div className="booking-total-row">
-              <span>
-                {formatPrice(pricePerDay)} × {days} jour{days > 1 ? "s" : ""}
-              </span>
-              <strong>{formatPrice(subtotal)}</strong>
-            </div>
-            <div className="booking-total-row">
-              <span>Frais de service SailingLoc</span>
-              <strong>{formatPrice(serviceFee)}</strong>
-            </div>
-            <div className="booking-total-row">
-              <span>Assurance incluse</span>
-              <strong className="text-green">Offerte</strong>
-            </div>
-            <div className="booking-total-divider" />
-            <div className="booking-total-final">
-              <span>Total</span>
-              <span>{formatPrice(total)}</span>
-            </div>
-          </div>
-
+      <div
+        className={`booking-sheet-overlay${sheetOpen ? " open" : ""}`}
+        onClick={(e) => { if (e.target === e.currentTarget) setSheetOpen(false); }}
+      >
+        <aside
+          className="booking-sheet-panel"
+          role={sheetOpen ? "dialog" : undefined}
+          aria-modal={sheetOpen ? true : undefined}
+          aria-label={sheetOpen ? t.bookingSheetAria : undefined}
+        >
           <button
-            className="btn btn-primary booking-cta"
             type="button"
-            onClick={handleBook}
-            disabled={!canBook || isOwnerAccount}
-            title={
-              isOwnerAccount
-                ? "La réservation est réservée aux comptes locataires"
-                : !canBook
-                ? "Choisissez vos dates sur le calendrier"
-                : undefined
-            }
+            className="booking-sheet-close"
+            onClick={() => setSheetOpen(false)}
+            aria-label={tc.close}
           >
-            <i className="fa-solid fa-calendar-check" aria-hidden="true" />
-            {isOwnerAccount
-              ? "Réservé aux locataires"
-              : !canBook
-              ? "Choisir des dates"
-              : user
-              ? "Réserver maintenant"
-              : "Se connecter pour réserver"}
+            <i className="fa-solid fa-xmark" aria-hidden="true" />
           </button>
-          <p className="booking-note">
-            {isOwnerAccount
-              ? "Basculez vers l'espace locataire pour réserver ce bateau."
-              : "Vous ne serez débité qu'après confirmation du propriétaire"}
-          </p>
-          <div className="booking-contact">
-            <Link href="/contact">
-              <i className="fa-regular fa-comment" aria-hidden="true" /> Contacter{" "}
-              {ownerName}
-            </Link>
-            <Link href="tel:+33612345678">
-              <i className="fa-solid fa-phone" aria-hidden="true" /> Appeler
-            </Link>
-          </div>
-        </div>
-      </div>
+          <div className="booking-card">
+            <div className="booking-header">
+              <div className="booking-price">
+                {formatPrice(pricePerDay)} <span>{t.perDay}</span>
+              </div>
+              <div className="booking-rating">
+                <i className="fa-solid fa-star" aria-hidden="true" />
+                <span>
+                  {rating} · {reviewCount} {t.reviews}
+                </span>
+              </div>
+            </div>
+            <div className="booking-body">
+              <div className="booking-dates-cal">
+                <label>{t.rentalDates}</label>
+                <AvailabilityCalendar
+                  value={range}
+                  onChange={setRange}
+                  blockedRanges={blockedRanges}
+                  bookedRanges={bookedRanges}
+                  loading={calLoading}
+                />
+              </div>
 
-      <div className="booking-guarantees">
-        {BOOKING_GUARANTEES.map((g) => (
-          <div key={g.title} className="booking-guarantee-item">
-            <i
-              className={`fa-solid ${g.icon} booking-guarantee-icon`}
-              style={{ color: g.color }}
-              aria-hidden="true"
-            />
-            <span>
-              <strong>{g.title}</strong> — {g.desc}
-            </span>
+              <GuestCounter
+                max={capacity}
+                initial={Math.min(4, capacity)}
+                onChange={setGuests}
+              />
+
+              <div className="booking-info">
+                <i className={`fa-solid ${hasAvailability ? "fa-circle-info" : "fa-triangle-exclamation"}`} aria-hidden="true" />
+                <span>
+                  {calLoading
+                    ? t.checkingAvailability
+                    : hasAvailability
+                    ? t.bookingHint
+                    : t.noDatesAvailable}
+                </span>
+              </div>
+
+              <div className="booking-total">
+                <div className="booking-total-row">
+                  <span>
+                    {formatPrice(pricePerDay)} × {days} {days > 1 ? t.daysLabel : t.dayLabel}
+                  </span>
+                  <strong>{formatPrice(subtotal)}</strong>
+                </div>
+                <div className="booking-total-row">
+                  <span>{t.serviceFee}</span>
+                  <strong>{formatPrice(serviceFee)}</strong>
+                </div>
+                <div className="booking-total-row">
+                  <span>{t.insuranceIncluded}</span>
+                  <strong className="text-green">{t.free}</strong>
+                </div>
+                <div className="booking-total-divider" />
+                <div className="booking-total-final">
+                  <span>{t.total}</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary booking-cta"
+                type="button"
+                onClick={handleBook}
+                disabled={!canBook || isOwnerAccount}
+                title={
+                  isOwnerAccount
+                    ? t.titleOwnerOnly
+                    : !canBook
+                    ? t.titleChooseDates
+                    : undefined
+                }
+              >
+                <i className="fa-solid fa-calendar-check" aria-hidden="true" />
+                {isOwnerAccount
+                  ? t.ctaOwnerOnly
+                  : !canBook
+                  ? t.ctaChooseDates
+                  : user
+                  ? t.ctaBookNow
+                  : t.ctaLoginToBook}
+              </button>
+              <p className="booking-note">
+                {isOwnerAccount ? (
+                  <>
+                    {t.noteOwner}{" "}
+                    <Link href="/inscription">{t.noteOwnerCta}</Link>
+                  </>
+                ) : (
+                  t.noteDefault
+                )}
+              </p>
+              <div className="booking-contact">
+                <Link href={contactHref}>
+                  <i className="fa-regular fa-comment" aria-hidden="true" /> {t.contact}{" "}
+                  {ownerLabel}
+                </Link>
+                <a href="tel:+33612345678">
+                  <i className="fa-solid fa-phone" aria-hidden="true" /> {t.call}
+                </a>
+              </div>
+            </div>
           </div>
-        ))}
+
+          <div className="booking-guarantees">
+            {BOOKING_GUARANTEES.map((g, i) => {
+              const label = t.guarantees[i];
+              return (
+                <div key={g.icon} className="booking-guarantee-item">
+                  <i
+                    className={`fa-solid ${g.icon} booking-guarantee-icon`}
+                    style={{ color: g.color }}
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <strong>{label.title}</strong> — {label.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </aside>
       </div>
-    </aside>
+    </>
   );
 }

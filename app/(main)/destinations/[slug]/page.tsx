@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDestinations, getDestinationBySlug } from "@/entities/destination";
 import { formatPrice } from "@/shared/lib/utils";
 import { getCoherentPhoto } from "@/shared/lib/pexels";
+import { LocaleLink as Link } from "@/shared/i18n";
+import { getDictionary, getRequestLocale } from "@/shared/i18n/get-dictionary";
 import { getDestinationBoats, groupBoatsByPort } from "./ports-data";
 import DestinationMapSection from "./DestinationMapSection";
 import "./destination-detail.css";
+
+/** Remplace les {placeholders} d'un gabarit par leurs valeurs. */
+function fill(tpl: string, vars: Record<string, string | number>): string {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,16 +26,18 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const t = getDictionary(await getRequestLocale()).destinationDetail;
   const dest = await getDestinationBySlug(slug);
-  if (!dest) return { title: "Destination introuvable" };
+  if (!dest) return { title: t.metaNotFound };
   return {
-    title: `${dest.name} — Location de bateau | SailingLoc`,
+    title: fill(t.metaTitle, { name: dest.name }),
     description: dest.description,
   };
 }
 
 export default async function DestinationDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  const t = getDictionary(await getRequestLocale()).destinationDetail;
   const dest = await getDestinationBySlug(slug);
   if (!dest) notFound();
 
@@ -75,27 +83,27 @@ export default async function DestinationDetailPage({ params }: PageProps) {
         <div className="dest-detail-hero-overlay" />
         <div className="container dest-detail-hero-content">
           <div className="dest-detail-breadcrumb">
-            <Link href="/destinations">Destinations</Link> / <span>{dest.name}</span>
+            <Link href="/destinations">{t.breadcrumb}</Link> / <span>{dest.name}</span>
           </div>
           <div className="dest-detail-flag" aria-hidden="true"><span className="dest-flag-code">{dest.flag} {dest.country}</span></div>
           <h1>{dest.name}</h1>
           <p className="dest-detail-tagline">{dest.tagline}</p>
           <div className="dest-detail-hero-meta">
-            <span><i className="fa-solid fa-sailboat" /> {destBoats.length} bateaux disponibles</span>
-            <span><i className="fa-solid fa-euro-sign" /> À partir de {dest.priceFrom} € / jour</span>
+            <span><i className="fa-solid fa-sailboat" /> {fill(t.heroBoatsAvailable, { count: destBoats.length })}</span>
+            <span><i className="fa-solid fa-euro-sign" /> {fill(t.heroPriceFrom, { price: dest.priceFrom })}</span>
             <span><i className="fa-solid fa-location-dot" /> {dest.region}</span>
           </div>
         </div>
-        <div className="dest-detail-hero-scroll" aria-hidden="true">
-          <i className="fa-solid fa-chevron-down" />
-        </div>
+        <a href="#dest-detail-content" className="dest-detail-hero-scroll" aria-label={fill(t.scrollDown, { name: dest.name })}>
+          <i className="fa-solid fa-chevron-down" aria-hidden="true" />
+        </a>
       </section>
 
-      <section className="section">
+      <section className="section" id="dest-detail-content">
         <div className="container dest-detail-layout">
           <div className="dest-detail-main">
             <div className="dest-detail-section fade-in">
-              <h2>À propos de {dest.name}</h2>
+              <h2>{fill(t.aboutTitle, { name: dest.name })}</h2>
               <p className="dest-detail-desc">{dest.description}</p>
               <div className="dest-tags">
                 {dest.tags.map((tag) => <span key={tag} className="dest-tag">{tag}</span>)}
@@ -103,7 +111,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             </div>
 
             <div className="dest-detail-section fade-in">
-              <h2>Points forts de la destination</h2>
+              <h2>{t.highlightsTitle}</h2>
               <div className="dest-highlights-grid">
                 {dest.highlights.map((h, i) => (
                   <div key={h.title} className="dest-highlight-card">
@@ -130,8 +138,8 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
             {ports.length > 0 && (
               <div className="dest-detail-section fade-in">
-                <h2>Ports de {dest.name}</h2>
-                <p className="dest-ports-intro">Choisissez un port pour découvrir les bateaux disponibles sur place.</p>
+                <h2>{fill(t.portsTitle, { name: dest.name })}</h2>
+                <p className="dest-ports-intro">{t.portsIntro}</p>
                 <div className="dest-ports-grid">
                   {ports.map((port) => {
                     const isCheapest = ports.length > 1 && port.priceFrom === Math.min(...ports.map((p) => p.priceFrom));
@@ -152,15 +160,15 @@ export default async function DestinationDetailPage({ params }: PageProps) {
                           <div className="dest-port-card-overlay" />
                         </div>
                         <span className="dest-port-card-tag">
-                          <i className="fa-solid fa-anchor" aria-hidden="true" /> Port
+                          <i className="fa-solid fa-anchor" aria-hidden="true" /> {t.portTag}
                         </span>
-                        {isCheapest && <span className="dest-port-card-ribbon">Meilleur prix</span>}
+                        {isCheapest && <span className="dest-port-card-ribbon">{t.portBestPrice}</span>}
                         <div className="dest-port-card-content">
                           <h3>{port.name}</h3>
                           <p className="dest-port-card-ville"><i className="fa-solid fa-location-dot" aria-hidden="true" /> {port.ville}</p>
                           <div className="dest-port-card-footer">
-                            <span><i className="fa-solid fa-sailboat" aria-hidden="true" /> {port.boats.length} bateau{port.boats.length > 1 ? "x" : ""}</span>
-                            <span className="dest-port-card-price">Dès {formatPrice(port.priceFrom)}</span>
+                            <span><i className="fa-solid fa-sailboat" aria-hidden="true" /> {fill(port.boats.length > 1 ? t.portBoatsMany : t.portBoatsOne, { count: port.boats.length })}</span>
+                            <span className="dest-port-card-price">{fill(t.portPriceFrom, { price: formatPrice(port.priceFrom) })}</span>
                           </div>
                         </div>
                         <span className="dest-port-card-arrow" aria-hidden="true">
@@ -185,13 +193,13 @@ export default async function DestinationDetailPage({ params }: PageProps) {
             </div>
 
             <div className="dest-detail-section fade-in">
-              <h2>Galerie photos</h2>
+              <h2>{t.galleryTitle}</h2>
               <div className="dest-gallery">
                 {galleryPhotos.map((src, i) => (
                   <div key={src} className={`dest-gallery-item${i === 0 ? " dest-gallery-main" : ""}`}>
                     <Image
                       src={src}
-                      alt={`${dest.name} — photo ${i + 1}`}
+                      alt={fill(t.galleryAlt, { name: dest.name, n: i + 1 })}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
                       style={{ objectFit: "cover" }}
@@ -204,47 +212,47 @@ export default async function DestinationDetailPage({ params }: PageProps) {
 
           <aside className="dest-detail-aside">
             <div className="dest-aside-card fade-in">
-              <h3>Météo & Navigation</h3>
+              <h3>{t.weatherTitle}</h3>
               <div className="dest-weather">
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-thermometer-half" />
-                  <div><strong>{dest.avgTemp}</strong><span>Température moy.</span></div>
+                  <div><strong>{dest.avgTemp}</strong><span>{t.avgTemp}</span></div>
                 </div>
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-wind" />
-                  <div><strong>{dest.avgWind}</strong><span>Vent moyen</span></div>
+                  <div><strong>{dest.avgWind}</strong><span>{t.avgWind}</span></div>
                 </div>
                 <div className="dest-weather-item">
                   <i className="fa-solid fa-calendar-days" />
-                  <div><strong>{dest.bestPeriod}</strong><span>Meilleure période</span></div>
+                  <div><strong>{dest.bestPeriod}</strong><span>{t.bestPeriod}</span></div>
                 </div>
               </div>
             </div>
 
             <div className="dest-aside-card fade-in">
-              <h3>Réserver un bateau</h3>
-              <p>Trouvez le bateau idéal pour découvrir {dest.name}.</p>
+              <h3>{t.bookTitle}</h3>
+              <p>{fill(t.bookText, { name: dest.name })}</p>
               <div className="dest-aside-price">
-                <span>À partir de</span>
+                <span>{t.bookPriceFrom}</span>
                 <strong>{dest.priceFrom} €</strong>
-                <span>/ jour</span>
+                <span>{t.bookPerDay}</span>
               </div>
               <Link
                 href={`/bateaux?destination=${encodeURIComponent(dest.name)}`}
                 className="btn btn-primary"
                 style={{ width: "100%", justifyContent: "center", display: "flex" }}
               >
-                <i className="fa-solid fa-magnifying-glass" /> Voir les bateaux
+                <i className="fa-solid fa-magnifying-glass" /> {t.bookSeeBoats}
               </Link>
             </div>
 
             <div className="dest-aside-card fade-in">
-              <h3>Infos pratiques</h3>
+              <h3>{t.practicalTitle}</h3>
               <ul className="dest-practical-list">
-                <li><i className="fa-solid fa-language" /> Langue : {dest.country === "France" ? "Français" : dest.country === "Grèce" ? "Grec / Anglais" : dest.country === "Espagne" ? "Espagnol" : dest.country === "Croatie" ? "Croate / Anglais" : "Local"}</li>
-                <li><i className="fa-solid fa-money-bill-wave" /> Monnaie : {dest.country === "Croatie" ? "Euro (€) depuis 2023" : "Euro (€)"}</li>
-                <li><i className="fa-solid fa-id-card" /> Documents : CNI ou Passeport UE</li>
-                <li><i className="fa-solid fa-anchor" /> Permis : {dest.country === "France" ? "Permis côtier recommandé" : "Permis hauturier selon zones"}</li>
+                <li><i className="fa-solid fa-language" /> {t.practicalLanguage} : {dest.country === "France" ? t.langFrench : dest.country === "Grèce" ? t.langGreekEnglish : dest.country === "Espagne" ? t.langSpanish : dest.country === "Croatie" ? t.langCroatianEnglish : t.langLocal}</li>
+                <li><i className="fa-solid fa-money-bill-wave" /> {t.practicalCurrency} : {dest.country === "Croatie" ? t.currencyEuroCroatia : t.currencyEuro}</li>
+                <li><i className="fa-solid fa-id-card" /> {t.practicalDocuments} : {t.practicalDocumentsValue}</li>
+                <li><i className="fa-solid fa-anchor" /> {t.practicalLicense} : {dest.country === "France" ? t.licenseCoastal : t.licenseOffshore}</li>
               </ul>
             </div>
           </aside>

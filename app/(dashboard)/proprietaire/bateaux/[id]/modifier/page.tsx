@@ -5,15 +5,24 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import "@/features/list-boat/ui/list-boat.css";
 import SearchableSelect from "@/features/list-boat/ui/SearchableSelect";
-import { MOTORISATION_OPTIONS, type Motorisation } from "@/features/list-boat";
+import EquipementsPicker from "@/features/list-boat/ui/EquipementsPicker";
+import type { Motorisation } from "@/features/list-boat";
 import { boatsApi, referentielsApi, portsApi, useAuth } from "@/shared/lib";
-import type { TypeBateauAPI, PortAPI } from "@/shared/lib";
+import type { TypeBateauAPI, PortAPI, TypeEquipementAPI, EquipementAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 
 export default function EditBoatPage() {
   const params = useParams<{ id: string }>();
   const boatId = params.id;
   const router = useRouter();
   const { user } = useAuth();
+  const t = useI18n().dict.editBoatPage;
+  const tf = useI18n().dict.listBoatForm;
+  const MOTORISATION_OPTIONS: { value: Motorisation; label: string }[] = [
+    { value: "voile",   label: tf.motorSail },
+    { value: "moteur",  label: tf.motorEngine },
+    { value: "hybride", label: tf.motorHybrid },
+  ];
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,6 +32,9 @@ export default function EditBoatPage() {
 
   const [boatTypes, setBoatTypes] = useState<TypeBateauAPI[]>([]);
   const [ports, setPorts] = useState<PortAPI[]>([]);
+  const [typesEquipements, setTypesEquipements] = useState<TypeEquipementAPI[]>([]);
+  const [originalEquipementIds, setOriginalEquipementIds] = useState<Set<number>>(new Set());
+  const [selectedEquipementIds, setSelectedEquipementIds] = useState<Set<number>>(new Set());
   const [ownerId, setOwnerId] = useState<number | undefined>(undefined);
 
   const [typeId, setTypeId] = useState<number | null>(null);
@@ -41,10 +53,11 @@ export default function EditBoatPage() {
   const [caution, setCaution] = useState("");
 
   useEffect(() => {
-    Promise.all([boatsApi.getOne(boatId), referentielsApi.getTypesBateaux(), portsApi.getAll()])
-      .then(([boat, types, portsRes]) => {
+    Promise.all([boatsApi.getOne(boatId), referentielsApi.getTypesBateaux(), portsApi.getAll(), referentielsApi.getTypesEquipements()])
+      .then(([boat, types, portsRes, typesEq]) => {
         setBoatTypes(Array.isArray(types) ? types : []);
         setPorts(Array.isArray(portsRes) ? portsRes : []);
+        setTypesEquipements(Array.isArray(typesEq) ? typesEq : []);
         setOwnerId(boat.id_utilisateur);
         setTypeId(boat.id_type_bateau ?? boat.typeBateau?.id ?? null);
         setMotorisation((boat.motorisation as Motorisation) || "voile");
@@ -60,15 +73,18 @@ export default function EditBoatPage() {
         setPricePerDay(boat.prixJour != null ? String(boat.prixJour) : "");
         setPrixHeure(boat.prixHeure != null ? String(boat.prixHeure) : "");
         setCaution(boat.caution != null ? String(boat.caution) : "");
+        const existingIds = new Set<number>((boat.equipements ?? []).map((eq: EquipementAPI) => eq.id));
+        setOriginalEquipementIds(existingIds);
+        setSelectedEquipementIds(new Set(existingIds));
       })
-      .catch(() => setError("Impossible de charger ce bateau."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
   }, [boatId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!typeId || !portId || !name.trim() || !pricePerDay || !length.trim()) {
-      setSaveError("Veuillez remplir tous les champs obligatoires.");
+      setSaveError(t.errRequired);
       return;
     }
     setSaving(true);
@@ -91,10 +107,18 @@ export default function EditBoatPage() {
         carburant_inclus: carburantInclus,
         prix_heure: prixHeure ? parseFloat(prixHeure) : undefined,
       });
+
+      const toAdd = [...selectedEquipementIds].filter((id) => !originalEquipementIds.has(id));
+      const toRemove = [...originalEquipementIds].filter((id) => !selectedEquipementIds.has(id));
+      await Promise.all([
+        ...(toAdd.length > 0 ? [boatsApi.addEquipements(boatId, toAdd)] : []),
+        ...toRemove.map((id) => boatsApi.removeEquipement(boatId, id)),
+      ]);
+
       setSaved(true);
       setTimeout(() => router.push("/proprietaire/bateaux"), 1200);
     } catch {
-      setSaveError("Impossible d'enregistrer les modifications. Réessayez.");
+      setSaveError(t.errSave);
     } finally {
       setSaving(false);
     }
@@ -103,7 +127,7 @@ export default function EditBoatPage() {
   if (loading) {
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   }
@@ -121,27 +145,27 @@ export default function EditBoatPage() {
       <div className="dash-page-hd">
         <div>
           <Link href="/proprietaire/bateaux" className="cal-back-link">
-            <i className="fa-solid fa-arrow-left" /> Mes bateaux
+            <i className="fa-solid fa-arrow-left" /> {t.backLink}
           </Link>
-          <h1 className="dash-title">Modifier — {name || "bateau"}</h1>
-          <p className="dash-sub">Les photos et documents se gèrent séparément (bientôt disponible ici).</p>
+          <h1 className="dash-title">{t.titlePrefix}{name || t.boatFallback}</h1>
+          <p className="dash-sub">{t.sub}</p>
         </div>
       </div>
 
       <form className="list-boat-form" onSubmit={handleSubmit} noValidate style={{ maxWidth: 760 }}>
         <div className="form-section">
-          <h3>Type de bateau *</h3>
+          <h3>{tf.step0Type}</h3>
           <SearchableSelect
             id="eb-type"
             options={boatTypes.map((bt) => ({ value: bt.id, label: bt.labelTypeBateau }))}
             value={typeId}
             onChange={(v) => setTypeId(Number(v))}
-            placeholder="Sélectionner un type de bateau…"
-            searchPlaceholder="Rechercher un type…"
+            placeholder={tf.step0TypePlaceholder}
+            searchPlaceholder={tf.step0TypeSearchPlaceholder}
             required
           />
 
-          <h3 style={{ marginTop: "24px" }}>Motorisation *</h3>
+          <h3 style={{ marginTop: "24px" }}>{tf.step0Motorisation}</h3>
           <div className="radio-group">
             {MOTORISATION_OPTIONS.map((opt) => (
               <label key={opt.value} className="radio-label">
@@ -157,15 +181,15 @@ export default function EditBoatPage() {
             ))}
           </div>
 
-          <h3 style={{ marginTop: "24px" }}>Informations générales</h3>
+          <h3 style={{ marginTop: "24px" }}>{tf.step0GeneralInfo}</h3>
           <div className="form-group">
-            <label htmlFor="eb-name">Nom du bateau *</label>
-            <input id="eb-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            <label htmlFor="eb-name">{tf.step0Name}</label>
+            <input id="eb-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
           </div>
 
           <div className="form-row-2">
             <div className="form-group">
-              <label htmlFor="eb-port">Port d&apos;attache *</label>
+              <label htmlFor="eb-port">{tf.step0Port}</label>
               <SearchableSelect
                 id="eb-port"
                 options={ports.map((p) => ({
@@ -175,55 +199,55 @@ export default function EditBoatPage() {
                 }))}
                 value={portId}
                 onChange={(v) => setPortId(Number(v) || null)}
-                placeholder="Sélectionner un port…"
-                searchPlaceholder="Rechercher par nom ou ville…"
+                placeholder={tf.step0PortPlaceholder}
+                searchPlaceholder={tf.step0PortSearchPlaceholder}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="eb-length">Taille *</label>
-              <input id="eb-length" type="text" placeholder="Ex: 12m" value={length} onChange={(e) => setLength(e.target.value)} required />
+              <label htmlFor="eb-length">{tf.step0Length}</label>
+              <input id="eb-length" type="text" placeholder={tf.step0LengthPlaceholder} value={length} onChange={(e) => setLength(e.target.value)} required maxLength={20} />
             </div>
           </div>
 
           <div className="form-row-3">
             <div className="form-group">
-              <label htmlFor="eb-capacity">Capacité (pers.)</label>
+              <label htmlFor="eb-capacity">{tf.step0Capacity}</label>
               <input id="eb-capacity" type="number" min="1" max="30" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
             </div>
             <div className="form-group">
-              <label htmlFor="eb-cabins">Cabines</label>
+              <label htmlFor="eb-cabins">{tf.step0Cabins}</label>
               <input id="eb-cabins" type="number" min="0" max="10" value={cabins} onChange={(e) => setCabins(e.target.value)} />
             </div>
           </div>
 
-          <h3 style={{ marginTop: "24px" }}>Options</h3>
+          <h3 style={{ marginTop: "24px" }}>{tf.step0Options}</h3>
           <div className="checkbox-group">
             <label className="checkbox-label">
               <input type="checkbox" checked={skipper} onChange={(e) => setSkipper(e.target.checked)} />
-              Avec skipper disponible
+              {tf.optSkipper}
             </label>
             <label className="checkbox-label">
               <input type="checkbox" checked={permisRequis} onChange={(e) => setPermisRequis(e.target.checked)} />
-              Permis requis
+              {tf.optPermis}
             </label>
             <label className="checkbox-label">
               <input type="checkbox" checked={carburantInclus} onChange={(e) => setCarburantInclus(e.target.checked)} />
-              Carburant inclus
+              {tf.optCarburant}
             </label>
           </div>
 
-          <h3 style={{ marginTop: "24px" }}>Tarification</h3>
+          <h3 style={{ marginTop: "24px" }}>{tf.step0Pricing}</h3>
           <div className="form-row-2">
             <div className="form-group">
-              <label htmlFor="eb-price">Prix par jour (€) *</label>
+              <label htmlFor="eb-price">{tf.pricePerDay}</label>
               <div className="input-prefix-wrap">
                 <span className="input-prefix">€</span>
                 <input id="eb-price" type="number" min="10" step="0.01" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} required />
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="eb-prix-heure">Prix par heure (€)</label>
+              <label htmlFor="eb-prix-heure">{tf.pricePerHour}</label>
               <div className="input-prefix-wrap">
                 <span className="input-prefix">€</span>
                 <input id="eb-prix-heure" type="number" min="0" step="0.01" value={prixHeure} onChange={(e) => setPrixHeure(e.target.value)} />
@@ -231,7 +255,7 @@ export default function EditBoatPage() {
             </div>
           </div>
           <div className="form-group">
-            <label htmlFor="eb-caution">Caution (€)</label>
+            <label htmlFor="eb-caution">{tf.caution}</label>
             <div className="input-prefix-wrap">
               <span className="input-prefix">€</span>
               <input id="eb-caution" type="number" min="0" step="0.01" value={caution} onChange={(e) => setCaution(e.target.value)} />
@@ -239,8 +263,27 @@ export default function EditBoatPage() {
           </div>
 
           <div className="form-group" style={{ marginTop: "8px" }}>
-            <label htmlFor="eb-desc">Description</label>
-            <textarea id="eb-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <label htmlFor="eb-desc">{tf.step0Description}</label>
+            <textarea id="eb-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} />
+          </div>
+
+          {/* ── Équipements ── */}
+          <div className="form-group" style={{ marginTop: "24px" }}>
+            <label>{tf.equipementsTitle}</label>
+            <p className="form-hint">{tf.equipementsSubtitle}</p>
+            <EquipementsPicker
+              typesEquipements={typesEquipements}
+              selectedIds={selectedEquipementIds}
+              emptyLabel={tf.equipementsNone}
+              onToggle={(equipementId, checked) => {
+                setSelectedEquipementIds((prev) => {
+                  const next = new Set(prev);
+                  if (checked) next.add(equipementId);
+                  else next.delete(equipementId);
+                  return next;
+                });
+              }}
+            />
           </div>
         </div>
 
@@ -252,16 +295,16 @@ export default function EditBoatPage() {
           )}
           {saved && (
             <p style={{ color: "var(--green)", fontSize: ".875rem", flex: 1 }}>
-              <i className="fa-solid fa-circle-check" /> Modifications enregistrées !
+              <i className="fa-solid fa-circle-check" /> {t.saveSuccess}
             </p>
           )}
           <div className="form-wizard-nav-actions">
-            <Link href="/proprietaire/bateaux" className="btn-ghost">Annuler</Link>
+            <Link href="/proprietaire/bateaux" className="btn-ghost">{t.cancel}</Link>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? (
-                <><i className="fa-solid fa-circle-notch fa-spin" /> Enregistrement…</>
+                <><i className="fa-solid fa-circle-notch fa-spin" /> {t.saving}</>
               ) : (
-                <><i className="fa-solid fa-check" /> Enregistrer les modifications</>
+                <><i className="fa-solid fa-check" /> {t.submit}</>
               )}
             </button>
           </div>

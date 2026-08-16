@@ -1,40 +1,47 @@
-import Link from "next/link";
 import { CookieSettingsButton } from "@/widgets/cookie-consent";
 import { Logo } from "@/shared/ui";
+import { LocaleLink as Link } from "@/shared/i18n";
+import { getRequestLocale, getDictionary } from "@/shared/i18n/get-dictionary";
 
+/* Les libellés sont résolus via le dictionnaire (clé → traduction) ; seuls
+   les href restent en dur (chemins canoniques FR, préfixés par LocaleLink). */
 const footerLinks = {
   annonces: [
-    { href: "/bateaux", label: "Trouver un bateau" },
-    { href: "/destinations", label: "Destinations" },
-    { href: "/bateaux?type=voilier", label: "Voiliers" },
-    { href: "/bateaux?type=catamaran", label: "Catamarans" },
-    { href: "/bateaux?type=moteur", label: "Bateaux moteur" },
-    { href: "/bateaux?type=sans-permis", label: "Sans permis" },
+    { href: "/bateaux", key: "findBoat" },
+    { href: "/destinations", key: "destinations" },
+    { href: "/bateaux?type=voilier", key: "sailboats" },
+    { href: "/bateaux?type=catamaran", key: "catamarans" },
+    { href: "/bateaux?type=moteur", key: "motorboats" },
+    { href: "/bateaux?type=sans-permis", key: "noLicense" },
   ],
   proprietaires: [
-    { href: "/proprietaire", label: "Mettre en location" },
-    { href: "/comment-ca-marche#proprietaires", label: "Assurance propriétaire" },
-    { href: "/comment-ca-marche#proprietaires", label: "Tarifs & commissions" },
-    { href: "/contact", label: "Aide propriétaire" },
-    { href: "/proprietaire/bateaux", label: "Espace propriétaire" },
+    { href: "/proprietaire", key: "listBoat" },
+    { href: "/comment-ca-marche#proprietaires", key: "ownerInsurance" },
+    { href: "/comment-ca-marche#proprietaires", key: "pricing" },
+    { href: "/contact", key: "ownerHelp" },
+    { href: "/proprietaire/bateaux", key: "ownerSpace" },
   ],
   informations: [
-    { href: "/comment-ca-marche", label: "À propos de SailingLoc" },
-    { href: "/contact", label: "Contact" },
-    { href: "/comment-ca-marche", label: "Comment ça marche" },
-    { href: "/comment-ca-marche#questions", label: "FAQ" },
-    { href: "/confidentialite", label: "Politique RGPD" },
-    { href: "#", label: "Blog" },
+    { href: "/comment-ca-marche", key: "about" },
+    { href: "/contact", key: "contact" },
+    { href: "/comment-ca-marche", key: "howItWorks" },
+    { href: "/comment-ca-marche#questions", key: "faq" },
+    { href: "/confidentialite", key: "gdpr" },
+    { href: "#", key: "blog" },
   ],
   abonnement: [
-    { href: "#", label: "Application mobile" },
-    { href: "#", label: "Alertes email" },
-    { href: "#", label: "Newsletter" },
-    { href: "#", label: "Nos partenaires" },
+    { href: "#", key: "mobileApp" },
+    { href: "#", key: "emailAlerts" },
+    { href: "#", key: "newsletter" },
+    { href: "#", key: "partners" },
   ],
-};
+} as const;
 
-export default function Footer() {
+export default async function Footer() {
+  const dict = getDictionary(await getRequestLocale());
+  const t = dict.footer;
+  const l = t.links;
+
   return (
     <footer>
       <div className="container">
@@ -43,57 +50,55 @@ export default function Footer() {
             <div className="footer-logo">
               <Logo onDark />
             </div>
-            <p>
-              La plateforme de référence pour la location de bateaux entre
-              particuliers en France et en Europe. Accessible à tous.
-            </p>
+            <p>{t.tagline}</p>
           </div>
 
           <div className="footer-col">
-            <h5>Annonces</h5>
+            <h5>{t.colListings}</h5>
             <ul>
               {footerLinks.annonces.map((link) => (
-                <li key={link.label}><Link href={link.href}>{link.label}</Link></li>
+                <li key={link.key}><Link href={link.href}>{l[link.key]}</Link></li>
               ))}
             </ul>
           </div>
 
           <div className="footer-col">
-            <h5>Propriétaires</h5>
+            <h5>{t.colOwners}</h5>
             <ul>
               {footerLinks.proprietaires.map((link) => (
-                <li key={link.label}><Link href={link.href}>{link.label}</Link></li>
+                <li key={link.key}><Link href={link.href}>{l[link.key]}</Link></li>
               ))}
             </ul>
           </div>
 
           <div className="footer-col">
-            <h5>Informations</h5>
+            <h5>{t.colInfo}</h5>
             <ul>
               {footerLinks.informations.map((link) => (
-                <li key={link.label}><Link href={link.href}>{link.label}</Link></li>
+                <li key={link.key}><Link href={link.href}>{l[link.key]}</Link></li>
               ))}
             </ul>
           </div>
 
           <div className="footer-col">
-            <h5>Abonnement</h5>
+            <h5>{t.colSubscribe}</h5>
             <ul>
               {footerLinks.abonnement.map((link) => (
-                <li key={link.label}><Link href={link.href}>{link.label}</Link></li>
+                <li key={link.key}><Link href={link.href}>{l[link.key]}</Link></li>
               ))}
             </ul>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <span>© 2026 SailingLoc.com — Tous droits réservés</span>
+          <span>{t.rights}</span>
           <div className="footer-bottom-links">
-            <Link href="/cgu">CGU</Link>
-            <Link href="/cookies">Cookies</Link>
-            <Link href="/confidentialite">Confidentialité</Link>
-            <Link href="/mentions-legales">Mentions légales</Link>
-            <CookieSettingsButton className="">Gérer mes cookies</CookieSettingsButton>
+            <Link href="/cgu">{l.cgu}</Link>
+            <Link href="/cookies">{l.cookies}</Link>
+            <Link href="/confidentialite">{l.privacy}</Link>
+            <Link href="/mentions-legales">{l.legal}</Link>
+            <Link href="/plan-du-site">{l.sitemap}</Link>
+            <CookieSettingsButton className="">{t.manageCookies}</CookieSettingsButton>
           </div>
         </div>
       </div>

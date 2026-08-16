@@ -5,6 +5,7 @@ import StarPicker from "./StarPicker";
 import { submitBoatRating } from "../api/rate";
 import { EMPTY_RATING, type RatingFormValues } from "../model/types";
 import type { AvisAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./rating-form.css";
 
 interface RatingFormProps {
@@ -15,6 +16,7 @@ interface RatingFormProps {
 }
 
 export default function RatingForm({ reservationId, boatName, onClose, onSuccess }: RatingFormProps) {
+  const t = useI18n().dict.ratingForm;
   const [values, setValues] = useState<RatingFormValues>(EMPTY_RATING);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -34,8 +36,16 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
     setSubmitting(false);
     if (result.success && result.avis) {
       onSuccess(result.avis);
+    } else if (result.errorKind === "already-rated") {
+      setError(t.errAlreadyRated);
+    } else if (result.errorKind === "not-completed") {
+      setError(t.errNotCompleted);
+    } else if (result.errorKind === "network") {
+      setError(t.errNetwork);
+    } else if (result.errorKind === "server") {
+      setError(t.errServer);
     } else {
-      setError(result.error ?? "Une erreur est survenue.");
+      setError(t.errFallback);
     }
   };
 
@@ -44,12 +54,12 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
       className="rating-modal-overlay"
       onClick={(e) => { if (e.target === e.currentTarget && !submitting) onClose(); }}
     >
-      <div className="rating-modal" role="dialog" aria-modal="true" aria-label="Noter cette location">
+      <div className="rating-modal" role="dialog" aria-modal="true" aria-label={t.ariaLabel}>
         <div className="rating-modal-header">
           <h2>
-            <i className="fa-solid fa-star" aria-hidden="true" /> Noter votre location
+            <i className="fa-solid fa-star" aria-hidden="true" /> {t.title}
           </h2>
-          <button className="rating-modal-close" onClick={onClose} disabled={submitting} aria-label="Fermer">
+          <button className="rating-modal-close" onClick={onClose} disabled={submitting} aria-label={t.closeAria}>
             <i className="fa-solid fa-xmark" />
           </button>
         </div>
@@ -57,13 +67,13 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
         <p className="rating-modal-boat">{boatName}</p>
 
         <div className="rating-modal-body">
-          <StarPicker label="Le propriétaire" icon="fa-user" value={values.noteProprietaire} onChange={set("noteProprietaire")} />
-          <StarPicker label="Le bateau" icon="fa-sailboat" value={values.noteBateau} onChange={set("noteBateau")} />
-          <StarPicker label="Le lieu visité" icon="fa-map-location-dot" value={values.noteLieu} onChange={set("noteLieu")} />
+          <StarPicker label={t.criteriaOwner} icon="fa-user" value={values.noteProprietaire} onChange={set("noteProprietaire")} />
+          <StarPicker label={t.criteriaBoat} icon="fa-sailboat" value={values.noteBateau} onChange={set("noteBateau")} />
+          <StarPicker label={t.criteriaPlace} icon="fa-map-location-dot" value={values.noteLieu} onChange={set("noteLieu")} />
 
           {complete && (
             <div className="rating-modal-average">
-              Note globale : <strong>{average}/5</strong>
+              {t.globalScore} <strong>{average}/5</strong>
               <span className="stars">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <i key={n} className={n <= average ? "fa-solid fa-star" : "fa-regular fa-star"} aria-hidden="true" />
@@ -72,13 +82,13 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
             </div>
           )}
 
-          <label className="rating-modal-comment-label" htmlFor="rating-comment">Votre commentaire</label>
+          <label className="rating-modal-comment-label" htmlFor="rating-comment">{t.commentLabel}</label>
           <textarea
             id="rating-comment"
             className="rating-modal-textarea"
             rows={4}
             maxLength={1000}
-            placeholder="Partagez votre expérience avec les prochains locataires…"
+            placeholder={t.commentPlaceholder}
             value={values.commentaire}
             onChange={(e) => setValues((prev) => ({ ...prev, commentaire: e.target.value }))}
           />
@@ -87,13 +97,13 @@ export default function RatingForm({ reservationId, boatName, onClose, onSuccess
         </div>
 
         <div className="rating-modal-footer">
-          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Annuler</button>
+          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>{t.cancel}</button>
           <button
             className="btn btn-primary"
             onClick={handleSubmit}
             disabled={!complete || !values.commentaire.trim() || submitting}
           >
-            {submitting ? "Envoi…" : "Publier ma notation"}
+            {submitting ? t.submitting : t.submit}
           </button>
         </div>
       </div>

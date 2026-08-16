@@ -77,7 +77,7 @@ function NewConvModal({ myId, onSelect, onClose }: { myId: number; onSelect: (p:
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(10,18,34,.5)", backdropFilter: "blur(4px)", zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "var(--card-bg)", borderRadius: "var(--radius-xl)", boxShadow: "0 24px 64px rgba(0,0,0,.25)", width: "100%", maxWidth: 480, overflow: "hidden", animation: "pub-slide-in .2s ease" }}>
+      <div role="dialog" aria-modal="true" aria-label="Nouvelle discussion" style={{ background: "var(--card-bg)", borderRadius: "var(--radius-xl)", boxShadow: "0 24px 64px rgba(0,0,0,.25)", width: "100%", maxWidth: 480, overflow: "hidden", animation: "pub-slide-in .2s ease" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
           <div>
             <strong style={{ fontSize: ".9375rem" }}>Nouvelle discussion</strong>
@@ -334,7 +334,7 @@ export default function AdminMessagesPage() {
                   <input ref={inputRef} type="text" className="messages-reply-input" placeholder={`Message à ${activePartner.prenom}…`}
                     value={reply} onChange={(e) => setReply(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    autoComplete="off" disabled={sending} />
+                    autoComplete="off" disabled={sending} maxLength={2000} />
                 </div>
                 <button type="submit" className="messages-reply-send" disabled={!reply.trim() || sending} title="Envoyer (Entrée)"
                   style={{ border: "none", background: reply.trim() ? "var(--primary)" : "var(--border)", color: reply.trim() ? "#fff" : "var(--text-3)", cursor: !reply.trim() || sending ? "not-allowed" : "pointer", transition: "background .18s, color .18s" }}>

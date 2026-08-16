@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const found = await loadPort(slug, portId);
   if (!found) return { title: "Port introuvable" };
   return {
-    title: `${found.port.name} — ${found.dest.name} | SailingLoc`,
+    title: `${found.port.name} — ${found.dest.name}`,
     description: `${found.port.boats.length} bateaux disponibles au port de ${found.port.name}, ${found.port.ville}.`,
   };
 }

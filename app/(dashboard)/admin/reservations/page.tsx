@@ -261,13 +261,13 @@ function ReservationDetailsModal({ reservation: r, onClose }: { reservation: Res
 
   return (
     <div className="res-modal-overlay" onClick={onClose}>
-      <div className="res-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="res-modal" role="dialog" aria-modal="true" aria-labelledby="res-modal-title" onClick={(e) => e.stopPropagation()}>
         <div className="res-modal-hd">
           <div className="res-modal-hd-icon">
             <i className="fa-solid fa-calendar-check" />
           </div>
           <div className="res-modal-hd-text">
-            <h3>Réservation #{r.id}</h3>
+            <h3 id="res-modal-title">Réservation #{r.id}</h3>
             {r.dateReservation && <span className="res-modal-muted">Réservée le {fmtLong(r.dateReservation)}</span>}
           </div>
           <button className="res-modal-close" onClick={onClose} aria-label="Fermer">

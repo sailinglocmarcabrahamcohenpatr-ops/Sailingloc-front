@@ -5,7 +5,9 @@ import type { RatingFormValues } from "../model/types";
 export interface RateBoatResult {
   success: boolean;
   avis?: AvisAPI;
-  error?: string;
+  /** Pas de texte en dur ici : la traduction du message affiché à
+   *  l'utilisateur relève de la couche UI (i18n), pas de cette API. */
+  errorKind?: "already-rated" | "not-completed" | "server" | "network";
 }
 
 export async function submitBoatRating(
@@ -24,13 +26,13 @@ export async function submitBoatRating(
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 409) {
-        return { success: false, error: "Vous avez déjà noté cette location." };
+        return { success: false, errorKind: "already-rated" };
       }
       if (err.status === 422) {
-        return { success: false, error: "Cette location doit être terminée pour pouvoir être notée." };
+        return { success: false, errorKind: "not-completed" };
       }
-      return { success: false, error: err.message || "Une erreur est survenue. Veuillez réessayer." };
+      return { success: false, errorKind: "server" };
     }
-    return { success: false, error: "Impossible d'envoyer votre notation. Vérifiez votre connexion." };
+    return { success: false, errorKind: "network" };
   }
 }

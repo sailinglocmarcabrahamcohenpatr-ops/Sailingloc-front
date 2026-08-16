@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import { reservationsApi, referentielsApi, resolvePhotoUrl } from "@/shared/lib";
-import type { ReservationAPI, StatutReservationAPI, PaiementAPI } from "@/shared/lib";
+import {
+  reservationsApi,
+  referentielsApi,
+  resolvePhotoUrl,
+  boatsApi,
+  generateReservationInvoicePdf,
+  generateReservationContractPdf,
+} from "@/shared/lib";
+import type { ReservationAPI, StatutReservationAPI, PaiementAPI, BoatAPI } from "@/shared/lib";
+import { useI18n } from "@/shared/i18n";
 import "./reservations.css";
 
 type BadgeKey = "confirmed" | "pending" | "cancelled" | "completed";
-
-const STATUS: Record<BadgeKey, { label: string; cls: string }> = {
-  confirmed: { label: "Confirmée", cls: "badge-status green" },
-  pending: { label: "En attente", cls: "badge-status orange" },
-  cancelled: { label: "Annulée", cls: "badge-status red" },
-  completed: { label: "Terminée", cls: "badge-status grey" },
-};
 
 function libelleToKey(libelle?: string): BadgeKey {
   if (!libelle) return "pending";
@@ -24,18 +25,11 @@ function libelleToKey(libelle?: string): BadgeKey {
   return "pending";
 }
 
-const fmt = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const fmt = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
-const fmtLong = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-
-const PAIEMENT_STATUS: Record<string, { label: string; cls: string; icon: string }> = {
-  paye: { label: "Payé", cls: "badge-status green", icon: "fa-circle-check" },
-  en_attente: { label: "En attente", cls: "badge-status orange", icon: "fa-hourglass-half" },
-  echoue: { label: "Échoué", cls: "badge-status red", icon: "fa-circle-xmark" },
-  rembourse: { label: "Remboursé", cls: "badge-status grey", icon: "fa-rotate-left" },
-};
+const fmtLong = (d: string, locale: string) =>
+  new Date(d).toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
 
 /** Normalise "Payé" / "PAYE" / "payé" → "paye" pour matcher les clés ci-dessus quelle que soit la casse/accentuation renvoyée par l'API */
 const normalizeKey = (s: string) =>
@@ -51,12 +45,6 @@ function initials(r: ReservationAPI): string {
   const u = r.utilisateur;
   if (!u) return "?";
   return ((u.prenom?.[0] ?? "") + (u.nom?.[0] ?? "")).toUpperCase() || "?";
-}
-
-function renterName(r: ReservationAPI): string {
-  const u = r.utilisateur;
-  if (!u) return `Réservation #${r.id}`;
-  return `${u.prenom} ${u.nom}`.trim();
 }
 
 const Section = ({
@@ -77,8 +65,21 @@ const Section = ({
   onConfirm: (r: ReservationAPI) => void;
   onRefuse: (r: ReservationAPI) => void;
   onDetails: (r: ReservationAPI) => void;
-}) =>
-  items.length > 0 ? (
+}) => {
+  const t = useI18n().dict.ownerReservationsPage;
+  const STATUS: Record<BadgeKey, { label: string; cls: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "badge-status green" },
+    pending:   { label: t.statusPending,   cls: "badge-status orange" },
+    cancelled: { label: t.statusCancelled, cls: "badge-status red" },
+    completed: { label: t.statusCompleted, cls: "badge-status grey" },
+  };
+  const renterName = (r: ReservationAPI): string => {
+    const u = r.utilisateur;
+    if (!u) return t.reservationFallback.replace("{id}", String(r.id));
+    return `${u.prenom} ${u.nom}`.trim();
+  };
+
+  return items.length > 0 ? (
     <div className="rsv-section">
       <div className="rsv-section-hd">
         <i className={`fa-solid ${icon}`} />
@@ -90,7 +91,7 @@ const Section = ({
           const key = libelleToKey(r.statutReservation);
           const st = STATUS[key];
           const days = daysBetween(r.dateDebut, r.dateFin);
-          const boatName = r.bateau?.nomBateau ?? `Bateau #${r.bateau?.id ?? r.id}`;
+          const boatName = r.bateau?.nomBateau ?? t.boatFallback.replace("{id}", String(r.bateau?.id ?? r.id));
           const busy = actioningId === r.id;
 
           return (
@@ -104,10 +105,10 @@ const Section = ({
               </div>
               <div className="rsv-dates">
                 <i className="fa-regular fa-calendar" />
-                {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
+                {fmt(r.dateDebut, t.intlLocale)} → {fmt(r.dateFin, t.intlLocale)} · {days} {days !== 1 ? t.dayPlural : t.daySingular}
               </div>
               <div className="rsv-amount">
-                <strong>{Number(r.montantTotal).toLocaleString("fr-FR")} €</strong>
+                <strong>{Number(r.montantTotal).toLocaleString(t.intlLocale)} €</strong>
                 <span className={st.cls}>{st.label}</span>
               </div>
               <div className="rsv-actions">
@@ -118,22 +119,22 @@ const Section = ({
                       onClick={() => onConfirm(r)}
                       disabled={busy}
                     >
-                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-check" />} Confirmer
+                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-check" />} {t.confirm}
                     </button>
                     <button
                       className="rsv-btn rsv-btn-refuse"
                       onClick={() => onRefuse(r)}
                       disabled={busy}
                     >
-                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} Refuser
+                      {busy ? <i className="fa-solid fa-circle-notch fa-spin" /> : <i className="fa-solid fa-xmark" />} {t.refuse}
                     </button>
                   </>
                 )}
-                {key === "confirmed" && (
+                {(key === "confirmed" || key === "completed") && (
                   <button
                     className="rsv-btn-ghost"
                     onClick={() => onDetails(r)}
-                    aria-label="Voir les détails de la réservation"
+                    aria-label={t.detailsAria}
                   >
                     <i className="fa-solid fa-ellipsis" />
                   </button>
@@ -146,10 +147,13 @@ const Section = ({
       </div>
     </div>
   ) : null;
+};
 
 export default function OwnerReservationsPage() {
+  const t = useI18n().dict.ownerReservationsPage;
   const [reservations, setReservations] = useState<ReservationAPI[]>([]);
   const [statuts, setStatuts] = useState<StatutReservationAPI[]>([]);
+  const [boatsById, setBoatsById] = useState<Map<number, BoatAPI>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<number | null>(null);
@@ -157,19 +161,25 @@ export default function OwnerReservationsPage() {
   const [detailsReservation, setDetailsReservation] = useState<ReservationAPI | null>(null);
 
   useEffect(() => {
-    Promise.all([reservationsApi.getAll(), referentielsApi.getStatutsReservations()])
-      .then(([resa, sts]) => {
+    Promise.all([
+      reservationsApi.getAll(),
+      referentielsApi.getStatutsReservations(),
+      boatsApi.getAll().catch(() => [] as BoatAPI[]),
+    ])
+      .then(([resa, sts, boats]) => {
         setReservations(resa);
         setStatuts(sts);
+        setBoatsById(new Map(boats.map((b) => [b.id, b])));
       })
-      .catch(() => setError("Impossible de charger les réservations."))
+      .catch(() => setError(t.errLoad))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleConfirm = async (r: ReservationAPI) => {
     const confirme = statuts.find((s) => s.value.toLowerCase().includes("confirm"));
     if (!confirme) {
-      setActionError((prev) => ({ ...prev, [r.id]: "Statut « confirmée » introuvable." }));
+      setActionError((prev) => ({ ...prev, [r.id]: t.statusNotFound }));
       return;
     }
     setActioningId(r.id);
@@ -178,7 +188,7 @@ export default function OwnerReservationsPage() {
       const updated = await reservationsApi.update(r.id, { id_statut_reservation: confirme.value });
       setReservations((prev) => prev.map((x) => (x.id === r.id ? { ...x, ...updated } : x)));
     } catch {
-      setActionError((prev) => ({ ...prev, [r.id]: "Impossible de confirmer cette réservation." }));
+      setActionError((prev) => ({ ...prev, [r.id]: t.errConfirm }));
     } finally {
       setActioningId(null);
     }
@@ -191,7 +201,7 @@ export default function OwnerReservationsPage() {
       await reservationsApi.cancel(r.id);
       setReservations((prev) => prev.filter((x) => x.id !== r.id));
     } catch {
-      setActionError((prev) => ({ ...prev, [r.id]: "Impossible de refuser cette réservation." }));
+      setActionError((prev) => ({ ...prev, [r.id]: t.errRefuse }));
     } finally {
       setActioningId(null);
     }
@@ -200,7 +210,7 @@ export default function OwnerReservationsPage() {
   if (loading)
     return (
       <div className="dash-page">
-        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>Chargement…</div>
+        <div style={{ textAlign: "center", padding: "60px", color: "var(--text-2)" }}>{t.loading}</div>
       </div>
     );
   if (error)
@@ -224,8 +234,8 @@ export default function OwnerReservationsPage() {
   return (
     <div className="rsv-page">
       <div className="rsv-header">
-        <h1>Réservations</h1>
-        <p>{reservations.length} réservation{reservations.length !== 1 ? "s" : ""} au total</p>
+        <h1>{t.title}</h1>
+        <p>{(reservations.length === 1 ? t.countSingular : t.countPlural).replace("{n}", String(reservations.length))}</p>
       </div>
 
       <div className="rsv-stats-grid">
@@ -233,21 +243,21 @@ export default function OwnerReservationsPage() {
           <div className="rsv-stat-icon"><i className="fa-solid fa-hourglass-half" /></div>
           <div>
             <div className="rsv-stat-value">{pending.length}</div>
-            <div className="rsv-stat-label">En attente</div>
+            <div className="rsv-stat-label">{t.statPending}</div>
           </div>
         </div>
         <div className="rsv-stat-card confirmed">
           <div className="rsv-stat-icon"><i className="fa-solid fa-calendar-check" /></div>
           <div>
             <div className="rsv-stat-value">{active.length}</div>
-            <div className="rsv-stat-label">Confirmées</div>
+            <div className="rsv-stat-label">{t.statConfirmed}</div>
           </div>
         </div>
         <div className="rsv-stat-card history">
           <div className="rsv-stat-icon"><i className="fa-solid fa-clock-rotate-left" /></div>
           <div>
             <div className="rsv-stat-value">{past.length}</div>
-            <div className="rsv-stat-label">Historique</div>
+            <div className="rsv-stat-label">{t.statHistory}</div>
           </div>
         </div>
       </div>
@@ -255,12 +265,12 @@ export default function OwnerReservationsPage() {
       {reservations.length === 0 ? (
         <div className="rsv-empty">
           <i className="fa-solid fa-calendar-xmark" />
-          Aucune réservation pour l'instant.
+          {t.empty}
         </div>
       ) : (
         <>
           <Section
-            title="En attente de confirmation"
+            title={t.sectionPending}
             icon="fa-hourglass-half"
             items={pending}
             actioningId={actioningId}
@@ -270,7 +280,7 @@ export default function OwnerReservationsPage() {
             onDetails={setDetailsReservation}
           />
           <Section
-            title="Réservations confirmées"
+            title={t.sectionConfirmed}
             icon="fa-calendar-check"
             items={active}
             actioningId={actioningId}
@@ -280,7 +290,7 @@ export default function OwnerReservationsPage() {
             onDetails={setDetailsReservation}
           />
           <Section
-            title="Historique"
+            title={t.sectionHistory}
             icon="fa-clock-rotate-left"
             items={past}
             actioningId={actioningId}
@@ -295,6 +305,7 @@ export default function OwnerReservationsPage() {
       {detailsReservation && (
         <ReservationDetailsModal
           reservation={detailsReservation}
+          boat={detailsReservation.bateau?.id != null ? boatsById.get(detailsReservation.bateau.id) : undefined}
           onClose={() => setDetailsReservation(null)}
         />
       )}
@@ -319,11 +330,31 @@ const ModalSection = ({
 
 function ReservationDetailsModal({
   reservation: r,
+  boat: fullBoat,
   onClose,
 }: {
   reservation: ReservationAPI;
+  boat?: BoatAPI;
   onClose: () => void;
 }) {
+  const t = useI18n().dict.ownerReservationsPage;
+  const STATUS: Record<BadgeKey, { label: string; cls: string }> = {
+    confirmed: { label: t.statusConfirmed, cls: "badge-status green" },
+    pending:   { label: t.statusPending,   cls: "badge-status orange" },
+    cancelled: { label: t.statusCancelled, cls: "badge-status red" },
+    completed: { label: t.statusCompleted, cls: "badge-status grey" },
+  };
+  const PAIEMENT_STATUS: Record<string, { label: string; cls: string; icon: string }> = {
+    paye:       { label: t.paymentPaid,     cls: "badge-status green",  icon: "fa-circle-check" },
+    en_attente: { label: t.paymentPending,  cls: "badge-status orange", icon: "fa-hourglass-half" },
+    echoue:     { label: t.paymentFailed,   cls: "badge-status red",    icon: "fa-circle-xmark" },
+    rembourse:  { label: t.paymentRefunded, cls: "badge-status grey",   icon: "fa-rotate-left" },
+  };
+  const renterName = (res: ReservationAPI): string => {
+    const u = res.utilisateur;
+    if (!u) return t.reservationFallback.replace("{id}", String(res.id));
+    return `${u.prenom} ${u.nom}`.trim();
+  };
   const [paiements, setPaiements] = useState<PaiementAPI[]>([]);
   const [paiementsLoading, setPaiementsLoading] = useState(true);
 
@@ -344,7 +375,7 @@ function ReservationDetailsModal({
   const st = STATUS[key];
   const days = daysBetween(r.dateDebut, r.dateFin);
   const boat = r.bateau;
-  const boatName = boat?.nomBateau ?? `Bateau #${boat?.id ?? r.id}`;
+  const boatName = boat?.nomBateau ?? t.boatFallback.replace("{id}", String(boat?.id ?? r.id));
   const u = r.utilisateur;
   const montantTotal = Number(r.montantTotal);
   const prixJour = boat?.prixJour !== undefined ? Number(boat.prixJour) : null;
@@ -352,20 +383,30 @@ function ReservationDetailsModal({
     ?.slice()
     .sort((a, b) => (a.ordreAffichage ?? 0) - (b.ordreAffichage ?? 0))[0];
 
+  const tenantInfo = { name: u ? `${u.prenom} ${u.nom}` : undefined, email: u?.email };
+
+  const handleDownloadInvoice = () => {
+    void generateReservationInvoicePdf(r, tenantInfo, paiements, fullBoat);
+  };
+
+  const handleDownloadContract = () => {
+    void generateReservationContractPdf(r, tenantInfo, fullBoat);
+  };
+
   return (
     <div className="rsv-modal-overlay" onClick={onClose}>
-      <div className="rsv-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="rsv-modal" role="dialog" aria-modal="true" aria-labelledby="rsv-modal-title" onClick={(e) => e.stopPropagation()}>
         <div className="rsv-modal-hd">
           <div className="rsv-modal-hd-icon">
             <i className="fa-solid fa-calendar-check" />
           </div>
           <div className="rsv-modal-hd-text">
-            <h3>Réservation #{r.id}</h3>
+            <h3 id="rsv-modal-title">{t.modalTitle.replace("{id}", String(r.id))}</h3>
             {r.dateReservation && (
-              <span className="rsv-modal-muted">Réservée le {fmtLong(r.dateReservation)}</span>
+              <span className="rsv-modal-muted">{t.modalBookedOn.replace("{date}", fmtLong(r.dateReservation, t.intlLocale))}</span>
             )}
           </div>
-          <button className="rsv-modal-close" onClick={onClose} aria-label="Fermer">
+          <button className="rsv-modal-close" onClick={onClose} aria-label={t.closeAria}>
             <i className="fa-solid fa-xmark" />
           </button>
         </div>
@@ -375,7 +416,7 @@ function ReservationDetailsModal({
         </div>
 
         <div className="rsv-modal-body">
-          <ModalSection icon="fa-user" title="Locataire">
+          <ModalSection icon="fa-user" title={t.tenantTitle}>
             <div className="rsv-modal-row">
               <div className="rsv-avatar">{initials(r)}</div>
               <div>
@@ -385,7 +426,7 @@ function ReservationDetailsModal({
             </div>
           </ModalSection>
 
-          <ModalSection icon="fa-sailboat" title="Bateau">
+          <ModalSection icon="fa-sailboat" title={t.boatTitle}>
             <div className="rsv-modal-row">
               {mainPhoto && (
                 <img
@@ -403,34 +444,34 @@ function ReservationDetailsModal({
                   <span><i className="fa-solid fa-location-dot" /> {boat.port.nom}, {boat.port.ville}</span>
                 )}
                 {prixJour !== null && (
-                  <span><i className="fa-solid fa-tag" /> {prixJour.toLocaleString("fr-FR")} €/jour</span>
+                  <span><i className="fa-solid fa-tag" /> {prixJour.toLocaleString(t.intlLocale)} {t.perDay}</span>
                 )}
               </div>
             </div>
           </ModalSection>
 
-          <ModalSection icon="fa-calendar-days" title="Dates">
+          <ModalSection icon="fa-calendar-days" title={t.datesTitle}>
             <p>
-              {fmt(r.dateDebut)} → {fmt(r.dateFin)} · {days} jour{days !== 1 ? "s" : ""}
+              {fmt(r.dateDebut, t.intlLocale)} → {fmt(r.dateFin, t.intlLocale)} · {days} {days !== 1 ? t.dayPlural : t.daySingular}
             </p>
           </ModalSection>
 
-          <ModalSection icon="fa-sack-dollar" title="Montant">
+          <ModalSection icon="fa-sack-dollar" title={t.amountTitle}>
             <div className="rsv-modal-total">
-              <span className="rsv-modal-amount">{montantTotal.toLocaleString("fr-FR")} €</span>
+              <span className="rsv-modal-amount">{montantTotal.toLocaleString(t.intlLocale)} €</span>
               {prixJour !== null && (
                 <span className="rsv-modal-muted">
-                  {prixJour.toLocaleString("fr-FR")} € × {days} jour{days !== 1 ? "s" : ""}
+                  {prixJour.toLocaleString(t.intlLocale)} € × {days} {days !== 1 ? t.dayPlural : t.daySingular}
                 </span>
               )}
             </div>
           </ModalSection>
 
-          <ModalSection icon="fa-credit-card" title="Paiement">
+          <ModalSection icon="fa-credit-card" title={t.paymentTitle}>
             {paiementsLoading ? (
-              <p className="rsv-modal-muted">Chargement…</p>
+              <p className="rsv-modal-muted">{t.payLoading}</p>
             ) : paiements.length === 0 ? (
-              <p className="rsv-modal-muted">Aucun paiement enregistré.</p>
+              <p className="rsv-modal-muted">{t.noPayment}</p>
             ) : (
               <div className="rsv-modal-payments">
                 {paiements.map((p) => {
@@ -441,8 +482,8 @@ function ReservationDetailsModal({
                   };
                   return (
                     <div key={p.id} className="rsv-modal-payment-row">
-                      <span className="rsv-modal-payment-date">{fmtLong(p.datePaiement)}</span>
-                      <strong>{Number(p.montant).toLocaleString("fr-FR")} €</strong>
+                      <span className="rsv-modal-payment-date">{fmtLong(p.datePaiement, t.intlLocale)}</span>
+                      <strong>{Number(p.montant).toLocaleString(t.intlLocale)} €</strong>
                       <span className={pst.cls}><i className={`fa-solid ${pst.icon}`} /> {pst.label}</span>
                     </div>
                   );
@@ -451,11 +492,16 @@ function ReservationDetailsModal({
             )}
           </ModalSection>
 
-          {r.idContrat && (
-            <ModalSection icon="fa-file-contract" title="Contrat">
-              <p className="rsv-modal-muted">Contrat #{r.idContrat}</p>
-            </ModalSection>
-          )}
+          <ModalSection icon="fa-file-contract" title={t.documentsTitle}>
+            <div className="rsv-modal-row" style={{ gap: 8 }}>
+              <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadInvoice}>
+                <i className="fa-solid fa-file-pdf" /> {t.invoicePdf}
+              </button>
+              <button type="button" className="btn btn-outline btn-sm" onClick={handleDownloadContract}>
+                <i className="fa-solid fa-file-contract" /> {t.contractPdf}
+              </button>
+            </div>
+          </ModalSection>
         </div>
       </div>
     </div>
