@@ -1864,6 +1864,8 @@ export const en: Dictionary = {
     roleOwner: "Owner",
     roleTenant: "Renter",
     logout: "Log out",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
   },
 
   ownerShell: {

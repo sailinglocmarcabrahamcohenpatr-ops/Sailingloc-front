@@ -1863,6 +1863,8 @@ export const fr = {
     roleOwner: "Propriétaire",
     roleTenant: "Locataire",
     logout: "Déconnexion",
+    openMenu: "Ouvrir le menu",
+    closeMenu: "Fermer le menu",
   },
 
   ownerShell: {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth, useMessages } from "@/shared/lib";
 import { Logo } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
@@ -17,6 +17,11 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
   const { user, logout } = useAuth();
   const { unreadCount } = useMessages();
   const t = useI18n().dict.clientShell;
+  const [navOpen, setNavOpen] = useState(false);
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
 
   const displayName = user?.name ?? "—";
   const isOwner = user?.role === "proprietaire";
@@ -51,6 +56,16 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
           <Link href="/" className="client-space-logo">
             <Logo />
           </Link>
+          <button
+            type="button"
+            className="client-nav-toggle"
+            onClick={() => setNavOpen((v) => !v)}
+            aria-expanded={navOpen}
+            aria-controls="client-space-collapsible"
+            aria-label={navOpen ? t.closeMenu : t.openMenu}
+          >
+            <i className={`fa-solid ${navOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true" />
+          </button>
         </div>
 
         <div className="client-profile-card">
@@ -69,27 +84,29 @@ export default function ClientSpaceShell({ children }: { children: ReactNode }) 
           </div>
         </div>
 
-        <nav className="client-space-nav" aria-label={t.navAria}>
-          {navItems.map((item) => {
-            const badge = item.href === "/profil/messages" ? unreadCount : 0;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`client-nav-box${isActive(item.href, item.exact) ? " active" : ""}`}
-              >
-                <i className={`fa-solid ${item.icon}`} aria-hidden="true" />
-                <span>{item.label}</span>
-                {badge > 0 && <span className="client-nav-badge">{badge}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+        <div id="client-space-collapsible" className={`client-space-collapsible${navOpen ? " open" : ""}`}>
+          <nav className="client-space-nav" aria-label={t.navAria}>
+            {navItems.map((item) => {
+              const badge = item.href === "/profil/messages" ? unreadCount : 0;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`client-nav-box${isActive(item.href, item.exact) ? " active" : ""}`}
+                >
+                  <i className={`fa-solid ${item.icon}`} aria-hidden="true" />
+                  <span>{item.label}</span>
+                  {badge > 0 && <span className="client-nav-badge">{badge}</span>}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <button onClick={handleLogout} className="client-profile-logout">
-          <i className="fa-solid fa-right-from-bracket" aria-hidden="true" />
-          {t.logout}
-        </button>
+          <button onClick={handleLogout} className="client-profile-logout">
+            <i className="fa-solid fa-right-from-bracket" aria-hidden="true" />
+            {t.logout}
+          </button>
+        </div>
       </aside>
 
       <div className="client-space-main">
